@@ -1,15 +1,16 @@
+import type { TranslateProviderConfig } from '@main/providers/TranslateProvider';
 import { availableTranslateConfigs, AvailableTranslateConfigs } from '@main/providers/translate';
 import { TranslateProvider } from '@main/providers';
-import store from '@main/store';
-import logger from '@logger/manager/translate';
+import { BaseManager } from '@main/manager/BaseManager';
 
-export class TranslateManager {
-    private providers: TranslateProvider<
+export class TranslateManager extends BaseManager<
+    TranslateProviderConfig<
         AvailableTranslateConfigs[number]['id'],
         AvailableTranslateConfigs[number]['optionsSchema'],
         ReturnType<AvailableTranslateConfigs[number]['data']>
-    >[] = [];
-
+    >,
+    TranslateProvider<string>
+> {
     private static instance: null | TranslateManager = null;
     static getInstance() {
         if (!TranslateManager.instance) TranslateManager.instance = new TranslateManager();
@@ -17,33 +18,7 @@ export class TranslateManager {
     }
 
     constructor() {
-        this.setupProviders();
-        store.onDidChange('translateProviders', () => this.refreshProviders());
-    }
-
-    private setupProviders() {
-        logger('setup providers');
-        for (const config of availableTranslateConfigs) {
-            this.providers.push(new TranslateProvider<
-                AvailableTranslateConfigs[number]['id'],
-                AvailableTranslateConfigs[number]['optionsSchema'],
-                ReturnType<AvailableTranslateConfigs[number]['data']>
-            >(config));
-        }
-    }
-
-    private destroyProviders() {
-        logger('destroy providers');
-        for (const provider of this.providers) {
-            provider.destroy();
-        }
-        this.providers = [];
-    }
-
-    public refreshProviders() {
-        logger('refresh providers');
-        this.destroyProviders();
-        this.setupProviders();
+        super(availableTranslateConfigs, TranslateProvider);
     }
 
     public translate(key: string, originalText: string, callback: (err: any, res: Ame.Translator.TranslateResult) => void) {

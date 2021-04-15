@@ -50,6 +50,19 @@
                     {{ id }}
                 </a-menu-item>
             </a-sub-menu>
+            <a-sub-menu key="/options/ocr-provider">
+                <template v-slot:title>
+                    <span>
+                        <span>OCR设置</span>
+                    </span>
+                </template>
+                <a-menu-item
+                    v-for="id in ocrProvidersIDs"
+                    :key="`/options/ocr-provider/${id}`"
+                >
+                    {{ id }}
+                </a-menu-item>
+            </a-sub-menu>
         </a-menu>
     </div>
 </template>
@@ -58,7 +71,7 @@
 import type Item from 'ant-design-vue/lib/menu/MenuItem';
 import { useRouter } from 'vue-router';
 import { computed, defineComponent, ref } from 'vue';
-import { getTranslateProvidersIDs, getTTSProvidersIDs } from '@render/remote';
+import { getTranslateProvidersIDs, getTTSProvidersIDs, getOCRProvidersIDs } from '@render/remote';
 
 export default defineComponent({
     setup() {
@@ -80,11 +93,17 @@ export default defineComponent({
             ttsProvidersIDs.value = value;
         });
 
+        const ocrProvidersIDs = ref<string[]>([]);
+        getOCRProvidersIDs().then(value => {
+            ocrProvidersIDs.value = value;
+        });
+
         return {
             onClick,
             selectedKeys,
             translateProvidersIDs,
-            ttsProvidersIDs
+            ttsProvidersIDs,
+            ocrProvidersIDs
         };
     }
 });

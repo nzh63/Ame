@@ -21,8 +21,17 @@
                         placeholder="路径"
                     />
                 </a-form-item>
+                <a-form-item label="提取方法">
+                    <a-select v-model:value="formState.type">
+                        <a-select-option value="textractor">
+                            Textractor
+                        </a-select-option>
+                        <a-select-option value="ocr">OCR</a-select-option>
+                    </a-select>
+                </a-form-item>
                 <a-form-item label="HookCode">
                     <a-input
+                        :disabled="formState.type !== 'textractor'"
                         v-model:value="formState.hookCode"
                         placeholder=""
                     />
@@ -102,6 +111,10 @@ export default defineComponent({
             type: String,
             default: ''
         },
+        type: {
+            type: String,
+            default: 'textractor'
+        },
         hookCode: {
             type: String,
             default: ''
@@ -122,8 +135,9 @@ export default defineComponent({
             formState: {
                 name: '',
                 path: '',
-                hookCode: '',
-                execShell: ''
+                execShell: '',
+                type: '',
+                hookCode: ''
             }
         };
     },
@@ -143,8 +157,8 @@ export default defineComponent({
         async play() {
             this.starting = true;
             try {
-                const { pids } = await startGame(toRaw(this.$props));
-                startExtract(pids, this.hookCode);
+                const { pids } = await startGame(toRaw(this.$props) as Ame.GameSetting);
+                startExtract(pids, this.hookCode, this.type);
             } catch (e) {
                 message.error(`启动失败：${e.message ?? e}`);
             }

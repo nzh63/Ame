@@ -4,9 +4,9 @@ import { handleError } from '@main/remote/handle';
 import { General } from '@main/General';
 import logger from '@logger/remote/extract';
 
-ipcMain.handle('start-extract', handleError(async (event: IpcMainInvokeEvent, arg: { gamePids: number[], hookCode?: string }) => {
+ipcMain.handle('start-extract', handleError(async (event: IpcMainInvokeEvent, arg: { gamePids: number[], hookCode?: string, type?: Ame.Extractor.ExtractorType }) => {
     logger('start-extract %O', arg);
-    const general = new General(arg.gamePids, arg.hookCode);
+    const general = new General(arg.gamePids, arg.hookCode, arg.type);
     logger('create general for pid %o', general.gamePids);
 }));
 

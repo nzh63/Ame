@@ -16,14 +16,16 @@ export class GlobalKeyboardEventHook {
             13, /* WH_KEYBOARD_LL */
             (nCode, wParam, lParam) => {
                 if (nCode >= 0) {
-                    const vkCode = lParam.readInt32LE(0);
-                    if (wParam === 0x0100 /* WM_KEYDOWN */) {
-                        logger('key-down %d', vkCode);
-                        setImmediate(() => this.event.emit('key-down', vkCode));
-                    } else if (wParam === 0x0101 /* WM_KEYUP */) {
-                        logger('key-up %d', vkCode);
-                        setImmediate(() => this.event.emit('key-up', vkCode));
-                    }
+                    setImmediate(() => {
+                        const vkCode = lParam.readInt32LE(0);
+                        if (wParam === 0x0100 /* WM_KEYDOWN */) {
+                            logger('key-down %d', vkCode);
+                            this.event.emit('key-down', vkCode);
+                        } else if (wParam === 0x0101 /* WM_KEYUP */) {
+                            logger('key-up %d', vkCode);
+                            this.event.emit('key-up', vkCode);
+                        }
+                    });
                 }
                 return user32.CallNextHookEx(0, nCode, wParam, lParam);
             },

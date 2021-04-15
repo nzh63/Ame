@@ -13,8 +13,8 @@ export declare interface Hook extends NodeJS.EventEmitter {
     on(event: 'textractor-cli-exit', listener: (code: number | null) => void): this;
     on(event: 'key-down', listener: (code: number) => void): this;
     on(event: 'key-up', listener: (code: number) => void): this;
-    on(event: 'mouse-down', listener: () => void): this;
-    on(event: 'mouse-up', listener: () => void): this;
+    on(event: 'mouse-left-down', listener: () => void): this;
+    on(event: 'mouse-left-up', listener: () => void): this;
     on(event: 'mouse-wheel', listener: () => void): this;
     on(event: string | symbol, listener: (...args: any[]) => void): this;
 
@@ -25,8 +25,8 @@ export declare interface Hook extends NodeJS.EventEmitter {
     once(event: 'textractor-cli-exit', listener: (code: number | null) => void): this;
     once(event: 'key-down', listener: (code: number) => void): this;
     once(event: 'key-up', listener: (code: number) => void): this;
-    once(event: 'mouse-down', listener: () => void): this;
-    once(event: 'mouse-up', listener: () => void): this;
+    once(event: 'mouse-left-down', listener: () => void): this;
+    once(event: 'mouse-left-up', listener: () => void): this;
     once(event: 'mouse-wheel', listener: () => void): this;
     once(event: string | symbol, listener: (...args: any[]) => void): this;
 
@@ -37,8 +37,8 @@ export declare interface Hook extends NodeJS.EventEmitter {
     off(event: 'textractor-cli-exit', listener: (code: number | null) => void): this;
     off(event: 'key-down', listener: (code: number) => void): this;
     off(event: 'key-up', listener: (code: number) => void): this;
-    off(event: 'mouse-down', listener: () => void): this;
-    off(event: 'mouse-up', listener: () => void): this;
+    off(event: 'mouse-left-down', listener: () => void): this;
+    off(event: 'mouse-left-up', listener: () => void): this;
     off(event: 'mouse-wheel', listener: () => void): this;
     off(event: string | symbol, listener: (...args: any[]) => void): this;
 }

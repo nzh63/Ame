@@ -1,27 +1,65 @@
 import type { DModel as M } from 'win32-def';
 import type { Extractor } from '@main/extractor';
-import { gdi32, user32 } from '@main/win32';
+import type { Hook } from '@main/hook';
+import { nativeImage } from 'electron';
 import EventEmitter from 'events';
 import fs from 'fs';
-import { nativeImage } from 'electron';
+import { gdi32, user32 } from '@main/win32';
+import { OCRManager } from '@main/manager/OCRManager';
 import logger from '@logger/extractor/OCRExtractor';
 
 export class OCRExtractor extends EventEmitter implements Extractor {
-    constructor() {
+    private screenCapturer: ScreenCapturer;
+    private laseImage?: nativeImage;
+    private hookCallback: () => void;
+    private text_: Ame.Extractor.Result = {};
+    constructor(
+        public gamePids: number[],
+        public hook: Hook,
+        private ocrManager: OCRManager = OCRManager.getInstance()
+    ) {
         super();
-        throw new Error('Not implemented.');
+        this.screenCapturer = new ScreenCapturer(this.gamePids);
+        this.hookCallback = () => {
+            setTimeout(() => {
+                this.triggerRecognize();
+            }, 500);
+        };
+        this.hook.on('mouse-left-down', this.hookCallback);
+        this.hook.registerKeyboardAndMouseHook();
+    }
+
+    private triggerRecognize() {
+        debugger
+        this.laseImage = this.screenCapturer.capture();
+        this.ocrManager.recognize(this.laseImage, (e, res) => {
+            if (this.laseImage !== res.img) return;
+            let text: string;
+            if (e) {
+                text = e.message ?? JSON.stringify(e);
+            } else {
+                text = res.text;
+            }
+            const key = `ocr-${res.providerId}`;
+            this.text_[key] = text;
+            this.emit(`update:${key}`, { key, text });
+            this.emit('update:any', { key, text });
+        });
     }
 
     public get text(): Readonly<Ame.Extractor.Result> {
-        throw new Error('Not implemented.');
+        return this.text_;
     }
 
     public destroy() {
-        throw new Error('Not implemented.');
+        this.screenCapturer.destroy();
+        this.laseImage = undefined;
+        this.hook.off('mouse-left-down', this.hookCallback);
+        this.hook.unregisterKeyboardAndMouseHook();
     }
 }
 
-export class ScreenCapturer {
+class ScreenCapturer {
     private hwnd?: M.HWND;
     constructor(
         public gamePids: number[],
@@ -48,7 +86,8 @@ export class ScreenCapturer {
     }
 
     public capture() {
-        if (!this.hwnd) throw new Error('window not found');
+        if (!this.hwnd) this.findWindow();
+        if (!this.hwnd) return nativeImage.createEmpty();
 
         const rect = Buffer.alloc(4 * 4, 0);
         user32.GetWindowRect(this.hwnd, rect);
@@ -71,7 +110,8 @@ export class ScreenCapturer {
         gdi32.DeleteObject(saveBitmap);
 
         const img = nativeImage.createFromBitmap(buf, { width, height });
-        fs.writeFile('./a.png', img.toPNG(), () => { });
         return img;
     }
+
+    public destroy() { }
 }

@@ -19,10 +19,8 @@ declare namespace Electron {
         invoke(channel: 'unwatch-original', key: Ame.Extractor.Key): Promise<Ame.IpcRet<void>>;
         invoke(channel: 'watch-translate', key: Ame.Extractor.Key): Promise<Ame.IpcRet<void>>;
         invoke(channel: 'unwatch-translate', key: Ame.Extractor.Key): Promise<Ame.IpcRet<void>>;
-        invoke(channel: 'get-translate-providers-ids'): Promise<Ame.IpcRet<string[]>>;
-        invoke(channel: 'get-translate-provider-options-json-schema', id: string): Promise<Ame.IpcRet<import('@main/schema').JSONSchema>>;
-        invoke(channel: 'get-tts-providers-ids'): Promise<Ame.IpcRet<string[]>>;
-        invoke(channel: 'get-tts-provider-options-json-schema', id: string): Promise<Ame.IpcRet<import('@main/schema').JSONSchema>>;
+        invoke<T extends 'translate' | 'tts' | 'ocr'>(channel: `get-${T}-providers-ids`): Promise<Ame.IpcRet<string[]>>;
+        invoke<T extends 'translate' | 'tts' | 'ocr'>(channel: `get-${T}-provider-options-json-schema`, id: string): Promise<Ame.IpcRet<import('@main/schema').JSONSchema>>;
         on(channel: 'original-watch-list-update', listener: (event: IpcRendererEvent, arg: Ame.Translator.OriginalText) => void): void;
         on(channel: 'translate-watch-list-update', listener: (event: IpcRendererEvent, arg: Ame.Translator.TranslateResult) => void): void;
     }
