@@ -2,16 +2,21 @@ import type { DModel as M } from 'win32-def';
 import type { Extractor } from '@main/extractor';
 import type { Hook } from '@main/hook';
 import { nativeImage } from 'electron';
+import { promisify } from 'util';
 import EventEmitter from 'events';
-import fs from 'fs';
 import { gdi32, user32 } from '@main/win32';
 import { OCRManager } from '@main/manager/OCRManager';
 import logger from '@logger/extractor/OCRExtractor';
 
 export class OCRExtractor extends EventEmitter implements Extractor {
     private screenCapturer: ScreenCapturer;
-    private laseImage?: nativeImage;
-    private hookCallback: () => void;
+    private lastImage?: nativeImage;
+    private lastCropImage?: nativeImage;
+    private shouldCapture = true;
+    private mouseHookCallback: () => void;
+    private minimizeHookCallback: () => void;
+    private restoreHookCallback: () => void;
+    public rect?: Electron.Rectangle;
     private text_: Ame.Extractor.Result = {};
     constructor(
         public gamePids: number[],
@@ -20,20 +25,35 @@ export class OCRExtractor extends EventEmitter implements Extractor {
     ) {
         super();
         this.screenCapturer = new ScreenCapturer(this.gamePids);
-        this.hookCallback = () => {
-            setTimeout(() => {
-                this.triggerRecognize();
-            }, 500);
+        this.mouseHookCallback = () => {
+            if (this.shouldCapture) {
+                setTimeout(() => {
+                    logger('triggerRecognize');
+                    this.triggerRecognize();
+                }, 500);
+            }
         };
-        this.hook.on('mouse-left-down', this.hookCallback);
+        this.hook.on('mouse-left-down', this.mouseHookCallback);
+        this.minimizeHookCallback = () => { this.shouldCapture = false; };
+        this.hook.on('window-minimize', this.minimizeHookCallback);
+        this.restoreHookCallback = () => { this.shouldCapture = true; };
+        this.hook.on('window-restore', this.restoreHookCallback);
         this.hook.registerKeyboardAndMouseHook();
     }
 
-    private triggerRecognize() {
-        debugger
-        this.laseImage = this.screenCapturer.capture();
-        this.ocrManager.recognize(this.laseImage, (e, res) => {
-            if (this.laseImage !== res.img) return;
+    private async triggerRecognize() {
+        this.lastImage = await this.screenCapturer.capture();
+        if (!this.rect) {
+            this.rect = {
+                x: Math.round(this.lastImage.getSize().width * 0.1),
+                y: Math.round(this.lastImage.getSize().height * 0.6),
+                width: Math.round(this.lastImage.getSize().width * 0.8),
+                height: Math.round(this.lastImage.getSize().height * 0.2)
+            };
+        }
+        this.lastCropImage = this.lastImage.crop(this.rect);
+        this.ocrManager.recognize(this.lastCropImage, (e, res) => {
+            if (this.lastCropImage !== res.img) return;
             let text: string;
             if (e) {
                 text = e.message ?? JSON.stringify(e);
@@ -41,9 +61,11 @@ export class OCRExtractor extends EventEmitter implements Extractor {
                 text = res.text;
             }
             const key = `ocr-${res.providerId}`;
-            this.text_[key] = text;
-            this.emit(`update:${key}`, { key, text });
-            this.emit('update:any', { key, text });
+            if (text !== this.text_[key]) {
+                this.text_[key] = text;
+                this.emit(`update:${key}`, { key, text });
+                this.emit('update:any', { key, text });
+            }
         });
     }
 
@@ -51,10 +73,14 @@ export class OCRExtractor extends EventEmitter implements Extractor {
         return this.text_;
     }
 
+    public getLastCapture() {
+        return this.lastImage ?? nativeImage.createEmpty();
+    }
+
     public destroy() {
         this.screenCapturer.destroy();
-        this.laseImage = undefined;
-        this.hook.off('mouse-left-down', this.hookCallback);
+        this.lastImage = undefined;
+        this.hook.off('mouse-left-down', this.mouseHookCallback);
         this.hook.unregisterKeyboardAndMouseHook();
     }
 }
@@ -67,7 +93,6 @@ class ScreenCapturer {
     ) {
         if (hwnd) this.hwnd = hwnd;
         else this.findWindow();
-        logger(this.hwnd);
     }
 
     private findWindow() {
@@ -85,7 +110,7 @@ class ScreenCapturer {
         delete ret.callbackEntry;
     }
 
-    public capture() {
+    public async capture() {
         if (!this.hwnd) this.findWindow();
         if (!this.hwnd) return nativeImage.createEmpty();
 
@@ -102,9 +127,9 @@ class ScreenCapturer {
         const saveDC = gdi32.CreateCompatibleDC(hwndDC);
         const saveBitmap = gdi32.CreateCompatibleBitmap(hwndDC, width, height);
         gdi32.SelectObject(saveDC, saveBitmap);
-        user32.PrintWindow(this.hwnd, saveDC, 0x00000001 | 0x00000002 /* PW_CLIENTONLY | PW_RENDERFULLCONTENT */);
+        await promisify(user32.PrintWindow.async)(this.hwnd, saveDC, 0x00000001 | 0x00000002 /* PW_CLIENTONLY | PW_RENDERFULLCONTENT */);
         const buf = Buffer.alloc(width * height * 4, 0);
-        gdi32.GetBitmapBits(saveBitmap, width * height * 4, buf);
+        promisify(gdi32.GetBitmapBits.async)(saveBitmap, width * height * 4, buf);
         gdi32.DeleteObject(saveBitmap);
         user32.ReleaseDC(this.hwnd, hwndDC);
         gdi32.DeleteObject(saveBitmap);

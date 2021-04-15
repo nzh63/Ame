@@ -14,7 +14,7 @@ export class General {
     private static instances: General[] = [];
 
     private hook: Hook;
-    private extractor: Extractor;
+    public extractor: Extractor;
 
     private translatorWindow: TranslatorWindow;
 
@@ -24,7 +24,7 @@ export class General {
     constructor(
         public gamePids: number[],
         public hookCode = '',
-        private type: Ame.Extractor.ExtractorType = 'textractor',
+        public type: Ame.Extractor.ExtractorType = 'textractor',
         public translateManager: TranslateManager = TranslateManager.getInstance(),
         public ttsManager: TTSManager = TTSManager.getInstance()
     ) {

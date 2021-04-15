@@ -93,9 +93,11 @@ export class Textractor extends EventEmitter implements Extractor {
 
     private onUpdate(key: string, text: string) {
         logger('Textractor update { %s: %s }', key, text);
-        this.text_[key] = text;
-        this.emit(`update:${key}`, { key, text });
-        this.emit('update:any', { key, text });
+        if (text !== this.text_[key]) {
+            this.text_[key] = text;
+            this.emit(`update:${key}`, { key, text });
+            this.emit('update:any', { key, text });
+        }
     }
 
     public get text(): Readonly<Ame.Extractor.Result> {

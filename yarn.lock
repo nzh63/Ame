@@ -1803,6 +1803,13 @@ electron-debug@^3.2.0:
     electron-is-dev "^1.1.0"
     electron-localshortcut "^3.1.0"
 
+electron-fetch@^1.7.3:
+  version "1.7.3"
+  resolved "https://registry.npm.taobao.org/electron-fetch/download/electron-fetch-1.7.3.tgz#06cf363d7f64073ec00a37e9949ec9d29ce6b08a"
+  integrity sha1-Bs82PX9kBz7ACjfplJ7J0pzmsIo=
+  dependencies:
+    encoding "^0.1.13"
+
 electron-is-accelerator@^0.1.0:
   version "0.1.2"
   resolved "https://registry.npm.taobao.org/electron-is-accelerator/download/electron-is-accelerator-0.1.2.tgz#509e510c26a56b55e17f863a4b04e111846ab27b"
@@ -1906,6 +1913,13 @@ encodeurl@^1.0.2:
   version "1.0.2"
   resolved "https://registry.npm.taobao.org/encodeurl/download/encodeurl-1.0.2.tgz#ad3ff4c86ec2d029322f5a02c3a9a606c95b3f59"
   integrity sha1-rT/0yG7C0CkyL1oCw6mmBslbP1k=
+
+encoding@^0.1.13:
+  version "0.1.13"
+  resolved "https://registry.npm.taobao.org/encoding/download/encoding-0.1.13.tgz#56574afdd791f54a8e9b2785c0582a2d26210fa9"
+  integrity sha1-VldK/deR9UqOmyeFwFgqLSYhD6k=
+  dependencies:
+    iconv-lite "^0.6.2"
 
 end-of-stream@^1.1.0:
   version "1.4.4"
