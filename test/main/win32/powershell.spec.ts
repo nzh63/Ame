@@ -10,9 +10,8 @@ describe('powershell', function() {
     });
 
     it('execPowerShell', async function() {
-        const ret = await execPowerShell('Get-Help');
-        expect(ret.stdout).to.be.a('string');
+        const ret = await execPowerShell('Write-Output foo');
+        expect(ret.stdout).to.be.a('string').and.not.to.be.empty;
         expect(ret.stderr).to.be.a('string');
-        expect(ret.stdout).not.to.be.empty;
     });
 });
