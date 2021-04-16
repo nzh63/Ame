@@ -38,7 +38,7 @@ export default defineOCRProvider({
         const json = await fetch(`https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic?access_token=${this.data.accessToken}`, {
             method: 'POST',
             body: querystring.stringify({
-                image: img.toPNG().toString('base64'),
+                image: (await img.png().toBuffer()).toString('base64'),
                 language_type: 'JAP'
             })
         }).then(res => res.json());

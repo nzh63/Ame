@@ -1,3 +1,4 @@
+import type sharp from 'sharp';
 import type { OCRExtractor } from '@main/extractor';
 import { ipcMain, IpcMainInvokeEvent, BrowserWindow } from 'electron';
 import { TranslatorWindow } from '@main/TranslatorWindow';
@@ -38,13 +39,13 @@ ipcMain.handle('switch-extractor-type', handleError((event: IpcMainInvokeEvent, 
     }
 }));
 
-ipcMain.handle('get-screen-capture', handleError((event: IpcMainInvokeEvent) => {
+ipcMain.handle('get-screen-capture', handleError(async (event: IpcMainInvokeEvent) => {
     const window = BrowserWindow.fromWebContents(event.sender);
     if (window && window instanceof TranslatorWindow) {
         if (window.general.type !== 'ocr') {
             throw new Error('Not in OCR mode');
         } else {
-            return (window.general.extractor as OCRExtractor).getLastCapture().toPNG();
+            return (await (window.general.extractor as OCRExtractor).getLastCapture()).png().toBuffer();
         }
     } else {
         throw new Error('You can only get extract text from a TranslatorWindow');
@@ -57,21 +58,21 @@ ipcMain.handle('get-screen-capture-crop-rect', handleError((event: IpcMainInvoke
         if (window.general.type !== 'ocr') {
             throw new Error('Not in OCR mode');
         } else {
-            return (window.general.extractor as OCRExtractor).rect ?? { x: 0, y: 0, width: 100, height: 100 };
+            return (window.general.extractor as OCRExtractor).rect;
         }
     } else {
         throw new Error('You can only get extract text from a TranslatorWindow');
     }
 }));
 
-ipcMain.handle('set-screen-capture-crop-rect', handleError((event: IpcMainInvokeEvent, rect: Electron.Rectangle) => {
+ipcMain.handle('set-screen-capture-crop-rect', handleError((event: IpcMainInvokeEvent, rect: sharp.Region) => {
     const window = BrowserWindow.fromWebContents(event.sender);
     if (window && window instanceof TranslatorWindow) {
         if (window.general.type !== 'ocr') {
             throw new Error('Not in OCR mode');
         } else {
             for (const i in rect) {
-                rect[i as keyof Electron.Rectangle] = Math.round(rect[i as keyof Electron.Rectangle]);
+                rect[i as keyof sharp.Region] = Math.round(rect[i as keyof sharp.Region]);
             }
             (window.general.extractor as OCRExtractor).rect = rect;
         }

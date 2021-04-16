@@ -1,6 +1,6 @@
 <template>
     <div>
-        <a-form :label-col="{ span: 6 }" :wrapper-col="{ span: 18 }">
+        <a-form :label-col="{ span: 3 }" :wrapper-col="{ span: 21 }">
             <a-form-item label="提取方法">
                 <a-select v-model:value="type">
                     <a-select-option value="textractor">
@@ -11,16 +11,32 @@
             </a-form-item>
         </a-form>
         <div v-if="type === 'textractor'" class="screen-wrapper">
+            <a-typography-title :level="4">
+                滑动滑块调整识别区域
+            </a-typography-title>
+            <div>
+                <div class="left"></div>
+                <div class="center">
+                    <a-slider
+                        range
+                        :tipFormatter="null"
+                        :max="size[0]"
+                        v-model:value="width"
+                    />
+                </div>
+                <div class="right"></div>
+            </div>
             <div>
                 <div class="left">
                     <a-slider
                         range
                         vertical
+                        :tipFormatter="null"
                         :max="size[1]"
                         v-model:value="height"
                     />
                 </div>
-                <div class="right" style="position: relative">
+                <div class="center" style="position: relative">
                     <div
                         :style="{
                             position: 'absolute',
@@ -35,12 +51,27 @@
                     ></div>
                     <img v-if="screen" :src="screen" style="width: 100%" />
                 </div>
+                <div class="right">
+                    <a-slider
+                        range
+                        vertical
+                        :tipFormatter="null"
+                        :max="size[1]"
+                        v-model:value="height"
+                    />
+                </div>
             </div>
             <div>
                 <div class="left"></div>
-                <div class="right">
-                    <a-slider range :max="size[0]" v-model:value="width" />
+                <div class="center">
+                    <a-slider
+                        range
+                        :tipFormatter="null"
+                        :max="size[0]"
+                        v-model:value="width"
+                    />
                 </div>
+                <div class="right"></div>
             </div>
         </div>
     </div>
@@ -76,20 +107,26 @@ export default defineComponent({
                 size.value[1] = img.getSize().height;
             })
             .then(() => getScreenCaptureCropRect())
+            .then(v => (v ?? {
+                left: 0,
+                top: 0,
+                width: size.value[0],
+                height: size.value[1]
+            }))
             .then(v => {
-                width.value[0] = v.x;
-                width.value[1] = v.x + v.width;
-                height.value[0] = size.value[1] - v.y - v.height;
-                height.value[1] = size.value[1] - v.y;
+                width.value[0] = v.left;
+                width.value[1] = v.left + v.width;
+                height.value[0] = size.value[1] - v.top - v.height;
+                height.value[1] = size.value[1] - v.top;
                 ready = true;
             });
 
         const update = () => {
             if (!ready) return;
             setScreenCaptureCropRect({
-                x: width.value[0],
+                left: width.value[0],
                 width: width.value[1] - width.value[0],
-                y: size.value[1] - height.value[1],
+                top: size.value[1] - height.value[1],
                 height: height.value[1] - height.value[0]
             });
         };
@@ -111,15 +148,17 @@ export default defineComponent({
 .screen-wrapper {
     display: flex;
     flex-direction: column;
+    max-width: 400px;
 }
 .screen-wrapper > div {
     display: flex;
     flex-direction: row;
 }
-.screen-wrapper .left {
+.screen-wrapper .left,
+.screen-wrapper .right {
     width: 40px;
 }
-.screen-wrapper .right {
+.screen-wrapper .center {
     flex-grow: 1;
 }
 .screen-wrapper img {

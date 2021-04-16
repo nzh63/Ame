@@ -1,4 +1,4 @@
-import type { nativeImage } from 'electron';
+import type sharp from 'sharp';
 import type { JSONSchema, Schema, SchemaDescription, SchemaType } from '@main/schema';
 import { BaseProvider } from './BaseProvider';
 import logger from '@logger/providers/ocrProvider';
@@ -14,7 +14,7 @@ export type OCRProviderOptions<ID extends string, S extends Schema, D> = {
 export type OCRProviderMethods<ID extends string, S extends Schema, D> = {
     init?(this: OCRProvider<ID, S, D>): void;
     isReady(this: OCRProvider<ID, S, D>): boolean;
-    recognize(this: OCRProvider<ID, S, D>, img: nativeImage): Promise<string> | string;
+    recognize(this: OCRProvider<ID, S, D>, img: sharp.Sharp): Promise<string> | string;
     destroy?(this: OCRProvider<ID, S, D>): void;
     getOptionsJSONSchema?(this: OCRProvider<ID, S, D>): JSONSchema;
 };
@@ -22,8 +22,8 @@ export type OCRProviderMethods<ID extends string, S extends Schema, D> = {
 export type OCRProviderConfig<ID extends string, S extends Schema, D> = OCRProviderOptions<ID, S, D> & OCRProviderMethods<ID, S, D> & { providersStoreKey: 'ocrProviders' };
 
 export class OCRProvider<ID extends string, S extends Schema = any, D = unknown> extends BaseProvider<ID, S, D, OCRProviderConfig<ID, S, D>> {
-    public async recognize(this: OCRProvider<ID, S, D>, img: nativeImage): Promise<string> {
-        logger(`${this.id} recognize %O`, img.getSize());
+    public async recognize(this: OCRProvider<ID, S, D>, img: sharp.Sharp): Promise<string> {
+        logger(`${this.id} recognize`);
         try {
             return await this.config.recognize.call(this, img);
         } catch (e) {

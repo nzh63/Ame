@@ -1,3 +1,4 @@
+import sharp from 'sharp';
 import { handleError } from '@render/remote/handle';
 
 const electron = require('electron');
@@ -26,6 +27,6 @@ export function getScreenCaptureCropRect() {
     return handleError(electron.ipcRenderer.invoke('get-screen-capture-crop-rect'));
 }
 
-export function setScreenCaptureCropRect(rect: Electron.Rectangle) {
+export function setScreenCaptureCropRect(rect: sharp.Region) {
     return handleError(electron.ipcRenderer.invoke('set-screen-capture-crop-rect', rect));
 }

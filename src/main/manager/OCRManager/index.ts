@@ -1,10 +1,10 @@
-import type { nativeImage } from 'electron';
+import type sharp from 'sharp';
 import type { OCRProviderConfig } from '@main/providers/OCRProvider';
 import { availableOCRConfigs, AvailableOCRConfigs } from '@main/providers/ocr';
 import { OCRProvider } from '@main/providers';
 import { BaseManager } from '@main/manager/BaseManager';
 
-type OCRCallback = (err: any, res: { providerId: string, img: nativeImage, text: string }) => void;
+type OCRCallback = (err: any, res: { providerId: string, img: sharp.Sharp, text: string }) => void;
 
 export class OCRManager extends BaseManager<
     OCRProviderConfig<
@@ -24,7 +24,7 @@ export class OCRManager extends BaseManager<
         super(availableOCRConfigs, OCRProvider);
     }
 
-    public recognize(img: nativeImage, callback: OCRCallback) {
+    public recognize(img: sharp.Sharp, callback: OCRCallback) {
         for (const provider of this.providers) {
             if (!provider.isReady()) continue;
             provider.recognize(img)

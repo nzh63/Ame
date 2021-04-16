@@ -1,22 +1,22 @@
 import type { DModel as M } from 'win32-def';
 import type { Extractor } from '@main/extractor';
 import type { Hook } from '@main/hook';
-import { nativeImage } from 'electron';
 import { promisify } from 'util';
 import EventEmitter from 'events';
+import sharp from 'sharp';
 import { gdi32, user32 } from '@main/win32';
 import { OCRManager } from '@main/manager/OCRManager';
 import logger from '@logger/extractor/OCRExtractor';
 
 export class OCRExtractor extends EventEmitter implements Extractor {
     private screenCapturer: ScreenCapturer;
-    private lastImage?: nativeImage;
-    private lastCropImage?: nativeImage;
+    private lastImage?: sharp.Sharp;
+    private lastCropImage?: sharp.Sharp;
     private shouldCapture = true;
     private mouseHookCallback: () => void;
     private minimizeHookCallback: () => void;
     private restoreHookCallback: () => void;
-    public rect?: Electron.Rectangle;
+    public rect?: sharp.Region;
     private text_: Ame.Extractor.Result = {};
     constructor(
         public gamePids: number[],
@@ -43,15 +43,7 @@ export class OCRExtractor extends EventEmitter implements Extractor {
 
     private async triggerRecognize() {
         this.lastImage = await this.screenCapturer.capture();
-        if (!this.rect) {
-            this.rect = {
-                x: Math.round(this.lastImage.getSize().width * 0.1),
-                y: Math.round(this.lastImage.getSize().height * 0.6),
-                width: Math.round(this.lastImage.getSize().width * 0.8),
-                height: Math.round(this.lastImage.getSize().height * 0.2)
-            };
-        }
-        this.lastCropImage = this.lastImage.crop(this.rect);
+        this.lastCropImage = this.rect ? this.lastImage.clone().extract(this.rect) : this.lastImage.clone();
         this.ocrManager.recognize(this.lastCropImage, (e, res) => {
             if (this.lastCropImage !== res.img) return;
             let text: string;
@@ -73,8 +65,8 @@ export class OCRExtractor extends EventEmitter implements Extractor {
         return this.text_;
     }
 
-    public getLastCapture() {
-        return this.lastImage ?? nativeImage.createEmpty();
+    public async getLastCapture(): Promise<sharp.Sharp> {
+        return this.lastImage ?? this.screenCapturer.capture();
     }
 
     public destroy() {
@@ -112,7 +104,7 @@ class ScreenCapturer {
 
     public async capture() {
         if (!this.hwnd) this.findWindow();
-        if (!this.hwnd) return nativeImage.createEmpty();
+        if (!this.hwnd) return sharp(Buffer.from(''));
 
         const rect = Buffer.alloc(4 * 4, 0);
         user32.GetWindowRect(this.hwnd, rect);
@@ -134,7 +126,7 @@ class ScreenCapturer {
         user32.ReleaseDC(this.hwnd, hwndDC);
         gdi32.DeleteObject(saveBitmap);
 
-        const img = nativeImage.createFromBitmap(buf, { width, height });
+        const img = sharp(buf, { raw: { width, height, channels: 4 } });
         return img;
     }
 

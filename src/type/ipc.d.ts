@@ -7,8 +7,8 @@ declare namespace Electron {
         handle(channel: 'get-extractor-type', listener: (event: IpcMainInvokeEvent) => Promise<Ame.IpcRet<string>>): void;
         handle(channel: 'switch-extractor-type', listener: (event: IpcMainInvokeEvent) => Promise<Ame.IpcRet<void>>): void;
         handle(channel: 'get-screen-capture', listener: (event: IpcMainInvokeEvent) => Promise<Ame.IpcRet<Buffer>>): void;
-        handle(channel: 'get-screen-capture-crop-rect', listener: (event: IpcMainInvokeEvent) => Promise<Ame.IpcRet<Electron.Rectangle>>): void;
-        handle(channel: 'set-screen-capture-crop-rect', listener: (event: IpcMainInvokeEvent, rect: Electron.Rectangle) => Promise<Ame.IpcRet<void>>): void;
+        handle(channel: 'get-screen-capture-crop-rect', listener: (event: IpcMainInvokeEvent) => Promise<Ame.IpcRet<import('sharp').Region | undefined>>): void;
+        handle(channel: 'set-screen-capture-crop-rect', listener: (event: IpcMainInvokeEvent, rect: sharp.Region) => Promise<Ame.IpcRet<void>>): void;
         handle(channel: 'watch-original', listener: (event: IpcMainInvokeEvent, key: Ame.Extractor.Key) => Ame.IpcRet<void>): void;
         handle(channel: 'unwatch-original', listener: (event: IpcMainInvokeEvent, key: Ame.Extractor.Key) => Ame.IpcRet<void>): void;
         handle(channel: 'watch-translate', listener: (event: IpcMainInvokeEvent, key: Ame.Extractor.Key) => Ame.IpcRet<void>): void;
@@ -23,8 +23,8 @@ declare namespace Electron {
         invoke(channel: 'get-extractor-type'): Promise<Ame.IpcRet<string>>;
         invoke(channel: 'switch-extractor-type', type: Ame.Extractor.ExtractorType): Promise<Ame.IpcRet<void>>;
         invoke(channel: 'get-screen-capture'): Promise<Ame.IpcRet<Buffer>>;
-        invoke(channel: 'get-screen-capture-crop-rect'): Promise<Ame.IpcRet<Electron.Rectangle>>;
-        invoke(channel: 'get-screen-capture-crop-rect', rect: Electron.Rectangle): Promise<Ame.IpcRet<void>>;
+        invoke(channel: 'get-screen-capture-crop-rect'): Promise<Ame.IpcRet<import('sharp').Region | undefined>>;
+        invoke(channel: 'set-screen-capture-crop-rect', rect: sharp.Region): Promise<Ame.IpcRet<void>>;
         invoke(channel: 'watch-original', key: Ame.Extractor.Key): Promise<Ame.IpcRet<void>>;
         invoke(channel: 'unwatch-original', key: Ame.Extractor.Key): Promise<Ame.IpcRet<void>>;
         invoke(channel: 'watch-translate', key: Ame.Extractor.Key): Promise<Ame.IpcRet<void>>;
