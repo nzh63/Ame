@@ -8,14 +8,27 @@ export default defineOCRProvider({
         enable: Boolean,
         apiConfig: {
             apiKey: [String, null] as const,
-            secretKey: [String, null] as const
+            secretKey: [String, null] as const,
+            language: {
+                type: String,
+                enum: ['CHN_ENG', 'ENG', 'JAP', 'KOR', 'FRE', 'SPA', 'POR', 'GER', 'ITA', 'RUS',]
+            }
         }
     },
     defaultOptions: {
         enable: true,
         apiConfig: {
             apiKey: null,
-            secretKey: null
+            secretKey: null,
+            language: 'JAP'
+        }
+    },
+    optionsDescription: {
+        enable: '启用',
+        apiConfig: {
+            apiKey: { readableName: 'APP ID', description: '可在 https://console.bce.baidu.com/ai/#/ai/ocr/app/list 获取' },
+            secretKey: { readableName: 'Secret Key', description: '可在 https://console.bce.baidu.com/ai/#/ai/ocr/app/list 获取' },
+            language: '识别语言类型',
         }
     },
     data() {
@@ -39,7 +52,7 @@ export default defineOCRProvider({
             method: 'POST',
             body: querystring.stringify({
                 image: (await img.png().toBuffer()).toString('base64'),
-                language_type: 'JAP'
+                language_type: this.options.apiConfig.language
             })
         }).then(res => res.json());
         if (!json.words_result) throw json;
