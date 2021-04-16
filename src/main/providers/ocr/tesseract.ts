@@ -1,7 +1,7 @@
 import path from 'path';
 import { Worker } from 'worker_threads';
 import { defineOCRProvider } from '@main/providers/ocr';
-import { __assets, __workers } from '@main/paths';
+import { __workers } from '@main/paths';
 import logger from '@logger/provider/ocr/tesseract'
 
 export default defineOCRProvider({
@@ -14,7 +14,7 @@ export default defineOCRProvider({
         }
     },
     defaultOptions: {
-        enable: true,
+        enable: false,
         language: 'jpn'
     },
     optionsDescription: {
