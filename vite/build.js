@@ -63,7 +63,7 @@ async function downloadTextractor(version = '4.16.0') {
     await pipeline(
         got.stream(url)
             .on('downloadProgress', progress => {
-                process.stdout.write(`${Math.round(progress.percent * 100)}% ${progress.transferred} / ${progress.total} bytes\r`);
+                process.stderr.write(` ${Math.round(progress.percent * 100)}% ${progress.transferred} / ${progress.total} bytes\r`);
             }),
         fs.createWriteStream(path.join(tmp, './Textractor.zip'))
     );
@@ -75,8 +75,34 @@ async function downloadTextractor(version = '4.16.0') {
     await fsPromise.rmdir(tmp, { recursive: true });
 }
 
-function downloadDependencies() {
-    return downloadTextractor();
+async function downloadLanguageData(version = '4.16.0') {
+    const files = [
+        'jpn.traineddata'
+    ];
+    try {
+        await Promise.all(files.map(i => fsPromise.stat(path.join(__dirname, '../assets/lang-data/', i))));
+        return;
+    } catch (e) { }
+
+    const pipeline = util.promisify(stream.pipeline);
+    for (const file of files) {
+        const dstPath = path.join(__dirname, '../assets/lang-data/', file);
+        fs.mkdirSync(path.dirname(dstPath), { recursive: true });
+        const url = `https://github.com/tesseract-ocr/tessdata_fast/raw/master/${file}`;
+        console.log('downloading', url);
+        await pipeline(
+            got.stream(url)
+                .on('downloadProgress', progress => {
+                    process.stderr.write(` ${Math.round(progress.percent * 100)}% ${progress.transferred} / ${progress.total} bytes\r`);
+                }),
+            fs.createWriteStream(dstPath)
+        );
+    }
+}
+
+async function downloadDependencies() {
+    await downloadTextractor();
+    await downloadLanguageData();
 }
 
 async function buildRender(mode = 'production') {

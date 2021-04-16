@@ -37,12 +37,6 @@
                 :label-col="{ span: 4 }"
                 :wrapper-col="{ span: 14 }"
             >
-                <a-form-item label="HookCode">
-                    <a-input
-                        v-model:value="formState.hookCode"
-                        placeholder="可以留空"
-                    />
-                </a-form-item>
                 <a-form-item label="区域转换器">
                     <a-select
                         v-model:value="formState.localeChanger"
@@ -63,6 +57,21 @@
                         class="exec-shell"
                         :disabled="formState.localeChanger !== '自定义启动参数'"
                         v-model:value="formState.execShell"
+                    />
+                </a-form-item>
+                <a-form-item label="提取方法">
+                    <a-select v-model:value="formState.type">
+                        <a-select-option value="textractor">
+                            Textractor
+                        </a-select-option>
+                        <a-select-option value="ocr">OCR</a-select-option>
+                    </a-select>
+                </a-form-item>
+                <a-form-item label="HookCode">
+                    <a-input
+                        :disabled="formState.type !== 'textractor'"
+                        v-model:value="formState.hookCode"
+                        placeholder="可以留空"
                     />
                 </a-form-item>
                 <a-form-item
@@ -128,6 +137,7 @@ export default defineComponent({
             formState: {
                 name: '',
                 path: '',
+                type: 'textractor' as Ame.Extractor.ExtractorType,
                 hookCode: '',
                 localeChanger: '不转换',
                 execShell: ''

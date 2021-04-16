@@ -7,8 +7,9 @@ export const gamesStoreJSONSchema = {
         properties: {
             name: { type: 'string' },
             path: { type: 'string' },
-            hookCode: { type: 'string' },
-            execShell: { type: 'string' }
+            execShell: { type: 'string' },
+            type: { type: 'string', enum: ['textractor', 'ocr'], default: 'textractor' },
+            hookCode: { type: 'string' }
         }
     },
     default: []

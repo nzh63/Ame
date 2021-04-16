@@ -1,4 +1,4 @@
-import { ttsManagerOptionsSchema, ttsManagerOptionsDefaultValue, TTSManagerOptions } from '@main/manager/TTSManagerOptions';
+import { ttsManagerOptionsSchema, ttsManagerOptionsDefaultValue, TTSManagerOptions } from '@main/manager/TTSManager/options';
 import { toJSONSchema } from '@main/schema';
 import logger from '@logger/store/ttsManager';
 

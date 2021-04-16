@@ -5,8 +5,9 @@
             size="small"
             @change="navigation"
         >
-            <a-radio-button value="/translator">translator</a-radio-button>
-            <a-radio-button value="/hook-select">hook-select</a-radio-button>
+            <a-radio-button value="/translator">翻译</a-radio-button>
+            <a-radio-button value="/hook-select">文本选择</a-radio-button>
+            <a-radio-button value="/extract-setting">提取设置</a-radio-button>
         </a-radio-group>
         <span class="drag"></span>
         <a-radio-group value="null" size="small">

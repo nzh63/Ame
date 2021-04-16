@@ -3,7 +3,7 @@ import { Hook } from '@main/hook';
 import { TranslatorWindow } from '@main/TranslatorWindow';
 import { createMainWindow, mainWindow } from '@main/index';
 import { TranslateManager, TTSManager } from '@main/manager';
-import { Extractor, Textractor } from '@main/extractor';
+import { Extractor, OCRExtractor, Textractor } from '@main/extractor';
 import logger from '@logger/general';
 
 export type OriginalWatchCallback = (arg: Ame.Translator.OriginalText) => void;
@@ -14,27 +14,27 @@ export class General {
     private static instances: General[] = [];
 
     private hook: Hook;
-    private extractor: Extractor;
+    public extractor: Extractor;
 
     private translatorWindow: TranslatorWindow;
-
-    public translateManager: TranslateManager;
-    public ttsManager: TTSManager;
 
     private originalWatchList: { [key in Ame.Extractor.Key]: OriginalWatchCallback } = {};
     private translateWatchList: { [key in Ame.Extractor.Key]: OriginalWatchCallback } = {};
 
     constructor(
         public gamePids: number[],
-        public hookCode = ''
+        public hookCode = '',
+        public type: Ame.Extractor.ExtractorType = 'textractor',
+        public translateManager: TranslateManager = TranslateManager.getInstance(),
+        public ttsManager: TTSManager = TTSManager.getInstance()
     ) {
         logger('start game for pids %O', this.gamePids);
         General.instances.push(this);
         this.hook = new Hook(this.gamePids);
-        this.extractor = new Textractor(this.gamePids, this.hookCode);
+        this.extractor = this.type === 'textractor'
+            ? new Textractor(this.gamePids, this.hookCode)
+            : new OCRExtractor(this.gamePids, this.hook);
         this.translatorWindow = new TranslatorWindow(this, this.gamePids);
-        this.translateManager = TranslateManager.getInstance();
-        this.ttsManager = TTSManager.getInstance();
 
         this.translatorWindow.once('ready-to-show', () => {
             if (mainWindow) {
@@ -68,6 +68,25 @@ export class General {
             logger('%o window restored', this.gamePids);
             this.translatorWindow.restore();
         });
+    }
+
+    public switchExtractor(type: Ame.Extractor.ExtractorType) {
+        if (type === 'textractor') {
+            if (!(this.extractor instanceof Textractor)) {
+                this.type = type;
+                this.extractor.destroy();
+                this.extractor = new Textractor(this.gamePids, this.hookCode);
+            }
+        } else if (type === 'ocr') {
+            if (!(this.extractor instanceof OCRExtractor)) {
+                this.type = type;
+                this.extractor.destroy();
+                this.extractor = new OCRExtractor(this.gamePids, this.hook);
+            }
+        } else {
+            // eslint-disable-next-line  @typescript-eslint/no-unused-vars
+            const _typeCheck: never = type;
+        }
     }
 
     public watchOriginal(key: Ame.Extractor.Key) {

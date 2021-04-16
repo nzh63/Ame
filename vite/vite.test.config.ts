@@ -41,6 +41,7 @@ export default defineConfig(({ mode } = { command: 'build', mode: 'production' }
             input: glob.sync(path.join(__dirname, '../test') + '/**/*.spec.ts'),
             output: {
                 entryFileNames: '[name].js',
+                assetFileNames: '[name].[hash].js',
                 format: 'commonjs'
             },
             external: externalPackages

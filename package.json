@@ -18,7 +18,9 @@
   "main": "./dist/main/index.js",
   "dependencies": {
     "ffi-napi": "^4.0.3",
-    "ref-napi": "^3.0.2"
+    "ref-napi": "^3.0.2",
+    "sharp": "^0.28.1",
+    "tesseract.js": "^2.1.4"
   },
   "devDependencies": {
     "@ant-design/icons-vue": "^6.0.1",
@@ -27,6 +29,7 @@
     "@types/debug": "^4.1.5",
     "@types/ffi-napi": "^2.4.3",
     "@types/mocha": "^8.2.2",
+    "@types/sharp": "^0.28.0",
     "@typescript-eslint/eslint-plugin": "^4.20.0",
     "@typescript-eslint/parser": "^4.20.0",
     "@vitejs/plugin-vue": "^1.2.1",
@@ -40,6 +43,7 @@
     "electron": "^12.0.2",
     "electron-builder": "^22.10.5",
     "electron-debug": "^3.2.0",
+    "electron-fetch": "^1.7.3",
     "electron-mocha": "^10.0.0",
     "electron-store": "^7.0.2",
     "eslint": "^7.23.0",

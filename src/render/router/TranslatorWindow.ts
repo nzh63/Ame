@@ -12,6 +12,10 @@ export default createRouter({
             component: () => import('@render/views/HookSelect.vue')
         },
         {
+            path: '/extract-setting',
+            component: () => import('@render/views/ExtractSetting.vue')
+        },
+        {
             path: '/',
             redirect: '/hook-select'
         }
