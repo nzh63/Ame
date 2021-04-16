@@ -1,7 +1,7 @@
 import { BrowserWindow, Menu, Tray, app, session } from 'electron';
 import { join } from 'path';
 import { description, name } from '../../package.json';
-import { __static } from '@main/static';
+import { __assets } from '@main/paths';
 import { General } from '@main/General';
 import '@main/remote';
 import logger from '@logger';
@@ -51,7 +51,7 @@ export function createMainWindow() {
 
 app.on('ready', () => {
     logger('app ready');
-    tray = new Tray(join(__static, '/icon.png'));
+    tray = new Tray(join(__assets, '/icon.png'));
     const contextMenu = Menu.buildFromTemplate([
         { label: '打开主界面', click: createMainWindow },
         {

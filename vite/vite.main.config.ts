@@ -50,6 +50,7 @@ export default defineConfig(({ mode } = { command: 'build', mode: 'production' }
             '@main': path.join(__dirname, '../src/main'),
             '@render': path.join(__dirname, '../src/render'),
             '@static': path.join(__dirname, '../static'),
+            '@assets': path.join(__dirname, '../assets'),
             debug: path.join(__dirname, '../node_modules/debug/src/node.js'),
             'form-data': path.join(__dirname, '../node_modules/form-data/lib/form_data.js'),
             'supports-color': path.join(__dirname, '../node_modules/supports-color/index.js')

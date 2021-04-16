@@ -1,7 +1,7 @@
 <template>
     <div>
         <div class="logo">
-            <img src="@static/icon.svg" />
+            <img src="@assets/icon.svg" />
             <div class="text">
                 <div class="title">Ame</div>
                 <div class="description">Visual Novel Translator</div>

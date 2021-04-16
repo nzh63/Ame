@@ -53,7 +53,8 @@ export default defineConfig(({ mode } = { command: 'build', mode: 'production' }
         alias: {
             '@main': path.join(__dirname, '../src/main'),
             '@render': path.join(__dirname, '../src/render'),
-            '@static': path.join(__dirname, '../static')
+            '@static': path.join(__dirname, '../static'),
+            '@assets': path.join(__dirname, '../assets')
         }
     }
 }));

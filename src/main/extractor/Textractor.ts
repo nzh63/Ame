@@ -4,7 +4,7 @@ import EventEmitter from 'events';
 import { EOL } from 'os';
 import { join } from 'path';
 import { knl32, nt } from '@main/win32';
-import { __static } from '@main/static';
+import { __static } from '@main/paths';
 import logger from '@logger/extractor/textractor';
 
 export declare interface Textractor extends Extractor {

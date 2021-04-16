@@ -66,7 +66,9 @@
       "output": "build"
     },
     "files": [
-      "dist/**/*"
+      "dist/main/*",
+      "dist/render/*",
+      "assets/*"
     ],
     "extraResources": [
       {

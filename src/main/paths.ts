@@ -6,3 +6,5 @@ if (import.meta.env.DEV) {
 } else {
     __static = join(__dirname, '../../../static').replace(/\\/g, '\\\\');
 }
+
+export const __assets = join(__dirname, '../../assets').replace(/\\/g, '\\\\');
