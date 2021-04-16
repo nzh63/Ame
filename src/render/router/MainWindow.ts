@@ -10,7 +10,10 @@ import {
     setTTSManagerOptions,
     getOCRProviderOptionsMeta,
     getOCRProviderOptions,
-    setOCRProviderOptions
+    setOCRProviderOptions,
+    getOCRExtractorOptions,
+    getOCRExtractorOptionsMeta,
+    setOCRExtractorOptions
 } from '@render/remote';
 import { createRouter, createWebHashHistory } from 'vue-router';
 
@@ -67,6 +70,16 @@ export default createRouter({
                 getMeta: getOCRProviderOptionsMeta,
                 getOptions: getOCRProviderOptions,
                 setOptions: setOCRProviderOptions
+            })
+        },
+        {
+            path: '/options/ocr-extractor',
+            component: () => import('@render/views/Options.vue'),
+            props: route => ({
+                providerId: '<none>',
+                getMeta: getOCRExtractorOptionsMeta,
+                getOptions: getOCRExtractorOptions,
+                setOptions: setOCRExtractorOptions
             })
         },
         {

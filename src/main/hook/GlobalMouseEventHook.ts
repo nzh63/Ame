@@ -26,8 +26,8 @@ export class GlobalMouseEventHook {
                             logger('mouse-left-up %O', { x, y });
                             this.event.emit('mouse-left-up', { x, y });
                         } else if (wParam === 0x020A /* WM_MOUSEWHEEL */) {
-                            logger('mouse-left-wheel %O', { x, y });
-                            this.event.emit('mouse-left-wheel', { x, y });
+                            logger('mouse-wheel %O', { x, y });
+                            this.event.emit('mouse-wheel', { x, y });
                         }
                     }
                 });

@@ -51,3 +51,13 @@ export function getTTSManagerOptions() {
 export function setTTSManagerOptions(_: string, value: unknown) {
     return store.set('ttsManager', value);
 }
+
+export function getOCRExtractorOptionsMeta() {
+    return handleError(electron.ipcRenderer.invoke('get-ocr-extractor-options-meta'));
+}
+export function getOCRExtractorOptions() {
+    return store.get('ocrExtractor');
+}
+export function setOCRExtractorOptions(_: string, value: unknown) {
+    return store.set('ocrExtractor', value);
+}

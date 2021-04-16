@@ -1,9 +1,11 @@
 import type { DModel as M } from 'win32-def';
 import type { Extractor } from '@main/extractor';
 import type { Hook } from '@main/hook';
+import type { OCRExtractorOptions } from '@main/extractor/OCRExtractor/options';
 import { promisify } from 'util';
 import EventEmitter from 'events';
 import sharp from 'sharp';
+import store from '@main/store';
 import { gdi32, user32 } from '@main/win32';
 import { OCRManager } from '@main/manager/OCRManager';
 import logger from '@logger/extractor/OCRExtractor';
@@ -13,11 +15,16 @@ export class OCRExtractor extends EventEmitter implements Extractor {
     private lastImage?: sharp.Sharp;
     private lastCropImage?: sharp.Sharp;
     private shouldCapture = true;
-    private mouseHookCallback: () => void;
+    private mouseLeftHookCallback: () => void;
+    private mouseWheelHookCallback: () => void;
+    private keyboardHookCallback: (code: number) => void;
     private minimizeHookCallback: () => void;
     private restoreHookCallback: () => void;
-    public rect?: sharp.Region;
+    private options: OCRExtractorOptions;
     private text_: Ame.Extractor.Result = {};
+    private setTimeoutId?: ReturnType<typeof setTimeout>;
+
+    public rect?: sharp.Region;
     constructor(
         public gamePids: number[],
         public hook: Hook,
@@ -25,20 +32,51 @@ export class OCRExtractor extends EventEmitter implements Extractor {
     ) {
         super();
         this.screenCapturer = new ScreenCapturer(this.gamePids);
-        this.mouseHookCallback = () => {
-            if (this.shouldCapture) {
-                setTimeout(() => {
-                    logger('triggerRecognize');
-                    this.triggerRecognize();
-                }, 500);
+        this.options = store.get('ocrExtractor');
+        store.onDidChange('ocrExtractor', () => { this.options = store.get('ocrExtractor'); });
+
+        this.mouseLeftHookCallback = () => {
+            if (this.shouldCapture && this.options.trigger.mouse.left) {
+                this.triggerRecognizeLatter();
             }
         };
-        this.hook.on('mouse-left-down', this.mouseHookCallback);
+        this.hook.on('mouse-left-up', this.mouseLeftHookCallback);
+        this.mouseWheelHookCallback = () => {
+            if (this.shouldCapture && this.options.trigger.mouse.wheel) {
+                this.triggerRecognizeLatter();
+            }
+        };
+        this.hook.on('mouse-wheel', this.mouseWheelHookCallback);
+        this.keyboardHookCallback = (code: number) => {
+            if (this.shouldCapture && this.shouldCaptureAtKeyboard(code)) {
+                this.triggerRecognizeLatter();
+            }
+        };
+        this.hook.on('key-up', this.keyboardHookCallback);
         this.minimizeHookCallback = () => { this.shouldCapture = false; };
         this.hook.on('window-minimize', this.minimizeHookCallback);
         this.restoreHookCallback = () => { this.shouldCapture = true; };
         this.hook.on('window-restore', this.restoreHookCallback);
         this.hook.registerKeyboardAndMouseHook();
+    }
+
+    private shouldCaptureAtKeyboard(code: number) {
+        if (code === 0x20 && this.options.trigger.keyboard.space) {
+            return true;
+        }
+        if (code === 0x0D && this.options.trigger.keyboard.enter) {
+            return true;
+        }
+        return false;
+    }
+
+    private triggerRecognizeLatter() {
+        if (this.setTimeoutId) clearTimeout(this.setTimeoutId);
+        this.setTimeoutId = setTimeout(() => {
+            logger('triggerRecognize');
+            this.setTimeoutId = undefined;
+            this.triggerRecognize();
+        }, this.options.delay);
     }
 
     private async triggerRecognize() {
@@ -72,7 +110,11 @@ export class OCRExtractor extends EventEmitter implements Extractor {
     public destroy() {
         this.screenCapturer.destroy();
         this.lastImage = undefined;
-        this.hook.off('mouse-left-down', this.mouseHookCallback);
+        this.hook.off('mouse-left-up', this.mouseLeftHookCallback);
+        this.hook.off('mouse-wheel', this.mouseWheelHookCallback);
+        this.hook.off('key-up', this.keyboardHookCallback);
+        this.hook.off('window-minimize', this.minimizeHookCallback);
+        this.hook.off('window-restore', this.restoreHookCallback);
         this.hook.unregisterKeyboardAndMouseHook();
     }
 }
@@ -131,7 +173,7 @@ class ScreenCapturer {
             img.clone().extractChannel(2).raw().toColourspace('b-w').toBuffer(),
             img.clone().extractChannel(1).raw().toColourspace('b-w').toBuffer(),
             img.clone().extractChannel(0).raw().toColourspace('b-w').toBuffer(),
-            img.clone().extractChannel(3).raw().toColourspace('b-w').toBuffer(),
+            img.clone().extractChannel(3).raw().toColourspace('b-w').toBuffer()
         ]);
         const r = sharp(rBuffer, { raw: { width, height, channels: 1 } });
         const rgba = r

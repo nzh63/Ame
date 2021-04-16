@@ -5,6 +5,7 @@ import { TranslateProvidersStore, translateProvidersStoreJSONSchema } from './tr
 import { TTSProvidersStore, ttsProvidersStoreJSONSchema } from './ttsProviders';
 import { OCRProvidersStore, ocrProvidersStoreJSONSchema } from './ocrProviders';
 import { TTSManagerStore, ttsManagerStoreJSONSchema } from './ttsManager';
+import { OCRExtractorStore, ocrExtractorStoreJSONSchema } from './ocrExtractor';
 
 const store = new Store<{
     games: Ame.GameSetting[];
@@ -13,6 +14,7 @@ const store = new Store<{
     ttsProviders: TTSProvidersStore;
     ocrProviders: OCRProvidersStore;
     ttsManager: TTSManagerStore;
+    ocrExtractor: OCRExtractorStore;
 }>({
     schema: {
         games: gamesStoreJSONSchema,
@@ -20,7 +22,8 @@ const store = new Store<{
         translateProviders: translateProvidersStoreJSONSchema,
         ttsProviders: ttsProvidersStoreJSONSchema,
         ocrProviders: ocrProvidersStoreJSONSchema,
-        ttsManager: ttsManagerStoreJSONSchema
+        ttsManager: ttsManagerStoreJSONSchema,
+        ocrExtractor: ocrExtractorStoreJSONSchema
     },
     clearInvalidConfig: true
 });

@@ -11,7 +11,7 @@ export default defineOCRProvider({
             secretKey: [String, null] as const,
             language: {
                 type: String,
-                enum: ['CHN_ENG', 'ENG', 'JAP', 'KOR', 'FRE', 'SPA', 'POR', 'GER', 'ITA', 'RUS',]
+                enum: ['CHN_ENG', 'ENG', 'JAP', 'KOR', 'FRE', 'SPA', 'POR', 'GER', 'ITA', 'RUS']
             }
         }
     },
@@ -28,7 +28,7 @@ export default defineOCRProvider({
         apiConfig: {
             apiKey: { readableName: 'APP ID', description: '可在 https://console.bce.baidu.com/ai/#/ai/ocr/app/list 获取' },
             secretKey: { readableName: 'Secret Key', description: '可在 https://console.bce.baidu.com/ai/#/ai/ocr/app/list 获取' },
-            language: '识别语言类型',
+            language: '识别语言类型'
         }
     },
     data() {

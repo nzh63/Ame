@@ -2,7 +2,7 @@ import path from 'path';
 import { Worker } from 'worker_threads';
 import { defineOCRProvider } from '@main/providers/ocr';
 import { __workers } from '@main/paths';
-import logger from '@logger/provider/ocr/tesseract'
+import logger from '@logger/provider/ocr/tesseract';
 
 export default defineOCRProvider({
     id: 'tesseract',
@@ -39,7 +39,7 @@ export default defineOCRProvider({
             if (args.type === 'log') {
                 logger(args.value);
             }
-        })
+        });
     },
     isReady() { return this.options.enable && !!this.data.worker; },
     async recognize(img) {
@@ -56,11 +56,10 @@ export default defineOCRProvider({
                 }
             };
             this.data.worker?.on('message', callback);
-        })
+        });
     },
     destroy() {
         this.data.worker?.postMessage({ type: 'exit' });
         this.data.worker?.removeAllListeners();
-        this.data.worker?.terminate();
     }
 });

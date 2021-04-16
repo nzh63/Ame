@@ -3,7 +3,7 @@ import { workerData, parentPort } from 'worker_threads';
 import { createScheduler, createWorker, Worker } from 'tesseract.js';
 import { __assets } from '@main/paths';
 
-(async function () {
+(async function() {
     const scheduler = createScheduler();
     for (let i = 0; i < 4; i++) {
         const worker: Worker = createWorker({
@@ -25,5 +25,5 @@ import { __assets } from '@main/paths';
             process.exit();
         }
     });
-    parentPort?.postMessage({ type: 'ok' })
-})()
+    parentPort?.postMessage({ type: 'ok' });
+})();

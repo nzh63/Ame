@@ -56,6 +56,9 @@
                         <span>OCR设置</span>
                     </span>
                 </template>
+                <a-menu-item key="/options/ocr-extractor">
+                    通用设置
+                </a-menu-item>
                 <a-menu-item
                     v-for="id in ocrProvidersIDs"
                     :key="`/options/ocr-provider/${id}`"

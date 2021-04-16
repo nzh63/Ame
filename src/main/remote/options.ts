@@ -6,6 +6,8 @@ import { availableTTSConfigs, AvailableTTSConfigs } from '@main/providers/tts';
 import { AvailableOCRConfigs, availableOCRConfigs } from '@main/providers/ocr';
 import { TTSManager, TranslateManager, OCRManager } from '@main/manager';
 import { ttsManagerOptionsDescription } from '@main/manager/TTSManager/options';
+import { ocrExtractorStoreJSONSchema } from '@main/store/ocrExtractor';
+import { ocrExtractorOptionsDescription } from '@main/extractor/OCRExtractor/options';
 
 ipcMain.handle('get-translate-providers-ids', handleError((event: IpcMainInvokeEvent) => {
     return availableTranslateConfigs.map(i => i.id);
@@ -49,5 +51,14 @@ ipcMain.handle('get-tts-manager-options-meta', handleError((event: IpcMainInvoke
         description: null,
         jsonSchema: ttsManagerStoreJSONSchema,
         optionsDescription: ttsManagerOptionsDescription
+    };
+}));
+
+ipcMain.handle('get-ocr-extractor-options-meta', handleError((event: IpcMainInvokeEvent) => {
+    return {
+        id: null,
+        description: null,
+        jsonSchema: ocrExtractorStoreJSONSchema,
+        optionsDescription: ocrExtractorOptionsDescription
     };
 }));
