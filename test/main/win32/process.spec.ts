@@ -23,6 +23,7 @@ describe('process', function() {
         processes.forEach(i => expect(i.exitCode).to.be.null);
         await waitProcessForExit(processes.map(i => i.pid));
         await new Promise(resolve => setImmediate(resolve));
+        await new Promise(resolve => setImmediate(resolve));
         processes.forEach(i => expect(i.exitCode).to.equal(0));
     });
 });
