@@ -10,7 +10,7 @@
                 </a-select>
             </a-form-item>
         </a-form>
-        <div v-if="type === 'textractor'" class="screen-wrapper">
+        <div v-if="type === 'ocr'" class="screen-wrapper">
             <a-typography-title :level="4">
                 滑动滑块调整识别区域
             </a-typography-title>
@@ -79,13 +79,17 @@
 
 <script lang="ts">
 import { defineComponent, inject, watch, ref } from 'vue';
-import { switchExtractorType, getScreenCapture, getScreenCaptureCropRect, setScreenCaptureCropRect } from '@render/remote';
+import { switchExtractorType, getScreenCapture, getScreenCaptureCropRect, setScreenCaptureCropRect, getExtractorType } from '@render/remote';
 
 export default defineComponent({
     components: {
     },
     setup() {
         const type = ref<Ame.Extractor.ExtractorType>('textractor');
+        getExtractorType()
+            .then(t => {
+                type.value = t;
+            });
 
         const setHookCodeInject = inject<(h: string) => void>('setHookCode');
         const setRunning = inject<(h: boolean) => void>('setRunning');
@@ -99,7 +103,7 @@ export default defineComponent({
         const size = ref([0, 0]);
         const height = ref([0, 0]);
         const width = ref([0, 0]);
-        let ready = false;
+        let screenReady = false;
         getScreenCapture()
             .then(img => {
                 screen.value = img.toDataURL();
@@ -118,11 +122,11 @@ export default defineComponent({
                 width.value[1] = v.left + v.width;
                 height.value[0] = size.value[1] - v.top - v.height;
                 height.value[1] = size.value[1] - v.top;
-                ready = true;
+                screenReady = true;
             });
 
         const update = () => {
-            if (!ready) return;
+            if (!screenReady) return;
             setScreenCaptureCropRect({
                 left: width.value[0],
                 width: width.value[1] - width.value[0],
