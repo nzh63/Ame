@@ -73,11 +73,13 @@ export class General {
     public switchExtractor(type: Ame.Extractor.ExtractorType) {
         if (type === 'textractor') {
             if (!(this.extractor instanceof Textractor)) {
+                this.type = type;
                 this.extractor.destroy();
                 this.extractor = new Textractor(this.gamePids, this.hookCode);
             }
         } else if (type === 'ocr') {
             if (!(this.extractor instanceof OCRExtractor)) {
+                this.type = type;
                 this.extractor.destroy();
                 this.extractor = new OCRExtractor(this.gamePids, this.hook);
             }
