@@ -110,6 +110,7 @@ export class OCRExtractor extends EventEmitter implements Extractor {
     public destroy() {
         this.screenCapturer.destroy();
         this.lastImage = undefined;
+        if (this.setTimeoutId) clearTimeout(this.setTimeoutId);
         this.hook.off('mouse-left-up', this.mouseLeftHookCallback);
         this.hook.off('mouse-wheel', this.mouseWheelHookCallback);
         this.hook.off('key-up', this.keyboardHookCallback);
