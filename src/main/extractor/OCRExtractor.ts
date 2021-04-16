@@ -127,7 +127,17 @@ class ScreenCapturer {
         gdi32.DeleteObject(saveBitmap);
 
         const img = sharp(buf, { raw: { width, height, channels: 4 } });
-        return img;
+        const [rBuffer, gBuffer, bBuffer, aBuffer] = await Promise.all([
+            img.clone().extractChannel(2).raw().toColourspace('b-w').toBuffer(),
+            img.clone().extractChannel(1).raw().toColourspace('b-w').toBuffer(),
+            img.clone().extractChannel(0).raw().toColourspace('b-w').toBuffer(),
+            img.clone().extractChannel(3).raw().toColourspace('b-w').toBuffer(),
+        ]);
+        const r = sharp(rBuffer, { raw: { width, height, channels: 1 } });
+        return r
+            .joinChannel(gBuffer, { raw: { width, height, channels: 1 } })
+            .joinChannel(bBuffer, { raw: { width, height, channels: 1 } })
+            .joinChannel(aBuffer, { raw: { width, height, channels: 1 } })
     }
 
     public destroy() { }
