@@ -38,7 +38,11 @@ export class BaseProvider<ID extends string, S extends Schema, D = unknown, C ex
         }
         logger({ id: this.id, storeOptions, defaultOptions: config.defaultOptions });
         this.data = config.data();
-        config.init?.call(this);
+        try {
+            config.init?.call(this);
+        } catch (e) {
+            logger(`${this.id} throw a error while calling the 'init' function, disable it, error: %O`, e);
+        }
     }
 
     public isReady(): boolean {

@@ -19,7 +19,8 @@
   "dependencies": {
     "ffi-napi": "^4.0.3",
     "ref-napi": "^3.0.2",
-    "sharp": "^0.28.1"
+    "sharp": "^0.28.1",
+    "tesseract.js": "^2.1.4"
   },
   "devDependencies": {
     "@ant-design/icons-vue": "^6.0.1",

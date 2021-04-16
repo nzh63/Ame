@@ -8,3 +8,4 @@ if (import.meta.env.DEV) {
 }
 
 export const __assets = join(__dirname, '../../assets').replace(/\\/g, '\\\\');
+export const __workers = join(__dirname, './workers').replace(/\\/g, '\\\\');
