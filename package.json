@@ -70,10 +70,12 @@
       "output": "build"
     },
     "files": [
-      "dist/main/*",
-      "dist/render/*",
+      "dist/main/**/*",
+      "dist/render/**/*",
       "assets/*"
     ],
+    "asar": false,
+    "buildDependenciesFromSource": true,
     "extraResources": [
       {
         "from": "./static",
@@ -83,7 +85,7 @@
         ]
       }
     ],
-    "icon": "./static/icon.png",
+    "icon": "./assets/icon.png",
     "nsis": {
       "deleteAppDataOnUninstall": true
     }

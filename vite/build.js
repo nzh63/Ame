@@ -80,13 +80,13 @@ async function downloadLanguageData(version = '4.16.0') {
         'jpn.traineddata'
     ];
     try {
-        await Promise.all(files.map(i => fsPromise.stat(path.join(__dirname, '../assets/lang-data/', i))));
+        await Promise.all(files.map(i => fsPromise.stat(path.join(__dirname, '../static/lang-data/', i))));
         return;
     } catch (e) { }
 
     const pipeline = util.promisify(stream.pipeline);
     for (const file of files) {
-        const dstPath = path.join(__dirname, '../assets/lang-data/', file);
+        const dstPath = path.join(__dirname, '../static/lang-data/', file);
         fs.mkdirSync(path.dirname(dstPath), { recursive: true });
         const url = `https://github.com/tesseract-ocr/tessdata_fast/raw/master/${file}`;
         console.log('downloading', url);

@@ -5,4 +5,4 @@ dist
 dist-ssr
 *.local
 static/lib
-assets/lang-data
+static/lang-data
