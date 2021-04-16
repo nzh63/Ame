@@ -28,6 +28,7 @@ export default defineOCRProvider({
     }
 }, {
     async init() {
+        if (!this.options.enable) return;
         const worker = new Worker(path.join(__workers, './tesseract.js'), {
             workerData: this.options.language
         });

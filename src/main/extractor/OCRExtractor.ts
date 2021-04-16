@@ -134,10 +134,11 @@ class ScreenCapturer {
             img.clone().extractChannel(3).raw().toColourspace('b-w').toBuffer(),
         ]);
         const r = sharp(rBuffer, { raw: { width, height, channels: 1 } });
-        return r
+        const rgba = r
             .joinChannel(gBuffer, { raw: { width, height, channels: 1 } })
             .joinChannel(bBuffer, { raw: { width, height, channels: 1 } })
-            .joinChannel(aBuffer, { raw: { width, height, channels: 1 } })
+            .joinChannel(aBuffer, { raw: { width, height, channels: 1 } });
+        return sharp(await rgba.raw().toBuffer(), { raw: { width, height, channels: 4 } });
     }
 
     public destroy() { }

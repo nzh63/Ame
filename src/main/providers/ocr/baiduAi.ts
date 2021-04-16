@@ -39,7 +39,7 @@ export default defineOCRProvider({
 }, {
     async init() {
         if (!this.options.apiConfig.apiKey || !this.options.apiConfig.secretKey) return;
-        fetch(`https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=${this.options.apiConfig.apiKey}&client_secret=${this.options.apiConfig.secretKey}`, { method: 'POST' })
+        fetch(`https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=${this.options.apiConfig.apiKey}&client_secret=${this.options.apiConfig.secretKey}`, { method: 'POST', timeout: 3000 })
             .then(res => res.json())
             .then(json => {
                 this.data.accessToken = '' + json.access_token;
@@ -50,11 +50,14 @@ export default defineOCRProvider({
         if (!this.data.accessToken) throw new Error('no access token');
         const json = await fetch(`https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic?access_token=${this.data.accessToken}`, {
             method: 'POST',
+            timeout: 3000,
             body: querystring.stringify({
                 image: (await img.png().toBuffer()).toString('base64'),
                 language_type: this.options.apiConfig.language
             })
-        }).then(res => res.json());
+        })
+            .then(res => res.json())
+            .catch(e => e);
         if (!json.words_result) throw json;
         return json.words_result.map((i: { words: string; }) => i.words).join('\n');
     },
