@@ -1,6 +1,6 @@
 {
   "name": "ame",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Ame - Visual Novel Translator",
   "scripts": {
     "build": "yarn run build:js && yarn autoclean --force && electron-builder",
