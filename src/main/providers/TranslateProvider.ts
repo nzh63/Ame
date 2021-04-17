@@ -11,7 +11,7 @@ export type TranslateProviderOptions<ID extends string, S extends Schema, D> = {
     data(): D;
 };
 export type TranslateProviderMethods<ID extends string, S extends Schema, D> = {
-    init?(this: TranslateProvider<ID, S, D>): void;
+    init?(this: TranslateProvider<ID, S, D>): void | Promise<void>;
     isReady(this: TranslateProvider<ID, S, D>): boolean;
     translate(this: TranslateProvider<ID, S, D>, text: string): Promise<string> | string;
     destroy?(this: TranslateProvider<ID, S, D>): void;

@@ -12,7 +12,7 @@ export type OCRProviderOptions<ID extends string, S extends Schema, D> = {
     data(): D;
 };
 export type OCRProviderMethods<ID extends string, S extends Schema, D> = {
-    init?(this: OCRProvider<ID, S, D>): void;
+    init?(this: OCRProvider<ID, S, D>): void | Promise<void>;
     isReady(this: OCRProvider<ID, S, D>): boolean;
     recognize(this: OCRProvider<ID, S, D>, img: sharp.Sharp): Promise<string> | string;
     destroy?(this: OCRProvider<ID, S, D>): void;

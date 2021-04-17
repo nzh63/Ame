@@ -10,7 +10,7 @@ export type BaseProviderConfig<ID extends string, S extends Schema = Record<stri
     optionsDescription?: SchemaDescription<S>;
     description?: string;
     data(): D;
-    init?(this: BaseProvider<ID, S, D>): void;
+    init?(this: BaseProvider<ID, S, D>): void | Promise<void>;
     isReady(this: BaseProvider<ID, S, D>): boolean;
     destroy?(this: BaseProvider<ID, S, D>): void;
     getOptionsJSONSchema?(this: BaseProvider<ID, S, D>): JSONSchema;
@@ -39,9 +39,12 @@ export class BaseProvider<ID extends string, S extends Schema, D = unknown, C ex
         logger({ id: this.id, storeOptions, defaultOptions: config.defaultOptions });
         this.data = config.data();
         try {
-            config.init?.call(this);
+            const initRet = config.init?.call(this);
+            if (initRet instanceof Promise) {
+                initRet.catch(e => logger(`${this.id} throw a error while calling the async 'init' function, error: %O`, e));
+            }
         } catch (e) {
-            logger(`${this.id} throw a error while calling the 'init' function, disable it, error: %O`, e);
+            logger(`${this.id} throw a error while calling the 'init' function, error: %O`, e);
         }
     }
 

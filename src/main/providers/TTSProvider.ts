@@ -11,7 +11,7 @@ export type TTSProviderOptions<ID extends string, S extends Schema, D> = {
     data(): D;
 };
 export type TTSProviderMethods<ID extends string, S extends Schema, D> = {
-    init?(this: TTSProvider<ID, S, D>): void;
+    init?(this: TTSProvider<ID, S, D>): void | Promise<void>;
     isReady(this: TTSProvider<ID, S, D>): boolean;
     speak(this: TTSProvider<ID, S, D>, text: string, type: 'original' | 'translate'): Promise<void> | void;
     destroy?(this: TTSProvider<ID, S, D>): void;
