@@ -214,14 +214,14 @@ function buildLicense() {
     const deps = [...map.values()].sort((a, b) => a.name < b.name ? -1 : 1);
     const out = fs.createWriteStream(path.join(__dirname, '../dist/LICENSE.3rdparty.txt'));
     for (const dep of deps) {
-        out.write(`${dep.name}\n${dep.author?.name ?? ''}${dep.author?.email ? `<${dep.author.email}>` : ''}\n`);
-        out.write(dep.licenseText ?? getLicenseText(dep));
+        out.write(`${dep.name}\n${(dep.author || {}).name || ''}${(dep.author || {}).email ? `<${dep.author.email}>` : ''}\n`);
+        out.write(dep.licenseText || getLicenseText(dep));
         out.write('\n\n');
     }
     out.close();
     function getLicenseText(dep) {
         const dir = path.join(__dirname, '../node_modules', dep.name);
-        const licenseFile = glob.sync(path.join(dir, 'LICENSE*'))[0] ?? glob.sync(path.join(dir, 'license*'))[0] ?? glob.sync(path.join(dir, 'License*'))[0];
+        const licenseFile = glob.sync(path.join(dir, 'LICENSE*'))[0] || glob.sync(path.join(dir, 'license*'))[0] || glob.sync(path.join(dir, 'License*'))[0];
         return licenseFile ? fs.readFileSync(licenseFile, { encoding: 'utf-8' }) : dep.license;
     }
 }
