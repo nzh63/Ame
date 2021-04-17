@@ -32,7 +32,7 @@
   "include": [
     "src/**/*",
     "src/**/*.vue",
-    "test/**/*.spec.ts"
+    "test/**/*.ts"
   ],
   "exclude": [
     "**/node_modules",
