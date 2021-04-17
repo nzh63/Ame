@@ -58,7 +58,7 @@ app.on('ready', () => {
             label: '退出',
             click: () => {
                 General.getAllInstances().forEach(i => i.destroy());
-                app.exit();
+                app.quit();
             }
         }
     ]);
