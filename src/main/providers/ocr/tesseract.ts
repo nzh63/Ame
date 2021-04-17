@@ -35,11 +35,13 @@ export default defineOCRProvider({
         worker.once('message', arg => {
             this.data.worker = worker;
         });
-        worker.on('message', args => {
-            if (args.type === 'log') {
-                logger(args.value);
-            }
-        });
+        if (import.meta.env.DEV) {
+            worker.on('message', args => {
+                if (args.type === 'log') {
+                    logger(args.value);
+                }
+            });
+        }
     },
     isReady() { return this.options.enable && !!this.data.worker; },
     async recognize(img) {
