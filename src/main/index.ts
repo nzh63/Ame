@@ -1,4 +1,4 @@
-import { BrowserWindow, Menu, Tray, app, session } from 'electron';
+import { BrowserWindow, Menu, Tray, app } from 'electron';
 import { join } from 'path';
 import { description, name } from '../../package.json';
 import { __assets } from '@main/paths';
@@ -65,8 +65,6 @@ app.on('ready', () => {
     tray.setContextMenu(contextMenu);
     tray.on('double-click', createMainWindow);
     tray.setToolTip(name);
-    session.fromPartition('insecure-remote-content')
-        .setPermissionRequestHandler((webContents, permission, callback) => callback(false));
     createMainWindow();
 });
 

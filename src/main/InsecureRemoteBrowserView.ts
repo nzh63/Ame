@@ -1,4 +1,9 @@
-import { BrowserView, BrowserViewConstructorOptions } from 'electron';
+import { app, BrowserView, BrowserViewConstructorOptions, session } from 'electron';
+
+app.whenReady().then(() => {
+    session.fromPartition('insecure-remote-content')
+        .setPermissionRequestHandler((webContents, permission, callback) => callback(false));
+})
 
 export class InsecureRemoteBrowserView extends BrowserView {
     constructor(options?: BrowserViewConstructorOptions) {
