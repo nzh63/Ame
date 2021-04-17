@@ -23,7 +23,7 @@ export async function waitProcessForExit(pids: number[]) {
         do {
             ret = 0;
             try {
-                ret = await WaitForSingleObject(handle, 10);
+                ret = await WaitForSingleObject(handle, 0xffffffff);
             } catch (e) { }
         } while (ret === 0x00000102 /* WAIT_TIMEOUT */);
     }
