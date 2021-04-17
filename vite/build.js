@@ -133,6 +133,10 @@ async function buildMain(mode = 'production') {
         configFile: path.join(__dirname, './vite.main.config.ts'),
         mode
     });
+    await vite.build({
+        configFile: path.join(__dirname, './vite.workers.config.ts'),
+        mode
+    });
 }
 
 async function buildTest(mode = 'development') {
@@ -233,7 +237,7 @@ async function build() {
 }
 
 function dev() {
-    devMain()
+    devMain('production')
         .then(devRender)
         .then(() => {
             startElectron();

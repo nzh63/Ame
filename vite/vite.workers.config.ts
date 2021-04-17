@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite';
 import path from 'path';
+import glob from 'glob';
 import log from './LogPlugin';
+import tesseract from './tesseract';
 
 import builtinModules from 'builtin-modules/static';
 import { dependencies } from '../package.json';
@@ -15,11 +17,13 @@ const externalPackages = [
     ...Object.keys(dependencies)
 ];
 
+const workerEntries = glob.sync(path.join(__dirname, '../src/main/workers') + '/*/index.ts').map(i => i.replace(/\\/g, '/'));
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode } = { command: 'build', mode: 'production' }) => ({
-    optimizeDeps: { entries: path.join(__dirname, '../src/main/index.ts') },
+    optimizeDeps: { entries: workerEntries },
     mode,
-    root: path.join(__dirname, '../src/main'),
+    root: path.join(__dirname, '../src/main/workers'),
     assetsInclude: [/static\//],
     clearScreen: false,
     plugins: [log({
@@ -31,12 +35,13 @@ export default defineConfig(({ mode } = { command: 'build', mode: 'production' }
         logFunction: { logger: 'logger' },
         disableLog: mode === 'production'
     }),
+    tesseract(),
     ...(mode === 'production'
         ? [license({
             thirdParty: {
                 includePrivate: false,
                 output: {
-                    file: path.join(__dirname, '../dist/license.dependencies.main.json'),
+                    file: path.join(__dirname, '../dist/license.dependencies.workers.json'),
                     template(dependencies) {
                         return JSON.stringify(dependencies);
                     }
@@ -47,14 +52,25 @@ export default defineConfig(({ mode } = { command: 'build', mode: 'production' }
     )],
     build: {
         target: 'node12',
-        outDir: path.join(__dirname, '../dist/main'),
+        outDir: path.join(__dirname, '../dist/workers'),
         emptyOutDir: true,
         minify: mode === 'production',
         sourcemap: mode !== 'production',
         rollupOptions: {
-            input: path.join(__dirname, mode === 'production' ? '../src/main/index.ts' : '../src/main/index.dev.ts'),
+            input: workerEntries,
             output: {
-                entryFileNames: 'index.js',
+                entryFileNames: (chunkInfo) => {
+                    const workerBase = path.join(__dirname, '../src/main/workers').replace(/\\/g, '/');
+                    if (chunkInfo.facadeModuleId.startsWith(workerBase)) {
+                        const reg = new RegExp(`^${workerBase}/(.*?)/`);
+                        const workerName = reg.exec(chunkInfo.facadeModuleId)[1];
+                        if (workerName) {
+                            return `${workerName}.js`;
+                        }
+                    }
+                    return 'index.js';
+                },
+                chunkFileNames: '[name].[hash].js',
                 format: 'commonjs'
             },
             external: externalPackages
@@ -64,11 +80,7 @@ export default defineConfig(({ mode } = { command: 'build', mode: 'production' }
         alias: {
             '@main': path.join(__dirname, '../src/main'),
             '@render': path.join(__dirname, '../src/render'),
-            '@static': path.join(__dirname, '../static'),
-            '@assets': path.join(__dirname, '../assets'),
-            debug: path.join(__dirname, '../node_modules/debug/src/node.js'),
-            'form-data': path.join(__dirname, '../node_modules/form-data/lib/form_data.js'),
-            'supports-color': path.join(__dirname, '../node_modules/supports-color/index.js')
+            '@static': path.join(__dirname, '../static')
         }
     }
 }));

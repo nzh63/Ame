@@ -1,7 +1,8 @@
 import path from 'path';
 import { workerData, parentPort } from 'worker_threads';
 import { createScheduler, createWorker, Worker } from 'tesseract.js';
-import { __static } from '@main/paths';
+
+const { __static, lang } = workerData;
 
 (async function() {
     const scheduler = createScheduler();
@@ -10,11 +11,11 @@ import { __static } from '@main/paths';
             langPath: path.join(__static, 'lang-data'),
             cacheMethod: 'none',
             gzip: false,
-            logger: import.meta.env.DEV ? m => parentPort?.postMessage({ type: 'log', value: m }) : undefined
+            logger: import.meta.env.DEV ? m => parentPort?.postMessage({ type: 'log', value: m }) : () => {}
         });
         await worker.load();
-        await worker.loadLanguage(workerData);
-        await worker.initialize(workerData);
+        await worker.loadLanguage(lang);
+        await worker.initialize(lang);
         scheduler.addWorker(worker);
     }
     parentPort?.on('message', async (args) => {

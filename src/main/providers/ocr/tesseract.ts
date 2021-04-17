@@ -1,7 +1,7 @@
 import path from 'path';
 import { Worker } from 'worker_threads';
 import { defineOCRProvider } from '@main/providers/ocr';
-import { __workers } from '@main/paths';
+import { __workers, __static } from '@main/paths';
 import logger from '@logger/provider/ocr/tesseract';
 
 export default defineOCRProvider({
@@ -30,7 +30,7 @@ export default defineOCRProvider({
     async init() {
         if (!this.options.enable) return;
         const worker = new Worker(path.join(__workers, './tesseract.js'), {
-            workerData: this.options.language
+            workerData: { lang: this.options.language, __static }
         });
         worker.once('message', arg => {
             this.data.worker = worker;
