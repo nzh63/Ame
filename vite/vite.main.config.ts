@@ -5,6 +5,7 @@ import log from './LogPlugin';
 
 import builtinModules from 'builtin-modules/static';
 import { dependencies } from '../package.json';
+const license = require('rollup-plugin-license');
 
 const externalPackages = [
     'electron',
@@ -32,7 +33,21 @@ export default defineConfig(({ mode } = { command: 'build', mode: 'production' }
         loggerPath: '@main/logger',
         logFunction: { logger: 'logger' },
         disableLog: mode === 'production'
-    })],
+    }),
+    ...(mode === 'production'
+        ? [license({
+            thirdParty: {
+                includePrivate: false,
+                output: {
+                    file: path.join(__dirname, '../dist/license.dependencies.main.json'),
+                    template(dependencies) {
+                        return JSON.stringify(dependencies);
+                    }
+                }
+            }
+        })]
+        : []
+    )],
     build: {
         target: 'node12',
         outDir: path.join(__dirname, '../dist/main'),

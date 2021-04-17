@@ -4,6 +4,7 @@ import path from 'path';
 import log from './LogPlugin';
 
 import builtinModules from 'builtin-modules/static';
+const license = require('rollup-plugin-license');
 
 const externalPackages = [
     'electron',
@@ -35,7 +36,21 @@ export default defineConfig(({ mode } = { command: 'build', mode: 'production' }
         logFunction: { logger: 'logger' },
         disableLog: mode === 'production'
     }),
-    vue()],
+    vue(),
+    ...(mode === 'production'
+        ? [license({
+            thirdParty: {
+                includePrivate: false,
+                output: {
+                    file: path.join(__dirname, '../dist/license.dependencies.render.json'),
+                    template(dependencies) {
+                        return JSON.stringify(dependencies);
+                    }
+                }
+            }
+        })]
+        : []
+    )],
     build: {
         outDir: path.join(__dirname, '../dist/render'),
         emptyOutDir: true,

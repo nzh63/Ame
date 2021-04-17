@@ -9,6 +9,7 @@ const child_process = require('child_process');
 const electron = require('electron');
 const yauzl = require('yauzl');
 const got = require('got');
+const glob = require('glob');
 
 const vite = require('vite');
 
@@ -44,6 +45,15 @@ function extract(zipPath, files, dst) {
     });
 }
 
+async function gotLicense(url, dest) {
+    const pipeline = util.promisify(stream.pipeline);
+    await fsPromise.mkdir(path.dirname(dest), { recursive: true });
+    return pipeline(
+        got.stream(url),
+        fs.createWriteStream(dest)
+    );
+}
+
 async function downloadTextractor(version = '4.16.0') {
     const files = [
         'x86/TextractorCLI.exe',
@@ -57,6 +67,7 @@ async function downloadTextractor(version = '4.16.0') {
     } catch (e) { }
 
     const pipeline = util.promisify(stream.pipeline);
+    const l = gotLicense('https://github.com/Artikash/Textractor/raw/master/LICENSE', path.join(__dirname, '../static/lib/LICENSE.Textractor.txt'));
     const url = `https://github.com/Artikash/Textractor/releases/download/v${version}/Textractor-${version}-Zip-Version-English-Only.zip`;
     const tmp = await fsPromise.mkdtemp(os.tmpdir());
     console.log('downloading', url);
@@ -73,6 +84,7 @@ async function downloadTextractor(version = '4.16.0') {
         (entry) => entry.fileName.replace(/^Textractor\//, path.join(__dirname, '../static/lib/'))
     );
     await fsPromise.rmdir(tmp, { recursive: true });
+    await l;
 }
 
 async function downloadLanguageData(version = '4.16.0') {
@@ -85,6 +97,7 @@ async function downloadLanguageData(version = '4.16.0') {
     } catch (e) { }
 
     const pipeline = util.promisify(stream.pipeline);
+    const l = gotLicense('https://github.com/tesseract-ocr/tessdata_fast/raw/master/LICENSE', path.join(__dirname, '../static/lang-data/LICENSE.tesseract.txt'));
     for (const file of files) {
         const dstPath = path.join(__dirname, '../static/lang-data/', file);
         fs.mkdirSync(path.dirname(dstPath), { recursive: true });
@@ -98,6 +111,7 @@ async function downloadLanguageData(version = '4.16.0') {
             fs.createWriteStream(dstPath)
         );
     }
+    await l;
 }
 
 async function downloadDependencies() {
@@ -185,9 +199,37 @@ function restartElectron() {
     }
 }
 
+function buildLicense() {
+    const self = require('../package.json');
+    const map = new Map();
+    const files = glob.sync(path.join(__dirname, '../dist/license.*.json'));
+    for (const file of files) {
+        const json = require(file);
+        for (const dep of json) {
+            if (dep.name !== self.name) {
+                map.set(dep.name, dep);
+            }
+        }
+    }
+    const deps = [...map.values()].sort((a, b) => a.name < b.name ? -1 : 1);
+    const out = fs.createWriteStream(path.join(__dirname, '../dist/LICENSE.3rdparty.txt'));
+    for (const dep of deps) {
+        out.write(`${dep.name}\n${dep.author?.name ?? ''}${dep.author?.email ? `<${dep.author.email}>` : ''}\n`);
+        out.write(dep.licenseText ?? getLicenseText(dep));
+        out.write('\n\n');
+    }
+    out.close();
+    function getLicenseText(dep) {
+        const dir = path.join(__dirname, '../node_modules', dep.name);
+        const licenseFile = glob.sync(path.join(dir, 'LICENSE*'))[0] ?? glob.sync(path.join(dir, 'license*'))[0] ?? glob.sync(path.join(dir, 'License*'))[0];
+        return licenseFile ? fs.readFileSync(licenseFile, { encoding: 'utf-8' }) : dep.license;
+    }
+}
+
 async function build() {
     await buildMain();
     await buildRender();
+    buildLicense();
 }
 
 function dev() {
