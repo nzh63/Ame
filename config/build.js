@@ -1,3 +1,4 @@
+require('ts-node/register');
 const os = require('os');
 const fs = require('fs');
 const fsPromise = require('fs').promises;
@@ -12,6 +13,7 @@ const got = require('got');
 const glob = require('glob');
 
 const vite = require('vite');
+const rollup = require('rollup');
 
 function extract(zipPath, files, dst) {
     return new Promise((resolve, reject) => {
@@ -127,24 +129,33 @@ async function buildRender(mode = 'production') {
     });
 }
 
+async function clear(type) {
+    await fsPromise.rmdir(path.join(__dirname, '../dist', type), { recursive: true, force: true });
+}
+
+async function build(type, mode = 'production') {
+    console.log(`build ${type}...`);
+    await clear(type);
+    const config = require(`./rollup.${type}.config`).default(mode);
+    const bundle = await rollup.rollup(config);
+    const { output } = await bundle.generate(config.output);
+    for (const chunkOrAsset of output) {
+        console.log(' ', chunkOrAsset.fileName, chunkOrAsset.isEntry ? '[entry]' : '');
+    }
+    await bundle.write(config.output);
+    await bundle.close();
+}
+
 async function buildMain(mode = 'production') {
-    process.type = 'main';
-    await vite.build({
-        configFile: path.join(__dirname, './vite.main.config.ts'),
-        mode
-    });
-    await vite.build({
-        configFile: path.join(__dirname, './vite.workers.config.ts'),
-        mode
-    });
+    await build('main', mode);
+}
+
+async function buildWorkers(mode = 'production') {
+    await build('workers', mode);
 }
 
 async function buildTest(mode = 'development') {
-    process.type = 'main';
-    await vite.build({
-        configFile: path.join(__dirname, './vite.test.config.ts'),
-        mode
-    });
+    await build('test', mode);
 }
 
 async function devRender(mode = 'development') {
@@ -156,16 +167,16 @@ async function devRender(mode = 'development') {
     await server.listen(9080);
 }
 
-async function devMain(mode = 'development') {
+async function devMainAndWorkers(mode = 'development') {
     process.type = 'main';
-    await buildMain(mode);
-    const server = await vite.createServer({
-        configFile: path.join(__dirname, './vite.main.config.ts'),
-        mode
-    });
-    server.watcher.on('all', async () => {
-        await buildMain(mode);
-        restartElectron();
+    await clear('main');
+    const configMain = require('./rollup.main.config').default(mode);
+    const configWorkers = require('./rollup.workers.config').default(mode);
+    const watcher = rollup.watch([configMain, configWorkers]);
+    watcher.on('event', ev => {
+        if (ev.code === 'END') {
+            electronProcess ? restartElectron() : startElectron();
+        }
     });
 }
 
@@ -230,18 +241,16 @@ function buildLicense() {
     }
 }
 
-async function build() {
+async function buildAll() {
     await buildMain();
+    await buildWorkers();
     await buildRender();
     buildLicense();
 }
 
 function dev() {
-    devMain('production')
+    devMainAndWorkers()
         .then(devRender)
-        .then(() => {
-            startElectron();
-        })
         .catch(err => {
             console.error(err);
         });
@@ -250,9 +259,11 @@ function dev() {
 (async function() {
     await downloadDependencies();
     if (process.argv[2] === 'build:js') {
-        build();
+        buildAll();
     } else if (process.argv[2] === 'build:main') {
-        buildMain();
+        await buildMain();
+    } else if (process.argv[2] === 'build:workers') {
+        await buildWorkers();
     } else if (process.argv[2] === 'build:render') {
         buildRender();
     } else if (process.argv[2] === 'build:test') {
@@ -260,7 +271,7 @@ function dev() {
     } else if (process.argv[2] === 'dev') {
         dev();
     } else {
-        build();
+        buildAll();
     }
 })();
 process.once('SIGINT', () => {

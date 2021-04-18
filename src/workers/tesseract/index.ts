@@ -11,6 +11,7 @@ const { __static, lang } = workerData;
             langPath: path.join(__static, 'lang-data'),
             cacheMethod: 'none',
             gzip: false,
+            workerPath: path.join(__dirname, 'tesseract-worker-script.js'),
             logger: import.meta.env.DEV ? m => parentPort?.postMessage({ type: 'log', value: m }) : () => {}
         });
         await worker.load();

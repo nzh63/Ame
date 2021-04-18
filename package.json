@@ -5,11 +5,12 @@
   "scripts": {
     "build": "yarn run build:js && yarn autoclean --force && electron-builder",
     "build:dir": "yarn run build:js && yarn autoclean --force && electron-builder --dir",
-    "build:js": "node ./vite/build.js build:js",
-    "build:main": "node ./vite/build.js build:main",
-    "build:render": "node ./vite/build.js build:render",
-    "build:test": "node ./vite/build.js build:test",
-    "dev": "node ./vite/build.js dev",
+    "build:js": "node ./config/build.js build:js",
+    "build:main": "node ./config/build.js build:main",
+    "build:render": "node ./config/build.js build:render",
+    "build:test": "node ./config/build.js build:test",
+    "build:workers": "node ./config/build.js build:workers",
+    "dev": "node ./config/build.js dev",
     "lint": "eslint . --ignore-path .gitignore --ext .ts,.js,.vue --fix",
     "postinstall": "electron-builder install-app-deps",
     "test": "yarn build:test && electron-mocha --colors ./dist/test",
@@ -19,10 +20,16 @@
   "dependencies": {
     "ffi-napi": "^4.0.3",
     "ref-napi": "^3.0.2",
-    "sharp": "^0.28.1"
+    "sharp": "^0.28.1",
+    "tesseract.js-core": "^2.2.0"
   },
   "devDependencies": {
     "@ant-design/icons-vue": "^6.0.1",
+    "@rollup/plugin-alias": "^3.1.2",
+    "@rollup/plugin-commonjs": "^18.0.0",
+    "@rollup/plugin-json": "^4.1.0",
+    "@rollup/plugin-node-resolve": "^11.2.1",
+    "@rollup/plugin-wasm": "^5.1.2",
     "@rollup/pluginutils": "^4.1.0",
     "@types/chai": "^4.2.16",
     "@types/debug": "^4.1.5",
@@ -45,6 +52,7 @@
     "electron-fetch": "^1.7.3",
     "electron-mocha": "^10.0.0",
     "electron-store": "^7.0.2",
+    "esbuild": "^0.11.12",
     "eslint": "^7.23.0",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-node": "^11.1.0",
@@ -53,9 +61,13 @@
     "got": "^11.8.2",
     "mocha": "^8.3.2",
     "remove": "^0.1.5",
+    "rollup": "^2.45.2",
+    "rollup-plugin-esbuild": "^4.0.1",
     "rollup-plugin-license": "^2.3.0",
+    "rollup-plugin-typescript2": "^0.30.0",
     "tencentcloud-sdk-nodejs": "^4.0.95",
     "tesseract.js": "^2.1.4",
+    "ts-node": "^9.1.1",
     "typescript": "4.2.3",
     "vite": "^2.1.5",
     "vue": "^3.0.5",
@@ -77,7 +89,8 @@
       "assets/*"
     ],
     "asarUnpack": [
-      "dist/workers/**/*"
+      "dist/workers/**/*",
+      "node_modules/tesseract.js-core/**/*"
     ],
     "buildDependenciesFromSource": true,
     "extraResources": [
