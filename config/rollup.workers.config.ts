@@ -63,7 +63,7 @@ export default (mode = 'production') => ({
                 thirdParty: {
                     includePrivate: false,
                     output: {
-                        file: path.join(__dirname, '../dist/license.dependencies.main.json'),
+                        file: path.join(__dirname, '../dist/license.dependencies.workers.json'),
                         template(dependencies: any) {
                             return JSON.stringify(dependencies);
                         }

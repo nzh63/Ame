@@ -10,7 +10,6 @@ import log from './LogPlugin';
 
 import builtinModules from 'builtin-modules/static';
 import { dependencies } from '../package.json';
-const license = require('rollup-plugin-license');
 
 const resolve = nodeResolve({ extensions: ['.js', '.ts'], browser: false, exportConditions: ['import', 'module', 'node', 'require', 'files', 'default'] });
 const testEntries = glob.sync(path.join(__dirname, '../test') + '/**/*.spec.ts');
@@ -54,21 +53,7 @@ export default (mode = 'production') => ({
         }),
         resolve,
         json(),
-        commonjs(),
-        ...(mode === 'production'
-            ? [license({
-                thirdParty: {
-                    includePrivate: false,
-                    output: {
-                        file: path.join(__dirname, '../dist/license.dependencies.main.json'),
-                        template(dependencies: any) {
-                            return JSON.stringify(dependencies);
-                        }
-                    }
-                }
-            })]
-            : []
-        )],
+        commonjs()],
     input: testEntries,
     output: {
         dir: path.join(__dirname, '../dist/test'),

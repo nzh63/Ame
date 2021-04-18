@@ -2,9 +2,16 @@
   "name": "ame",
   "version": "0.2.1",
   "description": "Ame - Visual Novel Translator",
+  "author": "nzh63",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nzh63/Ame.git"
+  },
+  "main": "./dist/main/index.js",
   "scripts": {
-    "build": "yarn run build:js && yarn autoclean --force && electron-builder",
-    "build:dir": "yarn run build:js && yarn autoclean --force && electron-builder --dir",
+    "build": "yarn run build:js && electron-builder",
+    "build:dir": "yarn run build:js && electron-builder --dir",
     "build:js": "node ./config/build.js build:js",
     "build:main": "node ./config/build.js build:main",
     "build:render": "node ./config/build.js build:render",
@@ -16,7 +23,6 @@
     "test": "yarn build:test && electron-mocha --colors ./dist/test",
     "type-check": "vue-tsc --noEmit"
   },
-  "main": "./dist/main/index.js",
   "dependencies": {
     "ffi-napi": "^4.0.3",
     "ref-napi": "^3.0.2",
@@ -75,44 +81,5 @@
     "vue-tsc": "^0.0.22",
     "win32-def": "^9.4.0",
     "yauzl": "^2.10.0"
-  },
-  "build": {
-    "productName": "Ame",
-    "appId": "nzh63.ame",
-    "directories": {
-      "output": "build"
-    },
-    "files": [
-      "dist/main/**/*",
-      "dist/workers/**/*",
-      "dist/render/**/*",
-      "assets/*"
-    ],
-    "asarUnpack": [
-      "dist/workers/**/*",
-      "node_modules/tesseract.js-core/**/*"
-    ],
-    "buildDependenciesFromSource": true,
-    "extraResources": [
-      {
-        "from": "./static",
-        "to": "static",
-        "filter": [
-          "**/*"
-        ]
-      },
-      {
-        "from": "./dist",
-        "to": "..",
-        "filter": [
-          "LICENSE.*.txt"
-        ]
-      }
-    ],
-    "icon": "./assets/icon.png",
-    "nsis": {
-      "deleteAppDataOnUninstall": true
-    }
-  },
-  "license": "MIT"
+  }
 }
