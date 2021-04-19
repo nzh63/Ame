@@ -17,7 +17,7 @@ int(__cdecl *MTEnd)();
 int(__cdecl *TranTextFlow)(void *src, void *dest, int dest_size, int dat_index);
 
 int main(int argc, char **argv) {
-    HMODULE dll = LoadLibrary(argv[1]);
+    HMODULE dll = LoadLibraryA(argv[1]);
     if (!dll) {
         cout << "dll open fail" << endl;
         return 1;

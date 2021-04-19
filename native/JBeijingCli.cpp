@@ -26,7 +26,7 @@ int(__cdecl *JC_Transfer_Unicode)(HWND hwnd, UINT fromCodePage, UINT toCodePage,
                                   void *to, int *toCapacity, void *buffer, int *bufferCapacity);
 
 int main(int argc, char **argv) {
-    HMODULE dll = LoadLibrary(argv[1]);
+    HMODULE dll = LoadLibraryA(argv[1]);
     if (!dll) {
         cout << "dll open fail" << endl;
         return 1;
