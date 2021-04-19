@@ -5,7 +5,7 @@ import { __static } from '@main/paths';
 
 export default defineTranslateProvider({
     id: 'JBeijing',
-    description: '你先翻译器，你可以在 https://www.kodensha.jp/index/products/jb/ 购买\n只支持日译中',
+    description: '离线翻译器，你可以在 https://www.kodensha.jp/index/products/jb/ 购买\n只支持日译中',
     optionsSchema: {
         enable: Boolean,
         path: {

@@ -1,6 +1,6 @@
 import { BaseProvider } from '@main/providers';
 import store from '@main/store';
-import logger from '@logger/manager/translate';
+import logger from '@logger/manager';
 
 export class BaseManager<C extends { providersStoreKey: string }, P extends BaseProvider<string, any>> {
     public providers: P[] = [];
