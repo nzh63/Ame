@@ -20,19 +20,19 @@ function extract(zipPath, files, dst) {
         yauzl.open(zipPath, { lazyEntries: true }, (err, zipFile) => {
             if (err) return reject(err);
             zipFile.readEntry();
-            zipFile.on('entry', function(entry) {
+            zipFile.on('entry', function (entry) {
                 if (entry.fileName.endsWith('/')) {
                     zipFile.readEntry();
                 } else {
                     if (files.includes(entry.fileName)) {
                         files.splice(files.findIndex(i => i === entry.fileName), 1);
-                        zipFile.openReadStream(entry, function(err, readStream) {
+                        zipFile.openReadStream(entry, function (err, readStream) {
                             if (err) return reject(err);
                             const dstPath = dst(entry);
                             fs.mkdirSync(path.dirname(dstPath), { recursive: true });
                             const out = fs.createWriteStream(dstPath, { flags: 'w+' });
                             readStream.pipe(out);
-                            readStream.on('end', function() {
+                            readStream.on('end', function () {
                                 out.end();
                                 if (files.length) zipFile.readEntry();
                                 else { zipFile.close(); resolve(); }
@@ -88,7 +88,7 @@ async function downloadTextractor(version = '4.16.0') {
     );
     await extract(
         path.join(tmp, './Textractor.zip'),
-        files.map(i => 'Textractor/' + i),
+        files.map(i => i.replace('lib/', 'Textractor/')),
         (entry) => entry.fileName.replace(/^Textractor\//, path.join(__dirname, '../static/lib/'))
     );
     await fsPromise.rmdir(tmp, { recursive: true });
@@ -106,7 +106,7 @@ async function downloadLanguageData(version = '4.16.0') {
     for (const file of files) {
         const dstPath = path.join(__dirname, '../static/lang-data/', file);
         fs.mkdirSync(path.dirname(dstPath), { recursive: true });
-        const url = `https://github.com/tesseract-ocr/tessdata_fast/raw/master/${file}`;
+        const url = `https://github.com/tesseract-ocr/tessdata_fast/raw/master/${file.replace('lang-data/', '')}`;
         console.log('downloading', url);
         await pipeline(
             got.stream(url)
@@ -273,7 +273,7 @@ function dev() {
         });
 }
 
-(async function() {
+(async function () {
     if (process.argv[2] === 'download:dep') {
         await downloadDependencies();
     } else if (process.argv[2] === 'build:native') {
