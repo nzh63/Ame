@@ -104,7 +104,7 @@ async function downloadLanguageData(version = '4.16.0') {
     const pipeline = util.promisify(stream.pipeline);
     const l = gotLicense('https://github.com/tesseract-ocr/tessdata_fast/raw/master/LICENSE', path.join(__dirname, '../static/lang-data/LICENSE.tesseract.txt'));
     for (const file of files) {
-        const dstPath = path.join(__dirname, '../static/lang-data/', file);
+        const dstPath = path.join(__dirname, '../static/', file);
         fs.mkdirSync(path.dirname(dstPath), { recursive: true });
         const url = `https://github.com/tesseract-ocr/tessdata_fast/raw/master/${file.replace('lang-data/', '')}`;
         console.log('downloading', url);
