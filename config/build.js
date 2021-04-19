@@ -277,10 +277,10 @@ function dev() {
     if (process.argv[2] === 'download:dep') {
         await downloadDependencies();
     } else if (process.argv[2] === 'build:native') {
-        await buildNative(process.argv[3] || undefined);
+        await buildNative(process.env.GENERATOR || undefined);
     } else {
         await downloadDependencies();
-        await buildNative(process.argv[3] || undefined);
+        await buildNative(process.env.GENERATOR || undefined);
 
         if (process.argv[2] === 'build:js') {
             await buildAll();

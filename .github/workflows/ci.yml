@@ -28,6 +28,9 @@ jobs:
     - run: yarn lint
     - run: yarn type-check
     - run: yarn download:dep
+    - run: yarn build:native
+      env:
+        GENERATOR: Visual Studio 16 2019
     - run: yarn test
     - run: yarn build --publish never
       env:
