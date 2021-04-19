@@ -5,6 +5,7 @@
             :trigger="null"
             :width="225"
             collapsible
+            class="aside"
         >
             <aside-menu />
         </a-layout-sider>
@@ -61,5 +62,11 @@ body,
     padding: 24px;
     background: #fff;
     minheight: 280px;
+}
+.aside {
+    overflow: hidden;
+}
+.aside:hover {
+    overflow: auto;
 }
 </style>
