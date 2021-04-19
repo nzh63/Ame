@@ -1,13 +1,14 @@
-import { app, BrowserView, BrowserViewConstructorOptions, session } from 'electron';
+import { app, BrowserWindow, BrowserWindowConstructorOptions, session } from 'electron';
 
 app.whenReady().then(() => {
     session.fromPartition('insecure-remote-content')
         .setPermissionRequestHandler((webContents, permission, callback) => callback(false));
 });
 
-export class InsecureRemoteBrowserView extends BrowserView {
-    constructor(options?: BrowserViewConstructorOptions) {
+export class InsecureRemoteBrowserView extends BrowserWindow {
+    constructor(options?: BrowserWindowConstructorOptions) {
         options = options ?? {};
+        options.show = false;
         options.webPreferences = options.webPreferences ?? {};
         options.webPreferences.sandbox = true;
         options.webPreferences.autoplayPolicy = 'user-gesture-required';

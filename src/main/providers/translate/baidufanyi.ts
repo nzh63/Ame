@@ -1,6 +1,6 @@
 import { InsecureRemoteBrowserView } from '@main/InsecureRemoteBrowserView';
 import { defineTranslateProvider } from '@main/providers/translate';
-import { app, BrowserView } from 'electron';
+import { app } from 'electron';
 
 export default defineTranslateProvider({
     id: '百度翻译',
@@ -22,7 +22,7 @@ export default defineTranslateProvider({
     },
     data() {
         return {
-            browserView: null as BrowserView | null,
+            browserView: null as InsecureRemoteBrowserView | null,
             ready: false
         };
     }
@@ -87,6 +87,7 @@ export default defineTranslateProvider({
         );
     },
     destroy() {
+        this.data.browserView?.destroy();
         this.data.browserView = null;
     }
 });
