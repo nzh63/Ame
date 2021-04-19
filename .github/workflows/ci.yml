@@ -27,5 +27,12 @@ jobs:
     - run: yarn install --frozen-lockfile
     - run: yarn lint
     - run: yarn type-check
+    - run: yarn download:dep
     - run: yarn test
     - run: yarn build --publish never
+      env:
+        BUILD_NUMBER: $GITHUB_SHA
+    - uses: actions/upload-artifact@v2
+      with:
+        name: build-artifact
+        path: build/*.exe
