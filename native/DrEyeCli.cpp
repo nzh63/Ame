@@ -21,6 +21,7 @@ int(__cdecl *TranTextFlow)(void *src, void *dest, int dest_size, int dat_index);
 
 int main(int argc, char **argv) {
     _setmode(_fileno(stdin), _O_BINARY);
+    _setmode(_fileno(stdout), _O_BINARY);
     HMODULE dll = LoadLibraryA(argv[1]);
     if (!dll) {
         cout << "dll open fail" << endl;
@@ -61,6 +62,7 @@ int main(int argc, char **argv) {
         for (int i = 0; i < outputSize; i++) {
             cout.put(output[i]);
         }
+        cout.flush();
     }
     MTEnd();
     return 0;

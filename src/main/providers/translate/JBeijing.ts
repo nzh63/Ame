@@ -61,11 +61,16 @@ export default defineTranslateProvider({
                 if (c.length) {
                     output = output.length ? Buffer.concat([output, c]) : c;
                     if (output.length >= outputSize.readUInt16LE()) {
-                        resolve(output.toString('ucs2'));
-                        this.data.process?.stdout?.off('data', callback);
+                        finish();
                     }
                 }
             };
+            const finish = () => {
+                clearTimeout(timeoutId);
+                resolve(output.toString('ucs2'));
+                this.data.process?.stdout?.off('data', callback);
+            }
+            const timeoutId = setTimeout(finish, 1000);
             this.data.process?.stdout?.on('data', callback);
         }));
         this.data.queue = promise;
