@@ -2,7 +2,9 @@
 
 ## 功能
 * 从正在运行的游戏中提取文本，支持Hook方式与OCR方式。
-* 从翻译器中获取机器翻译结果。
+* 从翻译器中获取机器翻译结果，包括：
+  * 离线翻译器（JBeijing与Dr.eye）
+  * 若干在线翻译器
 * 使用语音合成朗读原文、译文。
 * 图形化的、易于配置的设置界面。
 
@@ -14,6 +16,7 @@
 * YUKI自从2020年之后似乎就不再维护了。
 
 ## 编译与运行
+你首先需要安装[node.js](https://nodejs.org/en/)(v12+)、[yarn](https://yarnpkg.com/)、[CMake](https://cmake.org/)和[Visual Studio](https://visualstudio.microsoft.com/)，然后执行以下命令即可进行开发与调试。
 ```powershell
 git clone https://github.com/nzh63/Ame
 cd Ame
