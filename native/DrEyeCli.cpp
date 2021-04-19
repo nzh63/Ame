@@ -2,7 +2,10 @@
 #include <array>
 #include <cstdlib>
 #include <cstring>
+#include <fcntl.h>
+#include <io.h>
 #include <iostream>
+#include <stdio.h>
 #include <string>
 
 using namespace std;
@@ -17,6 +20,7 @@ int(__cdecl *MTEnd)();
 int(__cdecl *TranTextFlow)(void *src, void *dest, int dest_size, int dat_index);
 
 int main(int argc, char **argv) {
+    _setmode(_fileno(stdin), _O_BINARY);
     HMODULE dll = LoadLibraryA(argv[1]);
     if (!dll) {
         cout << "dll open fail" << endl;
