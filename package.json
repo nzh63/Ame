@@ -67,6 +67,7 @@
     "eslint-plugin-promise": "^4.3.1",
     "eslint-plugin-vue": "^7.8.0",
     "got": "^11.8.2",
+    "iconv-lite": "^0.6.2",
     "mocha": "^8.3.2",
     "remove": "^0.1.5",
     "rollup": "^2.45.2",

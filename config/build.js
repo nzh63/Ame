@@ -20,19 +20,19 @@ function extract(zipPath, files, dst) {
         yauzl.open(zipPath, { lazyEntries: true }, (err, zipFile) => {
             if (err) return reject(err);
             zipFile.readEntry();
-            zipFile.on('entry', function (entry) {
+            zipFile.on('entry', function(entry) {
                 if (entry.fileName.endsWith('/')) {
                     zipFile.readEntry();
                 } else {
                     if (files.includes(entry.fileName)) {
                         files.splice(files.findIndex(i => i === entry.fileName), 1);
-                        zipFile.openReadStream(entry, function (err, readStream) {
+                        zipFile.openReadStream(entry, function(err, readStream) {
                             if (err) return reject(err);
                             const dstPath = dst(entry);
                             fs.mkdirSync(path.dirname(dstPath), { recursive: true });
                             const out = fs.createWriteStream(dstPath, { flags: 'w+' });
                             readStream.pipe(out);
-                            readStream.on('end', function () {
+                            readStream.on('end', function() {
                                 out.end();
                                 if (files.length) zipFile.readEntry();
                                 else { zipFile.close(); resolve(); }
@@ -126,7 +126,8 @@ async function downloadDependencies() {
 
 async function buildNative(generator = 'Visual Studio 15 2017') {
     const files = [
-        'native/bin/JBeijingCli.exe'
+        'native/bin/JBeijingCli.exe',
+        'native/bin/DrEyeCli.exe'
     ];
     if (await checkFiles(files)) return;
 
@@ -273,7 +274,7 @@ function dev() {
         });
 }
 
-(async function () {
+(async function() {
     if (process.argv[2] === 'download:dep') {
         await downloadDependencies();
     } else if (process.argv[2] === 'build:native') {
