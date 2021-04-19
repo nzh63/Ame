@@ -31,7 +31,8 @@ extraResources:
   - from: ./static
     to: static
     filter:
-      - '**/*'
+      - "**/*"
+      - "!static/native/bin/GPS.txt"
   - from: ./dist
     to: ..
     filter:

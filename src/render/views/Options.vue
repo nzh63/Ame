@@ -205,7 +205,7 @@ export default defineComponent({
                     newValue = parseFloat(newValue);
                 }
             }
-            if (isArray && typeof nullable === 'string') {
+            if (isArray) {
                 try {
                     newValue = JSON.parse(newValue);
                 } catch (e) {

@@ -56,17 +56,23 @@ async function gotLicense(url, dest) {
     );
 }
 
+async function checkFiles(files) {
+    try {
+        await Promise.all(files.map(i => fsPromise.stat(path.join(__dirname, '../static/', i))));
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
 async function downloadTextractor(version = '4.16.0') {
     const files = [
-        'x86/TextractorCLI.exe',
-        'x86/texthook.dll',
-        'x64/TextractorCLI.exe',
-        'x64/texthook.dll'
+        'lib/x86/TextractorCLI.exe',
+        'lib/x86/texthook.dll',
+        'lib/x64/TextractorCLI.exe',
+        'lib/x64/texthook.dll'
     ];
-    try {
-        await Promise.all(files.map(i => fsPromise.stat(path.join(__dirname, '../static/lib/', i))));
-        return;
-    } catch (e) { }
+    if (await checkFiles(files)) return;
 
     const pipeline = util.promisify(stream.pipeline);
     const l = gotLicense('https://github.com/Artikash/Textractor/raw/master/LICENSE', path.join(__dirname, '../static/lib/LICENSE.Textractor.txt'));
@@ -91,12 +97,9 @@ async function downloadTextractor(version = '4.16.0') {
 
 async function downloadLanguageData(version = '4.16.0') {
     const files = [
-        'jpn.traineddata'
+        'lang-data/jpn.traineddata'
     ];
-    try {
-        await Promise.all(files.map(i => fsPromise.stat(path.join(__dirname, '../static/lang-data/', i))));
-        return;
-    } catch (e) { }
+    if (await checkFiles(files)) return;
 
     const pipeline = util.promisify(stream.pipeline);
     const l = gotLicense('https://github.com/tesseract-ocr/tessdata_fast/raw/master/LICENSE', path.join(__dirname, '../static/lang-data/LICENSE.tesseract.txt'));
@@ -119,6 +122,20 @@ async function downloadLanguageData(version = '4.16.0') {
 async function downloadDependencies() {
     await downloadTextractor();
     await downloadLanguageData();
+}
+
+async function buildNative(generator = 'Visual Studio 15 2017') {
+    const files = [
+        'native/bin/JBeijingCli.exe'
+    ];
+    if (await checkFiles(files)) return;
+
+    console.log('build native module...');
+    const exec = util.promisify(child_process.exec);
+    await fsPromise.mkdir(path.join(__dirname, '../native/build'), { recursive: true });
+    await exec(`cmake -S ${path.join(__dirname, '../native')} -B ${path.join(__dirname, '../native/build')} -G "${generator}" -A win32`);
+    await exec(`cmake --build ${path.join(__dirname, '../native/build')} --config Release --target install`);
+    await fsPromise.rmdir(path.join(__dirname, '../native/build'), { recursive: true });
 }
 
 async function buildRender(mode = 'production') {
@@ -257,21 +274,29 @@ function dev() {
 }
 
 (async function() {
-    await downloadDependencies();
-    if (process.argv[2] === 'build:js') {
-        buildAll();
-    } else if (process.argv[2] === 'build:main') {
-        await buildMain();
-    } else if (process.argv[2] === 'build:workers') {
-        await buildWorkers();
-    } else if (process.argv[2] === 'build:render') {
-        buildRender();
-    } else if (process.argv[2] === 'build:test') {
-        buildTest();
-    } else if (process.argv[2] === 'dev') {
-        dev();
+    if (process.argv[2] === 'download:dep') {
+        await downloadDependencies();
+    } else if (process.argv[2] === 'build:native') {
+        await buildNative(process.argv[3] || undefined);
     } else {
-        buildAll();
+        await downloadDependencies();
+        await buildNative(process.argv[3] || undefined);
+
+        if (process.argv[2] === 'build:js') {
+            await buildAll();
+        } else if (process.argv[2] === 'build:main') {
+            await buildMain();
+        } else if (process.argv[2] === 'build:workers') {
+            await buildWorkers();
+        } else if (process.argv[2] === 'build:render') {
+            await buildRender();
+        } else if (process.argv[2] === 'build:test') {
+            buildTest();
+        } else if (process.argv[2] === 'dev') {
+            dev();
+        } else {
+            buildAll();
+        }
     }
 })();
 process.once('SIGINT', () => {

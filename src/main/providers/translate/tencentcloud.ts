@@ -8,8 +8,8 @@ export default defineTranslateProvider({
         enable: Boolean,
         apiConfig: {
             credential: {
-                secretId: [String, null] as const,
-                secretKey: [String, null] as const
+                secretId: [String, null],
+                secretKey: [String, null]
             },
             region: String,
             params: {
@@ -32,7 +32,7 @@ export default defineTranslateProvider({
                 ProjectId: Number
             }
         }
-    },
+    } as const,
     defaultOptions: {
         enable: true,
         apiConfig: {

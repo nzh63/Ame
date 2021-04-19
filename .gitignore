@@ -6,3 +6,4 @@ dist-ssr
 *.local
 static/lib
 static/lang-data
+static/native
