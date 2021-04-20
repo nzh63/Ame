@@ -7,7 +7,7 @@ module.exports = {
         ecmaVersion: 2020
     },
     rules: {
-        semi: 'off',
+        semi: ['warn', 'always'],
         indent: ['error', 4],
         'no-undef': 'off',
         'no-use-before-define': 'off',

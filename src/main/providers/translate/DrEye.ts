@@ -137,7 +137,7 @@ export default defineTranslateProvider({
                 clearTimeout(timeoutId);
                 resolve(decode(output, this.data.enc.dest));
                 this.data.process?.stdout?.off('data', callback);
-            }
+            };
             const timeoutId = setTimeout(finish, 1000);
             this.data.process?.stdout?.on('data', callback);
         }));

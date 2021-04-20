@@ -69,7 +69,7 @@ export default defineTranslateProvider({
                 clearTimeout(timeoutId);
                 resolve(output.toString('ucs2'));
                 this.data.process?.stdout?.off('data', callback);
-            }
+            };
             const timeoutId = setTimeout(finish, 1000);
             this.data.process?.stdout?.on('data', callback);
         }));
