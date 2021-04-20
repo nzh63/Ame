@@ -194,6 +194,9 @@ async function devMainAndWorkers(mode = 'development') {
     watcher.on('event', ev => {
         if (ev.code === 'END') {
             electronProcess ? restartElectron() : startElectron();
+        } else if (ev.code === 'ERROR') {
+            console.error(ev.error);
+            process.exit(1);
         }
     });
 }
