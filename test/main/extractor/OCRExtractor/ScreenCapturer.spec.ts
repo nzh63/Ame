@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { ScreenCapturer } from '@main/extractor/OCRExtractor/ScreenCapturer';
 import { SimpleWindow } from '../../../SimpleWindow';
 
-describe('WindowEventHook', function() {
+describe('ScreenCapturer', function() {
     let screenCapturer: ScreenCapturer;
     let window: SimpleWindow;
 
@@ -32,5 +32,13 @@ describe('WindowEventHook', function() {
             expect(meta.width).to.equal(width);
             expect(meta.height).to.equal(height);
         }
+    });
+
+    it('capture without window', async function() {
+        await window.run('app.on(\'window-all-closed\',() => { });window.destroy();');
+        const img = await screenCapturer.capture();
+        const meta = await img.metadata();
+        expect(meta.width).to.equal(1);
+        expect(meta.height).to.equal(1);
     });
 });

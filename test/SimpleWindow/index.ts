@@ -49,7 +49,9 @@ export class SimpleWindow extends EventEmitter {
     }
 
     public async destroy() {
-        await execPowerShell(`taskkill /f /pid ${this.pids.join(' /pid ')}`);
+        try {
+            await execPowerShell(`taskkill /f /pid ${this.pids.join(' /pid ')}`);
+        } catch (e) { }
         this.server.unref();
     }
 }

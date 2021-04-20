@@ -4,6 +4,7 @@ import sharp from 'sharp';
 import { gdi32, user32 } from '@main/win32';
 
 export class ScreenCapturer {
+    private static emptyImage = () => sharp(Buffer.alloc(1, 0), { raw: { width: 1, height: 1, channels: 1 } });
     private hwnd?: M.HWND;
     constructor(
         public gamePids: number[],
@@ -28,9 +29,9 @@ export class ScreenCapturer {
         delete ret.callbackEntry;
     }
 
-    public async capture() {
+    public async capture(canRetry = true): Promise<sharp.Sharp> {
         if (!this.hwnd) this.findWindow();
-        if (!this.hwnd) return sharp(Buffer.from(''));
+        if (!this.hwnd) return ScreenCapturer.emptyImage();
 
         const rect = Buffer.alloc(4 * 4, 0);
         user32.GetWindowRect(this.hwnd, rect);
@@ -40,6 +41,11 @@ export class ScreenCapturer {
         const bottom = rect.readInt32LE(12);
         const width = right - left;
         const height = bottom - top;
+
+        if (!width || !height) {
+            this.hwnd = undefined;
+            return canRetry ? this.capture(false) : ScreenCapturer.emptyImage();
+        }
 
         const hwndDC = user32.GetWindowDC(this.hwnd);
         const saveDC = gdi32.CreateCompatibleDC(hwndDC);
