@@ -71,10 +71,10 @@ export class Textractor extends BaseExtractor {
         this.textractorCliProcess.stdout.on('data', data => {
             data = '' + data;
             this.textractorCliStdoutBuffer += data;
-            const result = this.textractorCliStdoutBuffer.split('\n');
+            const result = this.textractorCliStdoutBuffer.split(/\n(?=\[)/);
             while (result.length > 1) {
                 const line = '' + result.shift();
-                const [, key, text] = /\[(.*?)\](.*)/.exec(line) ?? [null, null, null];
+                const [, key, text] = /^\[(.*?)\]([\S\s]*)$/.exec(line) ?? [null, null, null];
                 if (key && text) {
                     this.onUpdate(key, text);
                 }
