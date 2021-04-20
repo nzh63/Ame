@@ -3,7 +3,7 @@ import { Hook } from '@main/hook';
 import { TranslatorWindow } from '@main/TranslatorWindow';
 import { createMainWindow, mainWindow } from '@main/index';
 import { TranslateManager, TTSManager } from '@main/manager';
-import { Extractor, OCRExtractor, Textractor } from '@main/extractor';
+import { BaseExtractor, OCRExtractor, Textractor } from '@main/extractor';
 import logger from '@logger/general';
 
 export type OriginalWatchCallback = (arg: Ame.Translator.OriginalText) => void;
@@ -14,7 +14,7 @@ export class General {
     private static instances: General[] = [];
 
     private hook: Hook;
-    public extractor: Extractor;
+    public extractor: BaseExtractor;
 
     private translatorWindow: TranslatorWindow;
 

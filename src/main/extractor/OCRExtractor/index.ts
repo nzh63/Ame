@@ -1,14 +1,13 @@
-import type { Extractor } from '@main/extractor';
 import type { Hook } from '@main/hook';
 import type { OCRExtractorOptions } from '@main/extractor/OCRExtractor/options';
-import EventEmitter from 'events';
 import sharp from 'sharp';
 import store from '@main/store';
+import { BaseExtractor } from '@main/extractor/BaseExtractor';
 import { ScreenCapturer } from '@main/extractor/OCRExtractor//ScreenCapturer';
 import { OCRManager } from '@main/manager/OCRManager';
 import logger from '@logger/extractor/OCRExtractor';
 
-export class OCRExtractor extends EventEmitter implements Extractor {
+export class OCRExtractor extends BaseExtractor {
     private screenCapturer: ScreenCapturer;
     private lastImage?: sharp.Sharp;
     private lastCropImage?: sharp.Sharp;
@@ -19,7 +18,6 @@ export class OCRExtractor extends EventEmitter implements Extractor {
     private minimizeHookCallback: () => void;
     private restoreHookCallback: () => void;
     private options: OCRExtractorOptions;
-    private text_: Ame.Extractor.Result = {};
     private setTimeoutId?: ReturnType<typeof setTimeout>;
 
     public rect?: sharp.Region;
@@ -89,16 +87,8 @@ export class OCRExtractor extends EventEmitter implements Extractor {
                 text = res.text;
             }
             const key = `ocr-${res.providerId}`;
-            if (text !== this.text_[key]) {
-                this.text_[key] = text;
-                this.emit(`update:${key}`, { key, text });
-                this.emit('update:any', { key, text });
-            }
+            this.onUpdate(key, text);
         });
-    }
-
-    public get text(): Readonly<Ame.Extractor.Result> {
-        return this.text_;
     }
 
     public async getLastCapture(): Promise<sharp.Sharp> {

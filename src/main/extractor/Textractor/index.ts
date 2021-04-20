@@ -1,13 +1,12 @@
-import type { Extractor } from '@main/extractor';
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
-import EventEmitter from 'events';
 import { EOL } from 'os';
 import { join } from 'path';
 import { knl32, nt } from '@main/win32';
 import { __static } from '@main/paths';
+import { BaseExtractor } from '@main/extractor/BaseExtractor';
 import logger from '@logger/extractor/textractor';
 
-export declare interface Textractor extends Extractor {
+export declare interface Textractor extends BaseExtractor {
     on(event: 'update:any', listener: (t: Ame.Translator.OriginalText) => void): this;
     on<T extends Ame.Extractor.Key>(event: `update:${T}`, listener: (t: Ame.Translator.OriginalText) => void): this;
     on(event: 'textractor-cli-exit', listener: (code: number | null) => void): this;
@@ -24,11 +23,10 @@ export declare interface Textractor extends Extractor {
     off(event: string | symbol, listener: (...args: any[]) => void): this;
 }
 
-export class Textractor extends EventEmitter implements Extractor {
+export class Textractor extends BaseExtractor {
     static readonly TextractorCliX64 = join(__static, './lib/x64/TextractorCLI.exe');
     static readonly TextractorCliX86 = join(__static, './lib/x86/TextractorCLI.exe');
     private textractorCliProcess: ChildProcessWithoutNullStreams;
-    private text_: Ame.Extractor.Result = {};
     private textractorCliStdoutBuffer = '';
     constructor(
         public gamePids: number[],
@@ -89,19 +87,6 @@ export class Textractor extends EventEmitter implements Extractor {
         logger('stop Textractor hook for pids %O', this.gamePids);
         // this.gamePids.forEach(pid => void this.execCommand(`detach -P${pid}`));
         this.textractorCliProcess.kill();
-    }
-
-    private onUpdate(key: string, text: string) {
-        logger('Textractor update { %s: %s }', key, text);
-        if (text !== this.text_[key]) {
-            this.text_[key] = text;
-            this.emit(`update:${key}`, { key, text });
-            this.emit('update:any', { key, text });
-        }
-    }
-
-    public get text(): Readonly<Ame.Extractor.Result> {
-        return this.text_;
     }
 
     public destroy() {
