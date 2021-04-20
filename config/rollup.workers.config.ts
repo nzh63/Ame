@@ -87,7 +87,8 @@ export default (mode = 'production') => ({
             }
             return 'index.js';
         },
-        format: 'commonjs'
+        format: 'commonjs',
+        sourcemap: mode !== 'production'
     },
     external: externalPackages,
     onwarn(e) {

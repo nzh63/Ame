@@ -72,7 +72,8 @@ export default (mode = 'production') => ({
     output: {
         dir: path.join(__dirname, '../dist/main'),
         entryFileNames: 'index.js',
-        format: 'commonjs'
+        format: 'commonjs',
+        sourcemap: mode !== 'production'
     },
     external: externalPackages,
     onwarn(e) {
@@ -81,4 +82,4 @@ export default (mode = 'production') => ({
             console.warn(e.message);
         }
     }
-}as RollupOptions);
+} as RollupOptions);

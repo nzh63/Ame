@@ -59,7 +59,8 @@ export default (mode = 'production') => ({
         dir: path.join(__dirname, '../dist/test'),
         entryFileNames: '[name].js',
         assetFileNames: '[name].[hash].js',
-        format: 'commonjs'
+        format: 'commonjs',
+        sourcemap: mode !== 'production'
     },
     external: externalPackages,
     onwarn(e) {

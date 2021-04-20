@@ -11,7 +11,7 @@
             "port": 5858,
             "sourceMaps": true,
             "outFiles": [
-                "${workspaceRoot}/dist/main/main.js"
+                "${workspaceRoot}/dist/main/index.js"
             ]
         }
     ]
