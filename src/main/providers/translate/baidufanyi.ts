@@ -32,7 +32,6 @@ export default defineTranslateProvider({
         await app.whenReady();
         const browserView = new InsecureRemoteBrowserView();
         browserView.webContents.loadURL('https://fanyi.baidu.com/');
-        browserView.webContents.session.setPermissionRequestHandler((webContents, permission, callback) => callback(false));
         browserView.webContents.on('dom-ready', async () => {
             await browserView.webContents.executeJavaScriptInIsolatedWorld(1,
                 [{
