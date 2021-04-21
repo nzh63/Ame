@@ -6,6 +6,7 @@ import baiduAi from './baiduAi';
 import qqfanyi from './qqfanyi';
 import youdaofanyi from './youdaofanyi';
 import baidufanyi from './baidufanyi';
+import googleTranslate from './googleTranslate';
 import JBeijing from './JBeijing';
 import DrEye from './DrEye';
 
@@ -13,5 +14,5 @@ export function defineTranslateProvider<ID extends string, S extends Schema, D>(
     return { ...arg, ...methods, providersStoreKey: 'translateProviders' } as TranslateProviderConfig<ID, S, D>;
 }
 
-export const availableTranslateConfigs = [...(import.meta.env.DEV ? [echo] : []), tencentcloud, baiduAi, qqfanyi, youdaofanyi, baidufanyi, JBeijing, DrEye] as const;
+export const availableTranslateConfigs = [...(import.meta.env.DEV ? [echo] : []), tencentcloud, baiduAi, qqfanyi, youdaofanyi, baidufanyi, googleTranslate, JBeijing, DrEye] as const;
 export type AvailableTranslateConfigs = typeof availableTranslateConfigs;
