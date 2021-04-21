@@ -1,5 +1,5 @@
 import type sharp from 'sharp';
-import type { JSONSchema, Schema, SchemaDescription, SchemaType } from '@main/schema';
+import type { Schema, SchemaDescription, SchemaType } from '@main/schema';
 import { BaseProvider } from './BaseProvider';
 import logger from '@logger/providers/ocrProvider';
 
@@ -16,7 +16,6 @@ export type OCRProviderMethods<ID extends string, S extends Schema, D> = {
     isReady(this: OCRProvider<ID, S, D>): boolean;
     recognize(this: OCRProvider<ID, S, D>, img: sharp.Sharp): Promise<string> | string;
     destroy?(this: OCRProvider<ID, S, D>): void;
-    getOptionsJSONSchema?(this: OCRProvider<ID, S, D>): JSONSchema;
 };
 
 export type OCRProviderConfig<ID extends string, S extends Schema, D> = OCRProviderOptions<ID, S, D> & OCRProviderMethods<ID, S, D> & { providersStoreKey: 'ocrProviders' };

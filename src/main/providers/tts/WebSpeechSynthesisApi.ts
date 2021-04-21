@@ -1,7 +1,5 @@
-import type { JSONSchema } from '@main/schema';
-import { app, BrowserView } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import { defineTTSProvider } from '@main/providers/tts';
-import { toJSONSchema } from '@main/schema';
 import logger from '@logger/providers/WebSpeechSynthesisApi';
 
 export default defineTTSProvider({
@@ -30,40 +28,20 @@ export default defineTTSProvider({
     },
     data() {
         return {
-            browserView: null as BrowserView | null,
-            voices: null as { lang: string; name: string; voiceURI: string }[] | null
+            browserWindow: null as BrowserWindow | null
         };
     }
 }, {
     async init() {
         if (!this.options.enable) return;
         await app.whenReady();
-        const browserView = new BrowserView();
-        browserView.webContents.loadURL('about:black');
-        browserView.webContents.executeJavaScript(
-            '(function() {' +
-            '    return new Promise(resolve => {' +
-            '        function check() {' +
-            '            console.log(speechSynthesis.getVoices());' +
-            '            if (speechSynthesis.getVoices().length && speechSynthesis.getVoices().every(i => i.voiceURI)) {' +
-            '                resolve(JSON.stringify(speechSynthesis.getVoices().map(i => ({voiceURI: i.voiceURI, lang: i.lang, name: i.name }))));' +
-            '            }' +
-            '        }' +
-            '        speechSynthesis.onvoiceschanged = check;' +
-            '        check();' +
-            '    })' +
-            '})()')
-            .then(arg => {
-                arg = JSON.parse(arg);
-                if (arg instanceof Array && arg.every(i => i.voiceURI)) {
-                    this.data.voices = arg;
-                }
-            });
-        this.data.browserView = browserView;
+        const browserWindow = new BrowserWindow();
+        browserWindow.webContents.loadURL('about:black');
+        this.data.browserWindow = browserWindow;
     },
-    isReady() { return this.options.enable && !!this.data.browserView; },
+    isReady() { return this.options.enable && !!this.data.browserWindow; },
     speak(text, type) {
-        if (!this.data.browserView) return;
+        if (!this.data.browserWindow) return;
         const execCode = `
         (function() {
             speechSynthesis.cancel();
@@ -85,22 +63,10 @@ export default defineTTSProvider({
         })()`;
         logger('execCode: %s', execCode);
         logger('options: %O', this.options);
-        this.data.browserView.webContents.executeJavaScript(execCode, true);
+        this.data.browserWindow.webContents.executeJavaScript(execCode, true);
     },
     destroy() {
-        this.data.browserView = null;
-    },
-    getOptionsJSONSchema() {
-        const schema = toJSONSchema(this.optionsSchema, this.config.defaultOptions);
-        if (this.data.voices?.length) {
-            const voice = schema.properties?.voice as JSONSchema;
-            if (voice?.properties?.originalVoiceURI && voice?.properties?.originalVoiceURI !== true) {
-                voice.properties.originalVoiceURI.enum = [null, ...this.data.voices.map(i => i.voiceURI)];
-            }
-            if (voice?.properties?.translateVoiceURI && voice?.properties?.translateVoiceURI !== true) {
-                voice.properties.translateVoiceURI.enum = [null, ...this.data.voices.map(i => i.voiceURI)];
-            }
-        }
-        return schema;
+        this.data.browserWindow?.destroy();
+        this.data.browserWindow = null;
     }
 });

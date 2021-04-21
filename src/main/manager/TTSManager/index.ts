@@ -16,12 +16,6 @@ export class TTSManager extends BaseManager<
 > {
     protected options: TTSManagerOptions;
 
-    private static instance: null | TTSManager = null;
-    static getInstance() {
-        if (!TTSManager.instance) TTSManager.instance = new TTSManager();
-        return TTSManager.instance;
-    }
-
     constructor() {
         super(availableTTSConfigs, TTSProvider);
         this.options = store.get('ttsManager');

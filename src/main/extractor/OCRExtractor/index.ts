@@ -24,7 +24,7 @@ export class OCRExtractor extends BaseExtractor {
     constructor(
         public gamePids: number[],
         public hook: Hook,
-        private ocrManager: OCRManager = OCRManager.getInstance()
+        private ocrManager: OCRManager = new OCRManager()
     ) {
         super();
         this.screenCapturer = new ScreenCapturer(this.gamePids);
@@ -105,5 +105,6 @@ export class OCRExtractor extends BaseExtractor {
         this.hook.off('window-minimize', this.minimizeHookCallback);
         this.hook.off('window-restore', this.restoreHookCallback);
         this.hook.unregisterKeyboardAndMouseHook();
+        this.ocrManager.destroy();
     }
 }

@@ -25,8 +25,8 @@ export class General {
         public gamePids: number[],
         public hookCode = '',
         public type: Ame.Extractor.ExtractorType = 'textractor',
-        public translateManager: TranslateManager = TranslateManager.getInstance(),
-        public ttsManager: TTSManager = TTSManager.getInstance()
+        public translateManager: TranslateManager = new TranslateManager(),
+        public ttsManager: TTSManager = new TTSManager()
     ) {
         logger('start game for pids %O', this.gamePids);
         General.instances.push(this);
@@ -152,6 +152,9 @@ export class General {
             this.translatorWindow.close();
             this.translatorWindow.destroy();
         }
+
+        this.translateManager.destroy();
+        this.ttsManager.destroy();
     }
 
     static getAllInstances(): readonly General[] {

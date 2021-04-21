@@ -1,4 +1,4 @@
-import type { JSONSchema, SchemaType, SchemaDescription, Schema } from '@main/schema';
+import type { SchemaType, SchemaDescription, Schema } from '@main/schema';
 import { BaseProvider } from './BaseProvider';
 import logger from '@logger/providers/translateProvider';
 
@@ -15,7 +15,6 @@ export type TranslateProviderMethods<ID extends string, S extends Schema, D> = {
     isReady(this: TranslateProvider<ID, S, D>): boolean;
     translate(this: TranslateProvider<ID, S, D>, text: string): Promise<string> | string;
     destroy?(this: TranslateProvider<ID, S, D>): void;
-    getOptionsJSONSchema?(this: TranslateProvider<ID, S, D>): JSONSchema;
 };
 
 export type TranslateProviderConfig<ID extends string, S extends Schema, D> = TranslateProviderOptions<ID, S, D> & TranslateProviderMethods<ID, S, D> & { providersStoreKey: 'translateProviders' };

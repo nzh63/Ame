@@ -1,10 +1,10 @@
 import { ipcMain, IpcMainInvokeEvent } from 'electron';
 import { ttsManagerStoreJSONSchema } from '@main/store/ttsManager';
 import { handleError } from '@main/remote/handle';
+import { toJSONSchema } from '@main/schema';
 import { availableTranslateConfigs, AvailableTranslateConfigs } from '@main/providers/translate';
 import { availableTTSConfigs, AvailableTTSConfigs } from '@main/providers/tts';
 import { AvailableOCRConfigs, availableOCRConfigs } from '@main/providers/ocr';
-import { TTSManager, TranslateManager, OCRManager } from '@main/manager';
 import { ttsManagerOptionsDescription } from '@main/manager/TTSManager/options';
 import { ocrExtractorStoreJSONSchema } from '@main/store/ocrExtractor';
 import { ocrExtractorOptionsDescription } from '@main/extractor/OCRExtractor/options';
@@ -16,7 +16,7 @@ ipcMain.handle('get-translate-provider-options-meta', handleError((event: IpcMai
     return {
         id: providerId,
         description: availableTranslateConfigs.find(i => i.id === providerId)?.description,
-        jsonSchema: TranslateManager.getInstance().providers.find(i => i.id === providerId)?.optionsJSONSchema,
+        jsonSchema: toJSONSchema(availableTranslateConfigs.find(i => i.id === providerId)?.optionsSchema ?? {}),
         optionsDescription: availableTranslateConfigs.find(i => i.id === providerId)?.optionsDescription
     };
 }));
@@ -28,7 +28,7 @@ ipcMain.handle('get-tts-provider-options-meta', handleError((event: IpcMainInvok
     return {
         id: providerId,
         description: availableTTSConfigs.find(i => i.id === providerId)?.description,
-        jsonSchema: TTSManager.getInstance().providers.find(i => i.id === providerId)?.optionsJSONSchema,
+        jsonSchema: toJSONSchema(availableTTSConfigs.find(i => i.id === providerId)?.optionsSchema ?? {}),
         optionsDescription: availableTTSConfigs.find(i => i.id === providerId)?.optionsDescription
     };
 }));
@@ -40,7 +40,7 @@ ipcMain.handle('get-ocr-provider-options-meta', handleError((event: IpcMainInvok
     return {
         id: providerId,
         description: availableOCRConfigs.find(i => i.id === providerId)?.description,
-        jsonSchema: OCRManager.getInstance().providers.find(i => i.id === providerId)?.optionsJSONSchema,
+        jsonSchema: toJSONSchema(availableOCRConfigs.find(i => i.id === providerId)?.optionsSchema ?? {}),
         optionsDescription: availableOCRConfigs.find(i => i.id === providerId)?.optionsDescription
     };
 }));

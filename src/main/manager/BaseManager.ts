@@ -33,4 +33,8 @@ export class BaseManager<C extends { providersStoreKey: string }, P extends Base
         this.destroyProviders();
         this.setupProviders();
     }
+
+    public destroy() {
+        this.destroyProviders();
+    }
 }

@@ -14,12 +14,6 @@ export class OCRManager extends BaseManager<
     >,
     OCRProvider<string>
 > {
-    private static instance: null | OCRManager = null;
-    static getInstance() {
-        if (!OCRManager.instance) OCRManager.instance = new OCRManager();
-        return OCRManager.instance;
-    }
-
     constructor() {
         super(availableOCRConfigs, OCRProvider);
     }

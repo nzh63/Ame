@@ -11,12 +11,6 @@ export class TranslateManager extends BaseManager<
     >,
     TranslateProvider<string>
 > {
-    private static instance: null | TranslateManager = null;
-    static getInstance() {
-        if (!TranslateManager.instance) TranslateManager.instance = new TranslateManager();
-        return TranslateManager.instance;
-    }
-
     constructor() {
         super(availableTranslateConfigs, TranslateProvider);
     }

@@ -13,7 +13,6 @@ export type BaseProviderConfig<ID extends string, S extends Schema = Record<stri
     init?(this: BaseProvider<ID, S, D>): void | Promise<void>;
     isReady(this: BaseProvider<ID, S, D>): boolean;
     destroy?(this: BaseProvider<ID, S, D>): void;
-    getOptionsJSONSchema?(this: BaseProvider<ID, S, D>): JSONSchema;
 };
 
 export class BaseProvider<ID extends string, S extends Schema, D = unknown, C extends BaseProviderConfig<ID, S, D> = BaseProviderConfig<ID, S, D>> {
@@ -66,10 +65,6 @@ export class BaseProvider<ID extends string, S extends Schema, D = unknown, C ex
     }
 
     public get optionsJSONSchema(): JSONSchema {
-        if (this.config.getOptionsJSONSchema) {
-            return this.config.getOptionsJSONSchema.call(this);
-        } else {
-            return toJSONSchema(this.optionsSchema, this.config.defaultOptions);
-        }
+        return toJSONSchema(this.optionsSchema, this.config.defaultOptions);
     }
 }

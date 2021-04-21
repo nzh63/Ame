@@ -1,4 +1,4 @@
-import type { JSONSchema, Schema, SchemaDescription, SchemaType } from '@main/schema';
+import type { Schema, SchemaDescription, SchemaType } from '@main/schema';
 import { BaseProvider } from './BaseProvider';
 import logger from '@logger/providers/ttsProvider';
 
@@ -15,7 +15,6 @@ export type TTSProviderMethods<ID extends string, S extends Schema, D> = {
     isReady(this: TTSProvider<ID, S, D>): boolean;
     speak(this: TTSProvider<ID, S, D>, text: string, type: 'original' | 'translate'): Promise<void> | void;
     destroy?(this: TTSProvider<ID, S, D>): void;
-    getOptionsJSONSchema?(this: TTSProvider<ID, S, D>): JSONSchema;
 };
 
 export type TTSProviderConfig<ID extends string, S extends Schema, D> = TTSProviderOptions<ID, S, D> & TTSProviderMethods<ID, S, D> & { providersStoreKey: 'ttsProviders' };
