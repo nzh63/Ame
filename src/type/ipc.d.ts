@@ -30,7 +30,12 @@ declare namespace Electron {
         invoke(channel: 'watch-translate', key: Ame.Extractor.Key): Promise<Ame.IpcRet<void>>;
         invoke(channel: 'unwatch-translate', key: Ame.Extractor.Key): Promise<Ame.IpcRet<void>>;
         invoke<T extends 'translate' | 'tts' | 'ocr'>(channel: `get-${T}-providers-ids`): Promise<Ame.IpcRet<string[]>>;
-        invoke<T extends 'translate' | 'tts' | 'ocr'>(channel: `get-${T}-provider-options-json-schema`, id: string): Promise<Ame.IpcRet<import('@main/schema').JSONSchema>>;
+        invoke<T extends 'translate' | 'tts' | 'ocr'>(channel: `get-${T}-provider-options-meta`, id: string): Promise<Ame.IpcRet<{
+            id: string;
+            description: string;
+            jsonSchema: import('@main/schema').JSONSchema;
+            optionsDescription: any;
+        }>>;
         on(channel: 'original-watch-list-update', listener: (event: IpcRendererEvent, arg: Ame.Translator.OriginalText) => void): void;
         on(channel: 'translate-watch-list-update', listener: (event: IpcRendererEvent, arg: Ame.Translator.TranslateResult) => void): void;
     }

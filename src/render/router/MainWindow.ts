@@ -43,6 +43,10 @@ export default createRouter({
             })
         },
         {
+            path: '/options/tts-provider/WebSpeechSynthesisApi',
+            component: () => import('@render/views/options/tts-provider/WebSpeechSynthesisApi.vue')
+        },
+        {
             path: '/options/tts-provider/:providerId',
             component: () => import('@render/views/Options.vue'),
             props: route => ({

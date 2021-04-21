@@ -138,7 +138,7 @@ export default defineComponent({
         };
         nextTick(reSetup);
 
-        watch(() => props.providerId, reSetup);
+        watch(props, reSetup);
 
         type ListItem = {
             optionsValue: any,
