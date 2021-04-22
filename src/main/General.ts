@@ -39,7 +39,7 @@ export class General {
         this.extractor = this.type === 'textractor'
             ? new Textractor(this.gamePids, this.hookCode)
             : new OcrExtractor(this.gamePids, this.hook);
-        let openGuide = true;
+        let openGuide = false;
         if (this.type === 'ocr') {
             openGuide = this.setupOcrExtractor();
         }
