@@ -458,6 +458,11 @@
   dependencies:
     "@types/node" "*"
 
+"@types/uuid@^8.3.0":
+  version "8.3.0"
+  resolved "https://registry.npm.taobao.org/@types/uuid/download/@types/uuid-8.3.0.tgz#215c231dff736d5ba92410e6d602050cce7e273f"
+  integrity sha1-IVwjHf9zbVupJBDm1gIFDM5+Jz8=
+
 "@types/verror@^1.10.3":
   version "1.10.4"
   resolved "https://registry.npm.taobao.org/@types/verror/download/@types/verror-1.10.4.tgz?cache=0&sync_timestamp=1613385796701&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2F%40types%2Fverror%2Fdownload%2F%40types%2Fverror-1.10.4.tgz#805c0612b3a0c124cf99f517364142946b74ba3b"
@@ -5666,6 +5671,11 @@ util@^0.11.0:
   integrity sha1-MjZzNyDsZLsn9uJvQhqqLhtYjWE=
   dependencies:
     inherits "2.0.3"
+
+uuid@^8.3.2:
+  version "8.3.2"
+  resolved "https://registry.npm.taobao.org/uuid/download/uuid-8.3.2.tgz?cache=0&sync_timestamp=1607460081656&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fuuid%2Fdownload%2Fuuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"
+  integrity sha1-gNW1ztJxu5r2xEXyGhoExgbO++I=
 
 v8-compile-cache@^2.0.3:
   version "2.3.0"

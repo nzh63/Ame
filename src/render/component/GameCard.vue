@@ -103,6 +103,10 @@ export default defineComponent({
         Spin
     },
     props: {
+        uuid: {
+            type: String,
+            default: ''
+        },
         name: {
             type: String,
             default: ''
@@ -158,7 +162,7 @@ export default defineComponent({
             this.starting = true;
             try {
                 const { pids } = await startGame(toRaw(this.$props) as Ame.GameSetting);
-                startExtract(pids, this.hookCode, this.type);
+                startExtract(this.uuid, pids, this.hookCode, this.type);
             } catch (e) {
                 message.error(`启动失败：${e.message ?? e}`);
             }

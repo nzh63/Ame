@@ -6,10 +6,10 @@ export function ttsSpeak(text: string, type: 'original' | 'translate') {
     return handleError(electron.ipcRenderer.invoke('tts-speak', text, type));
 }
 
-export function onTTSReply(callback: () => void) {
+export function onTtsReply(callback: () => void) {
     electron.ipcRenderer.on('tts-speak-reply', callback);
 }
 
-export function offTTSReply(callback: () => void) {
+export function offTtsReply(callback: () => void) {
     electron.ipcRenderer.off('tts-speak-reply', callback);
 }

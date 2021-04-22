@@ -89,6 +89,9 @@ export class Textractor extends BaseExtractor {
         this.textractorCliProcess.kill();
     }
 
+    public pause() { }
+    public resume() { }
+
     public destroy() {
         logger('destroy, pids %O', this.gamePids);
         this.stopHook();

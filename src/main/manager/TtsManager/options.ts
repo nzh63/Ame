@@ -1,19 +1,19 @@
 import type { SchemaType, SchemaDescription } from '@main/schema';
-import { availableTTSConfigs } from '@main/providers/tts';
+import { availableTtsConfigs } from '@main/providers/tts';
 
 export const ttsManagerOptionsSchema = {
     defaultProvider: {
         type: [null, String] as const,
-        enum: [null, ...availableTTSConfigs.map(i => i.id)]
+        enum: [null, ...availableTtsConfigs.map(i => i.id)]
     }
 };
 
-export type TTSManagerOptions = SchemaType<typeof ttsManagerOptionsSchema>;
+export type TtsManagerOptions = SchemaType<typeof ttsManagerOptionsSchema>;
 
 export const ttsManagerOptionsDescription: SchemaDescription<typeof ttsManagerOptionsSchema> = {
     defaultProvider: '默认提供程序'
 };
 
-export const ttsManagerOptionsDefaultValue: TTSManagerOptions = {
+export const ttsManagerOptionsDefaultValue: TtsManagerOptions = {
     defaultProvider: null
 };

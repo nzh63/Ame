@@ -1,9 +1,12 @@
+import type sharp from 'sharp';
 import { screen } from 'electron';
 import { Hook } from '@main/hook';
-import { TranslatorWindow } from '@main/TranslatorWindow';
+import { TranslatorWindow } from '@main/window/TranslatorWindow';
+import { OcrGuideWindow } from '@main/window/OcrGuideWindow';
 import { createMainWindow, mainWindow } from '@main/index';
-import { TranslateManager, TTSManager } from '@main/manager';
-import { BaseExtractor, OCRExtractor, Textractor } from '@main/extractor';
+import { TranslateManager, TtsManager } from '@main/manager';
+import { BaseExtractor, OcrExtractor, Textractor, PreprocessOption } from '@main/extractor';
+import store from '@main/store';
 import logger from '@logger/general';
 
 export type OriginalWatchCallback = (arg: Ame.Translator.OriginalText) => void;
@@ -17,24 +20,41 @@ export class General {
     public extractor: BaseExtractor;
 
     private translatorWindow: TranslatorWindow;
+    private ocrGuideWindow?: OcrGuideWindow;
 
     private originalWatchList: { [key in Ame.Extractor.Key]: OriginalWatchCallback } = {};
     private translateWatchList: { [key in Ame.Extractor.Key]: OriginalWatchCallback } = {};
 
     constructor(
+        public uuid: string,
         public gamePids: number[],
         public hookCode = '',
         public type: Ame.Extractor.ExtractorType = 'textractor',
         public translateManager: TranslateManager = new TranslateManager(),
-        public ttsManager: TTSManager = new TTSManager()
+        public ttsManager: TtsManager = new TtsManager()
     ) {
         logger('start game for pids %O', this.gamePids);
         General.instances.push(this);
         this.hook = new Hook(this.gamePids);
         this.extractor = this.type === 'textractor'
             ? new Textractor(this.gamePids, this.hookCode)
-            : new OCRExtractor(this.gamePids, this.hook);
-        this.translatorWindow = new TranslatorWindow(this, this.gamePids);
+            : new OcrExtractor(this.gamePids, this.hook);
+        let openGuide = true;
+        if (this.type === 'ocr') {
+            const game = store.get('games').find(i => i.uuid === this.uuid);
+            if (game?.ocr?.rect) {
+                (this.extractor as OcrExtractor).rect = game.ocr.rect;
+                openGuide = false;
+            }
+            if (game?.ocr?.preprocess) {
+                (this.extractor as OcrExtractor).preprocessOption = game.ocr.preprocess;
+                openGuide = false;
+            }
+        }
+        this.translatorWindow = new TranslatorWindow(this, this.gamePids, !openGuide);
+        if (openGuide) {
+            this.openOcrGuideWindow();
+        }
 
         this.translatorWindow.once('ready-to-show', () => {
             if (mainWindow) {
@@ -78,14 +98,62 @@ export class General {
                 this.extractor = new Textractor(this.gamePids, this.hookCode);
             }
         } else if (type === 'ocr') {
-            if (!(this.extractor instanceof OCRExtractor)) {
+            if (!(this.extractor instanceof OcrExtractor)) {
                 this.type = type;
                 this.extractor.destroy();
-                this.extractor = new OCRExtractor(this.gamePids, this.hook);
+                this.extractor = new OcrExtractor(this.gamePids, this.hook);
             }
         } else {
             // eslint-disable-next-line  @typescript-eslint/no-unused-vars
             const _typeCheck: never = type;
+        }
+    }
+
+    public openOcrGuideWindow() {
+        if (this.type !== 'ocr') throw new Error('extractor is not ocr');
+        this.translatorWindow.hide();
+        this.extractor.pause();
+        if (this.ocrGuideWindow && !this.ocrGuideWindow.isDestroyed()) {
+            this.ocrGuideWindow.destroy();
+        }
+        this.ocrGuideWindow = new OcrGuideWindow(this);
+        this.ocrGuideWindow.once('closed', () => {
+            if (!this.translatorWindow.isDestroyed()) this.translatorWindow.show();
+            this.extractor.resume();
+            this.ocrGuideWindow = undefined;
+        });
+    }
+
+    public setOcrRect(rect: sharp.Region) {
+        if (this.type === 'ocr') {
+            for (const i in rect) {
+                rect[i as keyof sharp.Region] = Math.round(rect[i as keyof sharp.Region]);
+            }
+            (this.extractor as OcrExtractor).rect = rect;
+            const games = store.get('games');
+            const game = games.find(i => i.uuid === this.uuid);
+            if (game) {
+                game.ocr = game.ocr ?? {};
+                game.ocr.rect = rect;
+                store.set('games', games);
+            }
+        } else {
+            throw new Error('Not in Ocr mode');
+        }
+    }
+
+    public setOcrPreprocess(option: PreprocessOption) {
+        if (this.type === 'ocr') {
+            (this.extractor as OcrExtractor).preprocessOption = option;
+            const games = store.get('games');
+            const game = games.find(i => i.uuid === this.uuid);
+            if (game) {
+                game.ocr = game.ocr ?? {};
+                game.ocr.preprocess = option;
+                store.set('games', games);
+            }
+        } else {
+            throw new Error('Not in Ocr mode');
         }
     }
 
@@ -146,13 +214,14 @@ export class General {
         for (const key in this.translateWatchList) {
             this.unwatchTranslate(key);
         }
-        this.hook.destroy();
-        this.extractor.destroy();
         if (!this.translatorWindow.isDestroyed()) {
-            this.translatorWindow.close();
             this.translatorWindow.destroy();
         }
-
+        if (this.ocrGuideWindow && !this.ocrGuideWindow.isDestroyed()) {
+            this.ocrGuideWindow.destroy();
+        }
+        this.hook.destroy();
+        this.extractor.destroy();
         this.translateManager.destroy();
         this.ttsManager.destroy();
     }

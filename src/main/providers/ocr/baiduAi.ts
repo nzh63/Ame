@@ -1,8 +1,8 @@
 import querystring from 'querystring';
 import fetch from 'electron-fetch';
-import { defineOCRProvider } from '@main/providers/ocr';
+import { defineOcrProvider } from '@main/providers/ocr';
 
-export default defineOCRProvider({
+export default defineOcrProvider({
     id: '百度AI开放平台',
     optionsSchema: {
         enable: Boolean,

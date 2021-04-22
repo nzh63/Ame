@@ -1,8 +1,9 @@
 import type { General } from '@main/General';
-import { BrowserWindow, Menu } from 'electron';
+import { WindowWithGeneral } from '@main/window/WindowWithGeneral';
+import { Menu } from 'electron';
 import logger from '@logger/translatorWindow';
 
-export class TranslatorWindow extends BrowserWindow {
+export class TranslatorWindow extends WindowWithGeneral {
     private static readonly windowOption = {
         show: false,
         useContentSize: true,
@@ -32,16 +33,18 @@ export class TranslatorWindow extends BrowserWindow {
 
     constructor(
         public general: General,
-        public gamePids: number[]
+        public gamePids: number[],
+        autoShow = true
     ) {
-        super(TranslatorWindow.windowOption);
+        super(general, TranslatorWindow.windowOption);
         logger('create TranslatorWindow for pids: %O', this.gamePids);
         this.loadURL(TranslatorWindow.url);
-
-        this.once('ready-to-show', () => {
-            this.show();
-            this.moveTop();
-        });
+        if (autoShow) {
+            this.once('ready-to-show', () => {
+                this.show();
+                this.moveTop();
+            });
+        }
 
         this.on('close', e => {
             this.hide();

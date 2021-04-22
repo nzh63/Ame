@@ -1,5 +1,5 @@
 import { ipcMain, IpcMainInvokeEvent, BrowserWindow } from 'electron';
-import { TranslatorWindow } from '@main/TranslatorWindow';
+import { TranslatorWindow } from '@main/window/TranslatorWindow';
 import { handleError } from '@main/remote/handle';
 
 ipcMain.handle('watch-original', handleError((event: IpcMainInvokeEvent, key: Ame.Extractor.Key) => {

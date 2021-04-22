@@ -5,7 +5,7 @@ app.whenReady().then(() => {
         .setPermissionRequestHandler((webContents, permission, callback) => callback(false));
 });
 
-export class InsecureRemoteBrowserView extends BrowserWindow {
+export class InsecureRemoteBrowserWindow extends BrowserWindow {
     constructor(options?: BrowserWindowConstructorOptions) {
         options = options ?? {};
         options.show = false;

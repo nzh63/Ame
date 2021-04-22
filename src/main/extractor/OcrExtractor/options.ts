@@ -14,7 +14,7 @@ export const ocrExtractorOptionsSchema = {
     }
 };
 
-export type OCRExtractorOptions = SchemaType<typeof ocrExtractorOptionsSchema>;
+export type OcrExtractorOptions = SchemaType<typeof ocrExtractorOptionsSchema>;
 
 export const ocrExtractorOptionsDescription: SchemaDescription<typeof ocrExtractorOptionsSchema> = {
     delay: {
@@ -33,7 +33,7 @@ export const ocrExtractorOptionsDescription: SchemaDescription<typeof ocrExtract
     }
 };
 
-export const ocrExtractorOptionsDefaultValue: OCRExtractorOptions = {
+export const ocrExtractorOptionsDefaultValue: OcrExtractorOptions = {
     delay: 500,
     trigger: {
         mouse: {

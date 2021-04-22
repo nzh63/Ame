@@ -119,6 +119,7 @@
 <script lang="ts">
 
 import { defineComponent, toRaw } from 'vue';
+import { v4 as uuidv4 } from 'uuid';
 import InputWithOpenFile from '@render/component/InputWithOpenFile.vue';
 import type { PlatformPath } from 'path';
 import Spin from '@render/component/Spin';
@@ -170,7 +171,7 @@ export default defineComponent({
         },
         async check() {
             try {
-                await startGame(toRaw(this.formState));
+                await startGame({ ...toRaw(this.formState), uuid: '' });
                 this.result = 'success';
                 this.resultInfo = '';
                 this.done();
@@ -181,7 +182,7 @@ export default defineComponent({
             this.current++;
         },
         async done() {
-            await store.set('games', [...await store.get('games', []), toRaw(this.formState)]);
+            await store.set('games', [...await store.get('games', []), { ...toRaw(this.formState), uuid: uuidv4() }]);
         },
         updateExecShell() {
             this.formState.execShell = (this.localeChangers.find(i => i.name === this.formState.localeChanger)?.execShell ?? "&'%GAME'").replace('%GAME%', this.formState.path);

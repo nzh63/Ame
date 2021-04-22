@@ -31,5 +31,8 @@ export abstract class BaseExtractor extends EventEmitter {
         }
     }
 
+    abstract pause(): void;
+    abstract resume(): void;
+
     abstract destroy(): void;
 }

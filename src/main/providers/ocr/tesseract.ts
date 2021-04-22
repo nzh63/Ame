@@ -1,10 +1,10 @@
 import path from 'path';
 import { Worker } from 'worker_threads';
-import { defineOCRProvider } from '@main/providers/ocr';
+import { defineOcrProvider } from '@main/providers/ocr';
 import { __workers, __static } from '@main/paths';
 import logger from '@logger/provider/ocr/tesseract';
 
-export default defineOCRProvider({
+export default defineOcrProvider({
     id: 'tesseract',
     optionsSchema: {
         enable: Boolean,

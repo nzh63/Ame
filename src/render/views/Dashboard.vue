@@ -53,7 +53,7 @@ export default defineComponent({
             this.games = await store.get('games');
         },
         start() {
-            startExtract([this.pid]);
+            startExtract('', [this.pid]);
             this.visible = false;
         }
     },

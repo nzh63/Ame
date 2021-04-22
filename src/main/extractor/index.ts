@@ -1,3 +1,3 @@
 export * from './BaseExtractor';
 export * from './Textractor';
-export * from './OCRExtractor';
+export * from './OcrExtractor';

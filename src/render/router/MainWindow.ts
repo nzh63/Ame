@@ -2,18 +2,18 @@ import {
     getTranslateProviderOptionsMeta,
     getTranslateProviderOptions,
     setTranslateProviderOptions,
-    getTTSProviderOptionsMeta,
-    getTTSProviderOptions,
-    setTTSProviderOptions,
-    getTTSManagerOptionsMeta,
-    getTTSManagerOptions,
-    setTTSManagerOptions,
-    getOCRProviderOptionsMeta,
-    getOCRProviderOptions,
-    setOCRProviderOptions,
-    getOCRExtractorOptions,
-    getOCRExtractorOptionsMeta,
-    setOCRExtractorOptions
+    getTtsProviderOptionsMeta,
+    getTtsProviderOptions,
+    setTtsProviderOptions,
+    getTtsManagerOptionsMeta,
+    getTtsManagerOptions,
+    setTtsManagerOptions,
+    getOcrProviderOptionsMeta,
+    getOcrProviderOptions,
+    setOcrProviderOptions,
+    getOcrExtractorOptions,
+    getOcrExtractorOptionsMeta,
+    setOcrExtractorOptions
 } from '@render/remote';
 import { createRouter, createWebHashHistory } from 'vue-router';
 
@@ -51,9 +51,9 @@ export default createRouter({
             component: () => import('@render/views/Options.vue'),
             props: route => ({
                 providerId: route.params.providerId,
-                getMeta: getTTSProviderOptionsMeta,
-                getOptions: getTTSProviderOptions,
-                setOptions: setTTSProviderOptions
+                getMeta: getTtsProviderOptionsMeta,
+                getOptions: getTtsProviderOptions,
+                setOptions: setTtsProviderOptions
             })
         },
         {
@@ -61,9 +61,9 @@ export default createRouter({
             component: () => import('@render/views/Options.vue'),
             props: route => ({
                 providerId: '<none>',
-                getMeta: getTTSManagerOptionsMeta,
-                getOptions: getTTSManagerOptions,
-                setOptions: setTTSManagerOptions
+                getMeta: getTtsManagerOptionsMeta,
+                getOptions: getTtsManagerOptions,
+                setOptions: setTtsManagerOptions
             })
         },
         {
@@ -71,9 +71,9 @@ export default createRouter({
             component: () => import('@render/views/Options.vue'),
             props: route => ({
                 providerId: route.params.providerId,
-                getMeta: getOCRProviderOptionsMeta,
-                getOptions: getOCRProviderOptions,
-                setOptions: setOCRProviderOptions
+                getMeta: getOcrProviderOptionsMeta,
+                getOptions: getOcrProviderOptions,
+                setOptions: setOcrProviderOptions
             })
         },
         {
@@ -81,9 +81,9 @@ export default createRouter({
             component: () => import('@render/views/Options.vue'),
             props: route => ({
                 providerId: '<none>',
-                getMeta: getOCRExtractorOptionsMeta,
-                getOptions: getOCRExtractorOptions,
-                setOptions: setOCRExtractorOptions
+                getMeta: getOcrExtractorOptionsMeta,
+                getOptions: getOcrExtractorOptions,
+                setOptions: setOcrExtractorOptions
             })
         },
         {

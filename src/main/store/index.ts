@@ -2,19 +2,19 @@ import Store from 'electron-store';
 import { gamesStoreJSONSchema } from './games';
 import { localeChangersStore, localeChangersStoreJSONSchema } from './localeChangers';
 import { TranslateProvidersStore, translateProvidersStoreJSONSchema } from './translateProviders';
-import { TTSProvidersStore, ttsProvidersStoreJSONSchema } from './ttsProviders';
-import { OCRProvidersStore, ocrProvidersStoreJSONSchema } from './ocrProviders';
-import { TTSManagerStore, ttsManagerStoreJSONSchema } from './ttsManager';
-import { OCRExtractorStore, ocrExtractorStoreJSONSchema } from './ocrExtractor';
+import { TtsProvidersStore, ttsProvidersStoreJSONSchema } from './ttsProviders';
+import { OcrProvidersStore, ocrProvidersStoreJSONSchema } from './ocrProviders';
+import { TtsManagerStore, ttsManagerStoreJSONSchema } from './ttsManager';
+import { OcrExtractorStore, ocrExtractorStoreJSONSchema } from './ocrExtractor';
 
 const store = new Store<{
     games: Ame.GameSetting[];
     localeChangers: localeChangersStore;
     translateProviders: TranslateProvidersStore;
-    ttsProviders: TTSProvidersStore;
-    ocrProviders: OCRProvidersStore;
-    ttsManager: TTSManagerStore;
-    ocrExtractor: OCRExtractorStore;
+    ttsProviders: TtsProvidersStore;
+    ocrProviders: OcrProvidersStore;
+    ttsManager: TtsManagerStore;
+    ocrExtractor: OcrExtractorStore;
 }>({
     schema: {
         games: gamesStoreJSONSchema,

@@ -3,11 +3,11 @@ import { ttsManagerStoreJSONSchema } from '@main/store/ttsManager';
 import { handleError } from '@main/remote/handle';
 import { toJSONSchema } from '@main/schema';
 import { availableTranslateConfigs, AvailableTranslateConfigs } from '@main/providers/translate';
-import { availableTTSConfigs, AvailableTTSConfigs } from '@main/providers/tts';
-import { AvailableOCRConfigs, availableOCRConfigs } from '@main/providers/ocr';
-import { ttsManagerOptionsDescription } from '@main/manager/TTSManager/options';
+import { availableTtsConfigs, AvailableTtsConfigs } from '@main/providers/tts';
+import { AvailableOcrConfigs, availableOcrConfigs } from '@main/providers/ocr';
+import { ttsManagerOptionsDescription } from '@main/manager/TtsManager/options';
 import { ocrExtractorStoreJSONSchema } from '@main/store/ocrExtractor';
-import { ocrExtractorOptionsDescription } from '@main/extractor/OCRExtractor/options';
+import { ocrExtractorOptionsDescription } from '@main/extractor/OcrExtractor/options';
 
 ipcMain.handle('get-translate-providers-ids', handleError((event: IpcMainInvokeEvent) => {
     return availableTranslateConfigs.map(i => i.id);
@@ -22,26 +22,26 @@ ipcMain.handle('get-translate-provider-options-meta', handleError((event: IpcMai
 }));
 
 ipcMain.handle('get-tts-providers-ids', handleError((event: IpcMainInvokeEvent) => {
-    return availableTTSConfigs.map(i => i.id);
+    return availableTtsConfigs.map(i => i.id);
 }));
-ipcMain.handle('get-tts-provider-options-meta', handleError((event: IpcMainInvokeEvent, providerId: AvailableTTSConfigs[number]['id']) => {
+ipcMain.handle('get-tts-provider-options-meta', handleError((event: IpcMainInvokeEvent, providerId: AvailableTtsConfigs[number]['id']) => {
     return {
         id: providerId,
-        description: availableTTSConfigs.find(i => i.id === providerId)?.description,
-        jsonSchema: toJSONSchema(availableTTSConfigs.find(i => i.id === providerId)?.optionsSchema ?? {}),
-        optionsDescription: availableTTSConfigs.find(i => i.id === providerId)?.optionsDescription
+        description: availableTtsConfigs.find(i => i.id === providerId)?.description,
+        jsonSchema: toJSONSchema(availableTtsConfigs.find(i => i.id === providerId)?.optionsSchema ?? {}),
+        optionsDescription: availableTtsConfigs.find(i => i.id === providerId)?.optionsDescription
     };
 }));
 
 ipcMain.handle('get-ocr-providers-ids', handleError((event: IpcMainInvokeEvent) => {
-    return availableOCRConfigs.map(i => i.id);
+    return availableOcrConfigs.map(i => i.id);
 }));
-ipcMain.handle('get-ocr-provider-options-meta', handleError((event: IpcMainInvokeEvent, providerId: AvailableOCRConfigs[number]['id']) => {
+ipcMain.handle('get-ocr-provider-options-meta', handleError((event: IpcMainInvokeEvent, providerId: AvailableOcrConfigs[number]['id']) => {
     return {
         id: providerId,
-        description: availableOCRConfigs.find(i => i.id === providerId)?.description,
-        jsonSchema: toJSONSchema(availableOCRConfigs.find(i => i.id === providerId)?.optionsSchema ?? {}),
-        optionsDescription: availableOCRConfigs.find(i => i.id === providerId)?.optionsDescription
+        description: availableOcrConfigs.find(i => i.id === providerId)?.description,
+        jsonSchema: toJSONSchema(availableOcrConfigs.find(i => i.id === providerId)?.optionsSchema ?? {}),
+        optionsDescription: availableOcrConfigs.find(i => i.id === providerId)?.optionsDescription
     };
 }));
 

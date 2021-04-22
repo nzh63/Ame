@@ -1,23 +1,23 @@
-import type { TTSProviderConfig } from '@main/providers/TTSProvider';
-import { availableTTSConfigs, AvailableTTSConfigs } from '@main/providers/tts';
-import { TTSProvider } from '@main/providers';
-import { TTSManagerOptions } from '@main/manager/TTSManager/options';
+import type { TtsProviderConfig } from '@main/providers/TtsProvider';
+import { availableTtsConfigs, AvailableTtsConfigs } from '@main/providers/tts';
+import { TtsProvider } from '@main/providers';
+import { TtsManagerOptions } from '@main/manager/TtsManager/options';
 import { BaseManager } from '@main/manager/BaseManager';
 import store from '@main/store';
 import logger from '@logger/manager/tts';
 
-export class TTSManager extends BaseManager<
-    TTSProviderConfig<
-        AvailableTTSConfigs[number]['id'],
-        AvailableTTSConfigs[number]['optionsSchema'],
-        ReturnType<AvailableTTSConfigs[number]['data']>
+export class TtsManager extends BaseManager<
+    TtsProviderConfig<
+        AvailableTtsConfigs[number]['id'],
+        AvailableTtsConfigs[number]['optionsSchema'],
+        ReturnType<AvailableTtsConfigs[number]['data']>
     >,
-    TTSProvider<string>
+    TtsProvider<string>
 > {
-    protected options: TTSManagerOptions;
+    protected options: TtsManagerOptions;
 
     constructor() {
-        super(availableTTSConfigs, TTSProvider);
+        super(availableTtsConfigs, TtsProvider);
         this.options = store.get('ttsManager');
         store.onDidChange('ttsProviders', () => { this.options = store.get('ttsManager'); });
     }

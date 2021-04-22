@@ -1,10 +1,10 @@
 import type { Schema } from '@main/schema';
-import type { TTSProviderOptions, TTSProviderMethods, TTSProviderConfig } from '@main/providers/TTSProvider';
+import type { TtsProviderOptions, TtsProviderMethods, TtsProviderConfig } from '@main/providers/TtsProvider';
 import WebSpeechSynthesisApi from './WebSpeechSynthesisApi';
 
-export function defineTTSProvider<ID extends string, S extends Schema, D>(arg: TTSProviderOptions<ID, S, D>, methods: TTSProviderMethods<ID, S, D>) {
-    return { ...arg, ...methods, providersStoreKey: 'ttsProviders' } as TTSProviderConfig<ID, S, D>;
+export function defineTtsProvider<ID extends string, S extends Schema, D>(arg: TtsProviderOptions<ID, S, D>, methods: TtsProviderMethods<ID, S, D>) {
+    return { ...arg, ...methods, providersStoreKey: 'ttsProviders' } as TtsProviderConfig<ID, S, D>;
 }
 
-export const availableTTSConfigs = [WebSpeechSynthesisApi] as const;
-export type AvailableTTSConfigs = typeof availableTTSConfigs;
+export const availableTtsConfigs = [WebSpeechSynthesisApi] as const;
+export type AvailableTtsConfigs = typeof availableTtsConfigs;

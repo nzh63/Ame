@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import path from 'path';
+import nodeResolve from '@rollup/plugin-node-resolve';
 import log from './LogPlugin';
 
 import builtinModules from 'builtin-modules/static';
@@ -19,7 +20,8 @@ export default defineConfig(({ mode } = { command: 'build', mode: 'production' }
     optimizeDeps: {
         entries: [
             path.join(__dirname, '../src/render/MainWindow.html'),
-            path.join(__dirname, '../src/render/TranslatorWindow.html')
+            path.join(__dirname, '../src/render/TranslatorWindow.html'),
+            path.join(__dirname, '../src/render/OcrGuide.html')
         ],
         include: ['vue', 'ant-design-vue', 'vue-router', '@ant-design/icons-vue', 'debug']
     },
@@ -37,6 +39,7 @@ export default defineConfig(({ mode } = { command: 'build', mode: 'production' }
         disableLog: mode === 'production'
     }),
     vue(),
+    nodeResolve({ extensions: ['.js', '.ts', '.node'], browser: true }),
     ...(mode === 'production'
         ? [license({
             thirdParty: {
@@ -59,7 +62,8 @@ export default defineConfig(({ mode } = { command: 'build', mode: 'production' }
         rollupOptions: {
             input: [
                 path.join(__dirname, '../src/render/MainWindow.html'),
-                path.join(__dirname, '../src/render/TranslatorWindow.html')
+                path.join(__dirname, '../src/render/TranslatorWindow.html'),
+                path.join(__dirname, '../src/render/OcrGuide.html')
             ],
             external: externalPackages
         }

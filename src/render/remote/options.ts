@@ -16,48 +16,48 @@ export function setTranslateProviderOptions(providerId: string, value: unknown) 
     return store.set(`translateProviders.${providerId}`, value);
 }
 
-export function getTTSProvidersIDs() {
+export function getTtsProvidersIDs() {
     return handleError(electron.ipcRenderer.invoke('get-tts-providers-ids'));
 }
-export function getTTSProviderOptionsMeta(providerId: string) {
+export function getTtsProviderOptionsMeta(providerId: string) {
     return handleError(electron.ipcRenderer.invoke('get-tts-provider-options-meta', providerId));
 }
-export function getTTSProviderOptions(providerId: string) {
+export function getTtsProviderOptions(providerId: string) {
     return store.get(`ttsProviders.${providerId}`);
 }
-export function setTTSProviderOptions(providerId: string, value: unknown) {
+export function setTtsProviderOptions(providerId: string, value: unknown) {
     return store.set(`ttsProviders.${providerId}`, value);
 }
 
-export function getOCRProvidersIDs() {
+export function getOcrProvidersIDs() {
     return handleError(electron.ipcRenderer.invoke('get-ocr-providers-ids'));
 }
-export function getOCRProviderOptionsMeta(providerId: string) {
+export function getOcrProviderOptionsMeta(providerId: string) {
     return handleError(electron.ipcRenderer.invoke('get-ocr-provider-options-meta', providerId));
 }
-export function getOCRProviderOptions(providerId: string) {
+export function getOcrProviderOptions(providerId: string) {
     return store.get(`ocrProviders.${providerId}`);
 }
-export function setOCRProviderOptions(providerId: string, value: unknown) {
+export function setOcrProviderOptions(providerId: string, value: unknown) {
     return store.set(`ocrProviders.${providerId}`, value);
 }
 
-export function getTTSManagerOptionsMeta() {
+export function getTtsManagerOptionsMeta() {
     return handleError(electron.ipcRenderer.invoke('get-tts-manager-options-meta'));
 }
-export function getTTSManagerOptions() {
+export function getTtsManagerOptions() {
     return store.get('ttsManager');
 }
-export function setTTSManagerOptions(_: string, value: unknown) {
+export function setTtsManagerOptions(_: string, value: unknown) {
     return store.set('ttsManager', value);
 }
 
-export function getOCRExtractorOptionsMeta() {
+export function getOcrExtractorOptionsMeta() {
     return handleError(electron.ipcRenderer.invoke('get-ocr-extractor-options-meta'));
 }
-export function getOCRExtractorOptions() {
+export function getOcrExtractorOptions() {
     return store.get('ocrExtractor');
 }
-export function setOCRExtractorOptions(_: string, value: unknown) {
+export function setOcrExtractorOptions(_: string, value: unknown) {
     return store.set('ocrExtractor', value);
 }

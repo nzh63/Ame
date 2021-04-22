@@ -1,6 +1,6 @@
 import { BrowserWindow, ipcMain, IpcMainInvokeEvent } from 'electron';
 import { handleError } from '@main/remote/handle';
-import { TranslatorWindow } from '@main/TranslatorWindow';
+import { TranslatorWindow } from '@main/window/TranslatorWindow';
 import logger from '@logger/remote/windowOperation';
 
 ipcMain.handle('resize-window', handleError(async (event: IpcMainInvokeEvent, arg: { height?: number, width?: number }) => {

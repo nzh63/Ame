@@ -1,10 +1,9 @@
-import sharp from 'sharp';
 import { handleError } from '@render/remote/handle';
 
 const electron = require('electron');
 
-export function startExtract(gamePids: number[], hookCode?: string, type?: string) {
-    return handleError(electron.ipcRenderer.invoke('start-extract', { gamePids, hookCode, type }));
+export function startExtract(uuid: string, gamePids: number[], hookCode?: string, type?: string) {
+    return handleError(electron.ipcRenderer.invoke('start-extract', { uuid, gamePids, hookCode, type }));
 }
 
 export function getAllExtractText() {
@@ -17,16 +16,4 @@ export function getExtractorType() {
 
 export function switchExtractorType(type: Ame.Extractor.ExtractorType) {
     return handleError(electron.ipcRenderer.invoke('switch-extractor-type', type));
-}
-
-export async function getScreenCapture() {
-    return electron.nativeImage.createFromBuffer(await handleError(electron.ipcRenderer.invoke('get-screen-capture')));
-}
-
-export function getScreenCaptureCropRect() {
-    return handleError(electron.ipcRenderer.invoke('get-screen-capture-crop-rect'));
-}
-
-export function setScreenCaptureCropRect(rect: sharp.Region) {
-    return handleError(electron.ipcRenderer.invoke('set-screen-capture-crop-rect', rect));
 }

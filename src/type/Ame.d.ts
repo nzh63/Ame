@@ -1,10 +1,15 @@
 declare namespace Ame {
     export type GameSetting = {
+        uuid: string;
         name: string;
         path: string;
         execShell: string;
         type: Ame.Extractor.ExtractorType;
         hookCode: string;
+        ocr?: {
+            rect?: import('sharp').Region;
+            preprocess?: import('@main/extractor/OcrExtractor').PreprocessOption;
+        }
     };
     export type IpcRet<T> = { err: any } | { value: T };
 

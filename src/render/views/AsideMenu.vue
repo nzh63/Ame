@@ -74,7 +74,7 @@
 import type Item from 'ant-design-vue/lib/menu/MenuItem';
 import { useRouter } from 'vue-router';
 import { computed, defineComponent, ref } from 'vue';
-import { getTranslateProvidersIDs, getTTSProvidersIDs, getOCRProvidersIDs } from '@render/remote';
+import { getTranslateProvidersIDs, getTtsProvidersIDs, getOcrProvidersIDs } from '@render/remote';
 
 export default defineComponent({
     setup() {
@@ -92,12 +92,12 @@ export default defineComponent({
         });
 
         const ttsProvidersIDs = ref<string[]>([]);
-        getTTSProvidersIDs().then(value => {
+        getTtsProvidersIDs().then(value => {
             ttsProvidersIDs.value = value;
         });
 
         const ocrProvidersIDs = ref<string[]>([]);
-        getOCRProvidersIDs().then(value => {
+        getOcrProvidersIDs().then(value => {
             ocrProvidersIDs.value = value;
         });
 

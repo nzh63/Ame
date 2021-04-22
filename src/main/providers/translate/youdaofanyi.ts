@@ -1,4 +1,4 @@
-import { InsecureRemoteBrowserView } from '@main/InsecureRemoteBrowserView';
+import { InsecureRemoteBrowserWindow } from '@main/window/InsecureRemoteBrowserWindow';
 import { defineTranslateProvider } from '@main/providers/translate';
 import { app } from 'electron';
 
@@ -22,7 +22,7 @@ export default defineTranslateProvider({
     },
     data() {
         return {
-            browserView: null as InsecureRemoteBrowserView | null,
+            browserWindow: null as InsecureRemoteBrowserWindow | null,
             ready: false
         };
     }
@@ -30,10 +30,10 @@ export default defineTranslateProvider({
     async init() {
         if (!this.options.enable) return;
         await app.whenReady();
-        const browserView = new InsecureRemoteBrowserView();
-        browserView.webContents.loadURL('https://fanyi.youdao.com/');
-        browserView.webContents.on('dom-ready', async () => {
-            await browserView.webContents.executeJavaScriptInIsolatedWorld(1,
+        const browserWindow = new InsecureRemoteBrowserWindow();
+        browserWindow.webContents.loadURL('https://fanyi.youdao.com/');
+        browserWindow.webContents.on('dom-ready', async () => {
+            await browserWindow.webContents.executeJavaScriptInIsolatedWorld(1,
                 [{
                     code:
                         '(async function() {' +
@@ -44,14 +44,14 @@ export default defineTranslateProvider({
                         '})();'
                 }]
             );
-            this.data.browserView = browserView;
+            this.data.browserWindow = browserWindow;
             this.data.ready = true;
         });
     },
-    isReady() { return this.options.enable && this.data.ready && !!this.data.browserView; },
+    isReady() { return this.options.enable && this.data.ready && !!this.data.browserWindow; },
     translate(t) {
-        if (!this.data.browserView) throw new Error('browserView is not ready');
-        return this.data.browserView.webContents.executeJavaScriptInIsolatedWorld(1,
+        if (!this.data.browserWindow) throw new Error('browserView is not ready');
+        return this.data.browserWindow.webContents.executeJavaScriptInIsolatedWorld(1,
             [{
                 code:
                     'new Promise(resolve => {' +
@@ -67,7 +67,7 @@ export default defineTranslateProvider({
         );
     },
     destroy() {
-        this.data.browserView?.destroy();
-        this.data.browserView = null;
+        this.data.browserWindow?.destroy();
+        this.data.browserWindow = null;
     }
 });

@@ -1,30 +1,39 @@
 import type { Hook } from '@main/hook';
-import type { OCRExtractorOptions } from '@main/extractor/OCRExtractor/options';
+import type { OcrExtractorOptions } from '@main/extractor/OcrExtractor/options';
 import sharp from 'sharp';
 import store from '@main/store';
 import { BaseExtractor } from '@main/extractor/BaseExtractor';
-import { ScreenCapturer } from '@main/extractor/OCRExtractor//ScreenCapturer';
-import { OCRManager } from '@main/manager/OCRManager';
-import logger from '@logger/extractor/OCRExtractor';
+import { ScreenCapturer } from '@main/extractor/OcrExtractor//ScreenCapturer';
+import { OcrManager } from '@main/manager/OcrManager';
+import logger from '@logger/extractor/OcrExtractor';
 
-export class OCRExtractor extends BaseExtractor {
+export interface PreprocessOption {
+    color: 'colorful' | 'grey' | 'red' | 'green' | 'blue';
+    threshold?: number
+}
+
+export class OcrExtractor extends BaseExtractor {
     private screenCapturer: ScreenCapturer;
     private lastImage?: sharp.Sharp;
     private lastCropImage?: sharp.Sharp;
-    private shouldCapture = true;
+    private shouldCapture1 = true;
+    private shouldCapture2 = true;
     private mouseLeftHookCallback: () => void;
     private mouseWheelHookCallback: () => void;
     private keyboardHookCallback: (code: number) => void;
     private minimizeHookCallback: () => void;
     private restoreHookCallback: () => void;
-    private options: OCRExtractorOptions;
+    private options: OcrExtractorOptions;
     private setTimeoutId?: ReturnType<typeof setTimeout>;
 
     public rect?: sharp.Region;
+    public preprocessOption: PreprocessOption = {
+        color: 'colorful'
+    }
     constructor(
         public gamePids: number[],
         public hook: Hook,
-        private ocrManager: OCRManager = new OCRManager()
+        private ocrManager: OcrManager = new OcrManager()
     ) {
         super();
         this.screenCapturer = new ScreenCapturer(this.gamePids);
@@ -49,11 +58,22 @@ export class OCRExtractor extends BaseExtractor {
             }
         };
         this.hook.on('key-up', this.keyboardHookCallback);
-        this.minimizeHookCallback = () => { this.shouldCapture = false; };
+        this.minimizeHookCallback = () => {
+            this.shouldCapture1 = false;
+            this.hook.unregisterKeyboardAndMouseHook();
+        };
         this.hook.on('window-minimize', this.minimizeHookCallback);
-        this.restoreHookCallback = () => { this.shouldCapture = true; };
+        this.restoreHookCallback = () => {
+            this.shouldCapture1 = true; if (this.shouldCapture) {
+                this.hook.registerKeyboardAndMouseHook();
+            }
+        };
         this.hook.on('window-restore', this.restoreHookCallback);
         this.hook.registerKeyboardAndMouseHook();
+    }
+
+    private get shouldCapture() {
+        return this.shouldCapture1 && this.shouldCapture2;
     }
 
     private shouldCaptureAtKeyboard(code: number) {
@@ -78,6 +98,7 @@ export class OCRExtractor extends BaseExtractor {
     private async triggerRecognize() {
         this.lastImage = await this.screenCapturer.capture();
         this.lastCropImage = this.rect ? this.lastImage.clone().extract(this.rect) : this.lastImage.clone();
+        this.lastCropImage = this.preprocess(this.lastCropImage);
         this.ocrManager.recognize(this.lastCropImage, (e, res) => {
             if (this.lastCropImage !== res.img) return;
             let text: string;
@@ -91,8 +112,35 @@ export class OCRExtractor extends BaseExtractor {
         });
     }
 
-    public async getLastCapture(): Promise<sharp.Sharp> {
-        return this.lastImage ?? this.screenCapturer.capture();
+    private preprocess(img: sharp.Sharp) {
+        if (this.preprocessOption.color === 'grey') {
+            img = img.clone().greyscale();
+        } else if (['red', 'green', 'blue'].includes(this.preprocessOption.color)) {
+            img = img.clone().extractChannel(this.preprocessOption.color);
+        }
+        if (this.preprocessOption.threshold) {
+            img = img.threshold(this.preprocessOption.threshold, { greyscale: false });
+        }
+        return img;
+    }
+
+    public async getLastCapture(force = false): Promise<sharp.Sharp> {
+        if (force) {
+            return this.screenCapturer.capture()
+        } else {
+            return this.lastImage ?? this.screenCapturer.capture();
+        }
+    }
+
+    public pause() {
+        this.shouldCapture2 = false;
+        this.hook.unregisterKeyboardAndMouseHook();
+    }
+    public resume() {
+        this.shouldCapture2 = true;
+        if (this.shouldCapture) {
+            this.hook.registerKeyboardAndMouseHook();
+        }
     }
 
     public destroy() {

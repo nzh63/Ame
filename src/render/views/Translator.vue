@@ -28,7 +28,7 @@
 </template>
 
 <script lang="ts">
-import { watchOriginal, unwatchOriginal, watchTranslate, unwatchTranslate, resizeWindow, ttsSpeak, onTTSReply, offTTSReply, showContextMenu } from '@render/remote';
+import { watchOriginal, unwatchOriginal, watchTranslate, unwatchTranslate, resizeWindow, ttsSpeak, onTtsReply, offTtsReply, showContextMenu } from '@render/remote';
 import { onBeforeRouteLeave } from 'vue-router';
 import { defineComponent, ref, inject, onUnmounted, Ref, nextTick, watch } from 'vue';
 
@@ -109,9 +109,9 @@ export default defineComponent({
         const ttsCallback = () => {
             ttsSpeak(ttsString.value, ttsType.value);
         };
-        onTTSReply(ttsCallback);
+        onTtsReply(ttsCallback);
         onUnmounted(() => {
-            offTTSReply(ttsCallback);
+            offTtsReply(ttsCallback);
         });
 
         const onRightClick = (s: string, t: 'original' | 'translate') => {
