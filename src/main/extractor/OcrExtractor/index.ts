@@ -13,7 +13,6 @@ export interface PreprocessOption {
 }
 
 export class OcrExtractor extends BaseExtractor {
-    private screenCapturer: ScreenCapturer;
     private lastImage?: sharp.Sharp;
     private lastCropImage?: sharp.Sharp;
     private shouldCapture1 = true;
@@ -34,10 +33,10 @@ export class OcrExtractor extends BaseExtractor {
     constructor(
         public gamePids: number[],
         public hook: Hook,
+        private screenCapturer: ScreenCapturer = new ScreenCapturer(gamePids),
         private ocrManager: OcrManager = new OcrManager()
     ) {
         super();
-        this.screenCapturer = new ScreenCapturer(this.gamePids);
         this.options = store.get('ocrExtractor');
         store.onDidChange('ocrExtractor', () => { this.options = store.get('ocrExtractor'); });
 
@@ -65,7 +64,8 @@ export class OcrExtractor extends BaseExtractor {
         };
         this.hook.on('window-minimize', this.minimizeHookCallback);
         this.restoreHookCallback = () => {
-            this.shouldCapture1 = true; if (this.shouldCapture) {
+            this.shouldCapture1 = true;
+            if (this.shouldCapture) {
                 this.hook.registerKeyboardAndMouseHook();
             }
         };
