@@ -46,8 +46,14 @@ export default defineOcrProvider({
     isReady() { return this.options.enable && !!this.data.worker; },
     async recognize(img) {
         if (!this.data.worker) throw new Error('worker not init');
+        const grey = (await img.clone().resize(1, 1).greyscale().raw().toBuffer()).readUInt8();
+        let image = img;
+        console.log(grey);
+        if (grey < 128) {
+            image = img.clone().removeAlpha().negate();
+        }
         const id = Math.floor(Math.random() * 10000);
-        this.data.worker.postMessage({ type: 'recognize', id, img: await img.png().toBuffer() });
+        this.data.worker.postMessage({ type: 'recognize', id, img: await image.png().toBuffer() });
         return new Promise<string>(resolve => {
             const callback = (arg: { type: string; id: number; text: string; }) => {
                 if (arg.type === 'reply') {
