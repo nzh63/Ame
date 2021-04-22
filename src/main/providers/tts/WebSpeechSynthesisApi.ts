@@ -35,7 +35,7 @@ export default defineTTSProvider({
     async init() {
         if (!this.options.enable) return;
         await app.whenReady();
-        const browserWindow = new BrowserWindow();
+        const browserWindow = new BrowserWindow({ show: false });
         browserWindow.webContents.loadURL('about:black');
         this.data.browserWindow = browserWindow;
     },
@@ -47,18 +47,18 @@ export default defineTTSProvider({
             speechSynthesis.cancel();
             const utter = new SpeechSynthesisUtterance(${JSON.stringify(text)});
     ${(() => {
-        let voiceURI: string | null = null;
-        if (this.options.voice.originalVoiceURI && type === 'original') {
-            voiceURI = this.options.voice.originalVoiceURI;
-        }
-        if (this.options.voice.translateVoiceURI && type === 'translate') {
-            voiceURI = this.options.voice.translateVoiceURI;
-        }
-        if (voiceURI) {
-            return `utter.voice = speechSynthesis.getVoices().find(v => v.voiceURI === ${JSON.stringify(voiceURI)});`;
-        }
-        return ';';
-    })()}
+                let voiceURI: string | null = null;
+                if (this.options.voice.originalVoiceURI && type === 'original') {
+                    voiceURI = this.options.voice.originalVoiceURI;
+                }
+                if (this.options.voice.translateVoiceURI && type === 'translate') {
+                    voiceURI = this.options.voice.translateVoiceURI;
+                }
+                if (voiceURI) {
+                    return `utter.voice = speechSynthesis.getVoices().find(v => v.voiceURI === ${JSON.stringify(voiceURI)});`;
+                }
+                return ';';
+            })()}
             speechSynthesis.speak(utter);
         })()`;
         logger('execCode: %s', execCode);
