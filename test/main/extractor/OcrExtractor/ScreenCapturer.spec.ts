@@ -2,29 +2,29 @@ import { expect } from 'chai';
 import { ScreenCapturer } from '@main/extractor/OcrExtractor/ScreenCapturer';
 import { SimpleWindow } from '../../../SimpleWindow';
 
-describe('ScreenCapturer', function () {
+describe('ScreenCapturer', function() {
     let screenCapturer: ScreenCapturer;
     let window: SimpleWindow;
 
-    before(async function () {
+    before(async function() {
         this.timeout(5000);
         window = new SimpleWindow();
         await window.whenReady();
     });
 
-    after(async function () {
+    after(async function() {
         await window.destroy();
     });
 
-    beforeEach(function () {
+    beforeEach(function() {
         screenCapturer = new ScreenCapturer(window.pids);
     });
 
-    afterEach(function () {
+    afterEach(function() {
         screenCapturer.destroy();
     });
 
-    it('capture', async function () {
+    it('capture', async function() {
         for (const [width, height] of [[400, 300], [200, 600]]) {
             await window.run(`(function(){const { width, height } = screen.screenToDipRect(window, { x: 0, y: 0, width: ${width}, height: ${height} }); window.setSize(width, height);})()`);
             const img = await screenCapturer.capture();
@@ -34,7 +34,7 @@ describe('ScreenCapturer', function () {
         }
     });
 
-    it('capture without window', async function () {
+    it('capture without window', async function() {
         await window.run('app.on(\'window-all-closed\',() => { });window.destroy();');
         const img = await screenCapturer.capture();
         const meta = await img.metadata();

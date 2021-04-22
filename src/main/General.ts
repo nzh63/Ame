@@ -41,15 +41,7 @@ export class General {
             : new OcrExtractor(this.gamePids, this.hook);
         let openGuide = true;
         if (this.type === 'ocr') {
-            const game = store.get('games').find(i => i.uuid === this.uuid);
-            if (game?.ocr?.rect) {
-                (this.extractor as OcrExtractor).rect = game.ocr.rect;
-                openGuide = false;
-            }
-            if (game?.ocr?.preprocess) {
-                (this.extractor as OcrExtractor).preprocessOption = game.ocr.preprocess;
-                openGuide = false;
-            }
+            openGuide = this.setupOcrExtractor();
         }
         this.translatorWindow = new TranslatorWindow(this, this.gamePids, !openGuide);
         if (openGuide) {
@@ -90,6 +82,20 @@ export class General {
         });
     }
 
+    private setupOcrExtractor() {
+        let openGuide = true;
+        const game = store.get('games').find(i => i.uuid === this.uuid);
+        if (game?.ocr?.rect) {
+            (this.extractor as OcrExtractor).rect = game.ocr.rect;
+            openGuide = false;
+        }
+        if (game?.ocr?.preprocess) {
+            (this.extractor as OcrExtractor).preprocessOption = game.ocr.preprocess;
+            openGuide = false;
+        }
+        return openGuide;
+    }
+
     public switchExtractor(type: Ame.Extractor.ExtractorType) {
         if (type === 'textractor') {
             if (!(this.extractor instanceof Textractor)) {
@@ -102,6 +108,7 @@ export class General {
                 this.type = type;
                 this.extractor.destroy();
                 this.extractor = new OcrExtractor(this.gamePids, this.hook);
+                this.setupOcrExtractor();
             }
         } else {
             // eslint-disable-next-line  @typescript-eslint/no-unused-vars

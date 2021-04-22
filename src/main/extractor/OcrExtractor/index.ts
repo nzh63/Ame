@@ -29,7 +29,8 @@ export class OcrExtractor extends BaseExtractor {
     public rect?: sharp.Region;
     public preprocessOption: PreprocessOption = {
         color: 'colorful'
-    }
+    };
+
     constructor(
         public gamePids: number[],
         public hook: Hook,
@@ -126,7 +127,7 @@ export class OcrExtractor extends BaseExtractor {
 
     public async getLastCapture(force = false): Promise<sharp.Sharp> {
         if (force) {
-            return this.screenCapturer.capture()
+            return this.screenCapturer.capture();
         } else {
             return this.lastImage ?? this.screenCapturer.capture();
         }
@@ -136,6 +137,7 @@ export class OcrExtractor extends BaseExtractor {
         this.shouldCapture2 = false;
         this.hook.unregisterKeyboardAndMouseHook();
     }
+
     public resume() {
         this.shouldCapture2 = true;
         if (this.shouldCapture) {

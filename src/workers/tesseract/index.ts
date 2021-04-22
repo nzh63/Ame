@@ -4,7 +4,7 @@ import { createScheduler, createWorker, Worker } from 'tesseract.js';
 
 const { __static, lang } = workerData;
 
-(async function () {
+(async function() {
     const scheduler = createScheduler();
     for (let i = 0; i < 4; i++) {
         const worker: Worker = createWorker({
