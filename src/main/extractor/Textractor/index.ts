@@ -6,6 +6,10 @@ import { __static } from '@main/paths';
 import { BaseExtractor } from '@main/extractor/BaseExtractor';
 import logger from '@logger/extractor/textractor';
 
+export interface PostProcessOption {
+    removeDuplication?: boolean;
+}
+
 export declare interface Textractor extends BaseExtractor {
     on(event: 'update:any', listener: (t: Ame.Translator.OriginalText) => void): this;
     on<T extends Ame.Extractor.Key>(event: `update:${T}`, listener: (t: Ame.Translator.OriginalText) => void): this;
@@ -28,6 +32,11 @@ export class Textractor extends BaseExtractor {
     static readonly TextractorCliX86 = join(__static, './lib/x86/TextractorCLI.exe');
     private textractorCliProcess: ChildProcessWithoutNullStreams;
     private textractorCliStdoutBuffer = '';
+
+    public postProcessOption: PostProcessOption = {
+        removeDuplication: false
+    };
+
     constructor(
         public gamePids: number[],
         public hookCode = ''
@@ -76,7 +85,7 @@ export class Textractor extends BaseExtractor {
                 const line = '' + result.shift();
                 const [, key, text] = /^\[(.*?)\]([\S\s]*)$/.exec(line) ?? [null, null, null];
                 if (key && text) {
-                    this.onUpdate(key, text);
+                    this.onUpdate(key, this.postProcess(text));
                 }
             }
             this.textractorCliStdoutBuffer = result[0];
@@ -87,6 +96,14 @@ export class Textractor extends BaseExtractor {
         logger('stop Textractor hook for pids %O', this.gamePids);
         // this.gamePids.forEach(pid => void this.execCommand(`detach -P${pid}`));
         this.textractorCliProcess.kill();
+    }
+
+    private postProcess(text: string) {
+        if (this.postProcessOption.removeDuplication) {
+            return text.replace(/(.)\1{1,6}/g, i => i[0]);
+        } else {
+            return text;
+        }
     }
 
     public pause() { }

@@ -9,6 +9,9 @@
                     <a-select-option value="ocr">OCR</a-select-option>
                 </a-select>
             </a-form-item>
+            <a-form-item v-if="type === 'textractor'" label="详细设置">
+                <textractor-setting />
+            </a-form-item>
             <a-form-item v-if="type === 'ocr'" label="">
                 <a-button type="primary" @click="openOcrGuideWindow">
                     <template #icon>
@@ -24,10 +27,12 @@
 <script lang="ts">
 import { defineComponent, inject, watch, ref } from 'vue';
 import { ReloadOutlined } from '@ant-design/icons-vue';
+import TextractorSetting from '@render/component/TextractorSetting.vue';
 import { switchExtractorType, getExtractorType, openOcrGuideWindow } from '@render/remote';
 
 export default defineComponent({
     components: {
+        TextractorSetting,
         ReloadOutlined
     },
     setup() {

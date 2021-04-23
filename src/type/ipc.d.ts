@@ -26,6 +26,7 @@ declare namespace Electron {
         invoke(channel: 'get-screen-capture-crop-rect'): Promise<Ame.IpcRet<import('sharp').Region | undefined>>;
         invoke(channel: 'set-screen-capture-crop-rect', rect: sharp.Region): Promise<Ame.IpcRet<void>>;
         invoke(channel: 'get-screen-capture-preprocess-option'): Promise<Ame.IpcRet<import('@main/extractor/OcrExtractor').PreprocessOption>>;
+        invoke(channel: 'get-textractor-post-process-option'): Promise<Ame.IpcRet<import('@main/extractor/Textractor').PostProcessOption>>;
         invoke(channel: 'watch-original', key: Ame.Extractor.Key): Promise<Ame.IpcRet<void>>;
         invoke(channel: 'unwatch-original', key: Ame.Extractor.Key): Promise<Ame.IpcRet<void>>;
         invoke(channel: 'watch-translate', key: Ame.Extractor.Key): Promise<Ame.IpcRet<void>>;

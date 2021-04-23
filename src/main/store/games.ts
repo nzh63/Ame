@@ -12,6 +12,19 @@ export const gamesStoreJSONSchema = {
             execShell: { type: 'string' },
             type: { type: 'string', enum: ['textractor', 'ocr'], default: 'textractor' },
             hookCode: { type: 'string' },
+            textractor: {
+                type: 'object',
+                properties: {
+                    postProcessOption: {
+                        type: 'object',
+                        properties: {
+                            removeDuplication: {
+                                type: 'boolean'
+                            }
+                        }
+                    }
+                }
+            },
             ocr: {
                 type: 'object',
                 properties: {

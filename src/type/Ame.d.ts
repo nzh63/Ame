@@ -6,10 +6,15 @@ declare namespace Ame {
         execShell: string;
         type: Ame.Extractor.ExtractorType;
         hookCode: string;
+        textractor?: {
+            postProcessOption?: {
+                removeDuplication?: boolean;
+            };
+        };
         ocr?: {
             rect?: import('sharp').Region;
             preprocess?: import('@main/extractor/OcrExtractor').PreprocessOption;
-        }
+        };
     };
     export type IpcRet<T> = { err: any } | { value: T };
 

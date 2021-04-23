@@ -5,7 +5,7 @@ import { TranslatorWindow } from '@main/window/TranslatorWindow';
 import { OcrGuideWindow } from '@main/window/OcrGuideWindow';
 import { createMainWindow, mainWindow } from '@main/index';
 import { TranslateManager, TtsManager } from '@main/manager';
-import { BaseExtractor, OcrExtractor, Textractor, PreprocessOption } from '@main/extractor';
+import { BaseExtractor, OcrExtractor, Textractor, PreprocessOption, PostProcessOption } from '@main/extractor';
 import store from '@main/store';
 import logger from '@logger/general';
 
@@ -40,7 +40,9 @@ export class General {
             ? new Textractor(this.gamePids, this.hookCode)
             : new OcrExtractor(this.gamePids, this.hook);
         let openGuide = false;
-        if (this.type === 'ocr') {
+        if (this.type === 'textractor') {
+            this.setupTextractorExtractor();
+        } else if (this.type === 'ocr') {
             openGuide = this.setupOcrExtractor();
         }
         this.translatorWindow = new TranslatorWindow(this, this.gamePids, !openGuide);
@@ -80,6 +82,14 @@ export class General {
             logger('%o window restored', this.gamePids);
             this.translatorWindow.restore();
         });
+    }
+
+    private setupTextractorExtractor() {
+        const game = store.get('games').find(i => i.uuid === this.uuid);
+        if (game?.textractor?.postProcessOption) {
+            (this.extractor as Textractor).postProcessOption = game?.textractor.postProcessOption;
+        }
+        return false;
     }
 
     private setupOcrExtractor() {
@@ -129,6 +139,21 @@ export class General {
             this.extractor.resume();
             this.ocrGuideWindow = undefined;
         });
+    }
+
+    public setTextractorPostProcess(option: PostProcessOption) {
+        if (this.type === 'textractor') {
+            (this.extractor as Textractor).postProcessOption = option;
+            const games = store.get('games');
+            const game = games.find(i => i.uuid === this.uuid);
+            if (game) {
+                game.textractor = game.textractor ?? {};
+                game.textractor.postProcessOption = option;
+                store.set('games', games);
+            }
+        } else {
+            throw new Error('Not in Textractor mode');
+        }
     }
 
     public setOcrRect(rect: sharp.Region) {

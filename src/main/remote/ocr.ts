@@ -52,7 +52,7 @@ ipcMain.handle('open-ocr-guide-window', handleError((event: IpcMainInvokeEvent) 
     }
 }));
 
-ipcMain.handle('get-screen-capture-preprocess-option', handleError((event: IpcMainInvokeEvent, option: PreprocessOption) => {
+ipcMain.handle('get-screen-capture-preprocess-option', handleError((event: IpcMainInvokeEvent) => {
     const window = BrowserWindow.fromWebContents(event.sender);
     if (window && window instanceof WindowWithGeneral) {
         if (window.general.type !== 'ocr') {

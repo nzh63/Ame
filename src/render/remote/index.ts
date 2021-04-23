@@ -5,4 +5,5 @@ export * from './watch';
 export * from './options';
 export * from './windowOperation';
 export * from './tts';
+export * from './textractor';
 export * from './ocr';
