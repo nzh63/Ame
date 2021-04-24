@@ -37,6 +37,7 @@ export default defineTtsProvider({
         await app.whenReady();
         const browserWindow = new BrowserWindow({ show: false });
         browserWindow.webContents.loadURL('about:black');
+        browserWindow.webContents.executeJavaScript('speechSynthesis.getVoices()');
         this.data.browserWindow = browserWindow;
     },
     isReady() { return this.options.enable && !!this.data.browserWindow; },
