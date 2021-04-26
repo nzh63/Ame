@@ -40,7 +40,7 @@ ipcMain.handle('set-window-always-on-top', handleError(async (event: IpcMainInvo
     logger('set-window-always-on-top: %O', arg);
     const window = BrowserWindow.fromWebContents(event.sender);
     if (window && window instanceof TranslatorWindow) {
-        window.setAlwaysOnTop(arg);
+        window.setAlwaysOnTop(arg, 'pop-up-menu');
     } else {
         throw new Error('You can only get extract text from a TranslatorWindow');
     }
