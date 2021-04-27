@@ -12,6 +12,7 @@ export class TranslatorWindow extends WindowWithGeneral {
         transparent: true,
         backgroundColor: '#00000000',
         frame: false,
+        maximizable: false,
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false
