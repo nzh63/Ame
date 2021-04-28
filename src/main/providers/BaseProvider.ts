@@ -1,5 +1,5 @@
 import { Schema, SchemaDescription, SchemaType, JSONSchema, toJSONSchema } from '@main/schema';
-import { defaultsDeep } from 'lodash';
+import { defaultsDeep } from 'lodash-es';
 import store from '@main/store';
 import logger from '@logger/providers/baseProvider';
 
