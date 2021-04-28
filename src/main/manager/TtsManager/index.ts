@@ -1,19 +1,11 @@
-import type { TtsProviderConfig } from '@main/providers/TtsProvider';
-import { availableTtsConfigs, AvailableTtsConfigs } from '@main/providers/tts';
+import { availableTtsConfigs } from '@main/providers/tts';
 import { TtsProvider } from '@main/providers';
 import { TtsManagerOptions } from '@main/manager/TtsManager/options';
 import { BaseManager } from '@main/manager/BaseManager';
 import store from '@main/store';
 import logger from '@logger/manager/tts';
 
-export class TtsManager extends BaseManager<
-    TtsProviderConfig<
-        AvailableTtsConfigs[number]['id'],
-        AvailableTtsConfigs[number]['optionsSchema'],
-        ReturnType<AvailableTtsConfigs[number]['data']>
-    >,
-    TtsProvider<string>
-> {
+export class TtsManager extends BaseManager<TtsProvider> {
     protected options: TtsManagerOptions;
 
     constructor() {

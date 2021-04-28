@@ -20,7 +20,7 @@ export type OcrProviderMethods<ID extends string, S extends Schema, D> = {
 
 export type OcrProviderConfig<ID extends string, S extends Schema, D> = OcrProviderOptions<ID, S, D> & OcrProviderMethods<ID, S, D> & { providersStoreKey: 'ocrProviders' };
 
-export class OcrProvider<ID extends string, S extends Schema = any, D = unknown> extends BaseProvider<ID, S, D, OcrProviderConfig<ID, S, D>> {
+export class OcrProvider<ID extends string = string, S extends Schema = any, D = unknown> extends BaseProvider<ID, S, D, OcrProviderConfig<ID, S, D>> {
     public async recognize(this: OcrProvider<ID, S, D>, img: sharp.Sharp): Promise<string> {
         logger(`${this.id} recognize`);
         try {

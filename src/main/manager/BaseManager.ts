@@ -2,7 +2,7 @@ import { BaseProvider } from '@main/providers';
 import store from '@main/store';
 import logger from '@logger/manager';
 
-export class BaseManager<C extends { providersStoreKey: string }, P extends BaseProvider<string, any>> {
+export class BaseManager<P extends BaseProvider, C extends { providersStoreKey: string } = P['config']> {
     public providers: P[] = [];
 
     constructor(

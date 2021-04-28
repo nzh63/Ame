@@ -19,7 +19,7 @@ export type TranslateProviderMethods<ID extends string, S extends Schema, D> = {
 
 export type TranslateProviderConfig<ID extends string, S extends Schema, D> = TranslateProviderOptions<ID, S, D> & TranslateProviderMethods<ID, S, D> & { providersStoreKey: 'translateProviders' };
 
-export class TranslateProvider<ID extends string, S extends Schema = any, D = unknown> extends BaseProvider<ID, S, D, TranslateProviderConfig<ID, S, D>> {
+export class TranslateProvider<ID extends string = string, S extends Schema = any, D = unknown> extends BaseProvider<ID, S, D, TranslateProviderConfig<ID, S, D>> {
     public async translate(text: string): Promise<string> {
         try {
             return await this.config.translate.call(this, text);

@@ -1,16 +1,8 @@
-import type { TranslateProviderConfig } from '@main/providers/TranslateProvider';
-import { availableTranslateConfigs, AvailableTranslateConfigs } from '@main/providers/translate';
+import { availableTranslateConfigs } from '@main/providers/translate';
 import { TranslateProvider } from '@main/providers';
 import { BaseManager } from '@main/manager/BaseManager';
 
-export class TranslateManager extends BaseManager<
-    TranslateProviderConfig<
-        AvailableTranslateConfigs[number]['id'],
-        AvailableTranslateConfigs[number]['optionsSchema'],
-        ReturnType<AvailableTranslateConfigs[number]['data']>
-    >,
-    TranslateProvider<string>
-> {
+export class TranslateManager extends BaseManager<TranslateProvider> {
     constructor() {
         super(availableTranslateConfigs, TranslateProvider);
     }

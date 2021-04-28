@@ -19,7 +19,7 @@ export type TtsProviderMethods<ID extends string, S extends Schema, D> = {
 
 export type TtsProviderConfig<ID extends string, S extends Schema, D> = TtsProviderOptions<ID, S, D> & TtsProviderMethods<ID, S, D> & { providersStoreKey: 'ttsProviders' };
 
-export class TtsProvider<ID extends string, S extends Schema = any, D = unknown> extends BaseProvider<ID, S, D, TtsProviderConfig<ID, S, D>> {
+export class TtsProvider<ID extends string = string, S extends Schema = any, D = unknown> extends BaseProvider<ID, S, D, TtsProviderConfig<ID, S, D>> {
     public async speak(this: TtsProvider<ID, S, D>, text: string, type: 'original' | 'translate'): Promise<void> {
         logger(`${this.id} speak ${text} ${type}`);
         try {

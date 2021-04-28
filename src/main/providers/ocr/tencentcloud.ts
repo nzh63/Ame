@@ -33,7 +33,7 @@ export default defineOcrProvider({
             },
             region: 'ap-guangzhou',
             params: {
-                LanguageType: 'jap',
+                LanguageType: 'jap'
             }
         }
     },

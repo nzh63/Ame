@@ -1,8 +1,9 @@
 import { Schema, SchemaDescription, SchemaType, JSONSchema, toJSONSchema } from '@main/schema';
+import { defaultsDeep } from 'lodash';
 import store from '@main/store';
 import logger from '@logger/providers/baseProvider';
 
-export type BaseProviderConfig<ID extends string, S extends Schema = Record<string, any>, D = unknown> = {
+export type BaseProviderConfig<ID extends string = string, S extends Schema = any, D = unknown> = {
     providersStoreKey: string;
     id: ID;
     optionsSchema: S;
@@ -15,7 +16,7 @@ export type BaseProviderConfig<ID extends string, S extends Schema = Record<stri
     destroy?(this: BaseProvider<ID, S, D>): void;
 };
 
-export class BaseProvider<ID extends string, S extends Schema, D = unknown, C extends BaseProviderConfig<ID, S, D> = BaseProviderConfig<ID, S, D>> {
+export class BaseProvider<ID extends string = string, S extends Schema = any, D = unknown, C extends BaseProviderConfig<ID, S, D> = BaseProviderConfig<ID, S, D>> {
     public readonly id: ID;
     public readonly optionsSchema: S;
     public readonly options: SchemaType<S>;
@@ -25,17 +26,9 @@ export class BaseProvider<ID extends string, S extends Schema, D = unknown, C ex
     ) {
         this.id = config.id;
         this.optionsSchema = config.optionsSchema;
-        const storeOptions = store.get<string, SchemaType<S>>(`${config.providersStoreKey}.${config.id as ID}`);
-        if (storeOptions !== undefined) {
-            if (storeOptions !== null && typeof storeOptions === 'object') {
-                this.options = { ...config.defaultOptions, ...storeOptions };
-            } else {
-                this.options = storeOptions;
-            }
-        } else {
-            this.options = config.defaultOptions;
-        }
-        logger({ id: this.id, storeOptions, defaultOptions: config.defaultOptions });
+        this.options = store.get<string, SchemaType<S>>(`${config.providersStoreKey}.${config.id as ID}`);
+        this.options = defaultsDeep(this.options, config.defaultOptions);
+        logger({ id: this.id, options: this.options });
         this.data = config.data();
         try {
             const initRet = config.init?.call(this);
