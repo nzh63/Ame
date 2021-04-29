@@ -8,11 +8,13 @@ export function buildTest<C extends TranslateProviderConfig<string, any, unknown
         (skip ? describe.skip : describe)(config.id, function() {
             let provider: TranslateProvider;
             it('init', async function() {
+                this.timeout(20000);
                 provider = new TranslateProvider(config, () => options);
                 await provider.whenInitDone();
                 expect(provider.isReady()).to.be.true;
             });
             it('translate', async function() {
+                this.timeout(20000);
                 const result = await provider.translate('こんにちは。');
                 expect(result).to.be.a('string').and.not.to.be.empty;
             });

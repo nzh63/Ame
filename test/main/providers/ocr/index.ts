@@ -13,7 +13,7 @@ export function buildTest<C extends OcrProviderConfig<string, any, unknown, any>
             let window: SimpleWindow;
 
             before(async function() {
-                this.timeout(5000);
+                this.timeout(10000);
                 window = new SimpleWindow();
                 await window.whenReady();
                 const width = 400;
@@ -29,6 +29,7 @@ export function buildTest<C extends OcrProviderConfig<string, any, unknown, any>
             });
 
             it('init', async function() {
+                this.timeout(20000);
                 provider = new OcrProvider(config, () => options);
                 await provider.whenInitDone();
                 expect(provider.isReady()).to.be.true;
