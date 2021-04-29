@@ -10,10 +10,10 @@ app.on('ready', async () => {
     const dgram = require('dgram');
     const server = dgram.createSocket('udp4');
     server.bind();
-    server.on('message', (msg, rinfo) => {
+    server.on('message', async (msg, rinfo) => {
         msg = msg.toString('utf-8');
         console.log(msg);
-        if (rinfo.address === '127.0.0.1') eval(msg);
+        if (rinfo.address === '127.0.0.1') await eval(msg);
         server.send('ack', parseInt(process.argv[2]), '127.0.0.1');
     });
     await new Promise(r => server.once('listening', r));

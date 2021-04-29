@@ -56,6 +56,7 @@
     "ant-design-vue": "^2.1.2",
     "builtin-modules": "^3.2.0",
     "chai": "^4.3.4",
+    "dotenv": "^8.2.0",
     "electron": "^12.0.2",
     "electron-builder": "^22.10.5",
     "electron-debug": "^3.2.0",
