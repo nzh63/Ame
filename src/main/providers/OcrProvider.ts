@@ -11,16 +11,17 @@ export type OcrProviderOptions<ID extends string, S extends Schema, D> = {
     description?: string;
     data(): D;
 };
-export type OcrProviderMethods<ID extends string, S extends Schema, D> = {
+export type OcrProviderMethods<ID extends string, S extends Schema, D, M extends { readonly [name: string]: () => unknown }> = {
     init?(): void | Promise<void>;
     isReady(): boolean;
     recognize(img: sharp.Sharp): Promise<string> | string;
     destroy?(): void;
-} & ProviderThisType<OcrProvider<ID, S, D>>;
+    methods?: M & ProviderThisType<OcrProvider<ID, S, D, M>>;
+} & ProviderThisType<OcrProvider<ID, S, D, M>>;
 
-export type OcrProviderConfig<ID extends string, S extends Schema, D> = OcrProviderOptions<ID, S, D> & OcrProviderMethods<ID, S, D> & { providersStoreKey: 'ocrProviders' };
+export type OcrProviderConfig<ID extends string, S extends Schema, D, M extends { readonly [name: string]: () => unknown }> = OcrProviderOptions<ID, S, D> & OcrProviderMethods<ID, S, D, M> & { providersStoreKey: 'ocrProviders' };
 
-export class OcrProvider<ID extends string = string, S extends Schema = any, D = unknown> extends BaseProvider<ID, S, D, OcrProviderConfig<ID, S, D>> {
+export class OcrProvider<ID extends string = string, S extends Schema = any, D = unknown, M extends { readonly [name: string]: () => unknown } = { readonly [name: string]: () => unknown }> extends BaseProvider<ID, S, D, M, OcrProviderConfig<ID, S, D, M>> {
     public async recognize(img: sharp.Sharp): Promise<string> {
         logger(`${this.$id} recognize`);
         try {

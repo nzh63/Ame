@@ -10,16 +10,17 @@ export type TranslateProviderOptions<ID extends string, S extends Schema, D> = {
     description?: string;
     data(): D;
 };
-export type TranslateProviderMethods<ID extends string, S extends Schema, D> = {
+export type TranslateProviderMethods<ID extends string, S extends Schema, D, M extends { readonly [name: string]: () => unknown }> = {
     init?(): void | Promise<void>;
     isReady(): boolean;
     translate(text: string): Promise<string> | string;
     destroy?(): void;
-} & ProviderThisType<TranslateProvider<ID, S, D>>;
+    methods?: M & ProviderThisType<TranslateProvider<ID, S, D, M>>;
+} & ProviderThisType<TranslateProvider<ID, S, D, M>>;
 
-export type TranslateProviderConfig<ID extends string, S extends Schema, D> = TranslateProviderOptions<ID, S, D> & TranslateProviderMethods<ID, S, D> & { providersStoreKey: 'translateProviders' };
+export type TranslateProviderConfig<ID extends string, S extends Schema, D, M extends { readonly [name: string]: () => unknown }> = TranslateProviderOptions<ID, S, D> & TranslateProviderMethods<ID, S, D, M> & { providersStoreKey: 'translateProviders' };
 
-export class TranslateProvider<ID extends string = string, S extends Schema = any, D = unknown> extends BaseProvider<ID, S, D, TranslateProviderConfig<ID, S, D>> {
+export class TranslateProvider<ID extends string = string, S extends Schema = any, D = unknown, M extends { readonly [name: string]: () => unknown } = { readonly [name: string]: () => unknown }> extends BaseProvider<ID, S, D, M, TranslateProviderConfig<ID, S, D, M>> {
     public async translate(text: string): Promise<string> {
         try {
             return await this.$config.translate.call(this, text);

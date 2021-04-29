@@ -10,8 +10,8 @@ import googleTranslate from './googleTranslate';
 import JBeijing from './JBeijing';
 import DrEye from './DrEye';
 
-export function defineTranslateProvider<ID extends string, S extends Schema, D>(arg: TranslateProviderOptions<ID, S, D>, methods: TranslateProviderMethods<ID, S, D>) {
-    return { ...arg, ...methods, providersStoreKey: 'translateProviders' } as TranslateProviderConfig<ID, S, D>;
+export function defineTranslateProvider<ID extends string, S extends Schema, D, M extends { readonly [name: string]:() => any }>(arg: TranslateProviderOptions<ID, S, D>, methods: TranslateProviderMethods<ID, S, D, M>) {
+    return { ...arg, ...methods, providersStoreKey: 'translateProviders' } as TranslateProviderConfig<ID, S, D, M>;
 }
 
 export const availableTranslateConfigs = [...(import.meta.env.DEV ? [echo] : []), tencentcloud, baiduAi, qqfanyi, youdaofanyi, baidufanyi, googleTranslate, JBeijing, DrEye] as const;

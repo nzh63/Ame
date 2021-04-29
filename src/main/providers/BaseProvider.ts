@@ -3,7 +3,7 @@ import { defaultsDeep } from 'lodash-es';
 import store from '@main/store';
 import logger from '@logger/providers/baseProvider';
 
-export type BaseProviderConfig<ID extends string = string, S extends Schema = any, D = unknown> = {
+export type BaseProviderConfig<ID extends string = string, S extends Schema = any, D = unknown, M extends { readonly [name: string]: () => unknown } = { readonly [name: string]: () => unknown }> = {
     providersStoreKey: string;
     id: ID;
     optionsSchema: S;
@@ -14,14 +14,16 @@ export type BaseProviderConfig<ID extends string = string, S extends Schema = an
     init?(): void | Promise<void>;
     isReady(): boolean;
     destroy?(): void;
-} & ProviderThisType<BaseProvider<ID, S, D>>;
+    methods?: M & ProviderThisType<BaseProvider<ID, S, D, M>>;
+} & ProviderThisType<BaseProvider<ID, S, D, M>>;
 
-export type ProviderThisType<P extends BaseProvider> = ThisType<P & Omit<P['$options'], keyof P> & Omit<P['$data'], keyof P>>;
-export class BaseProvider<ID extends string = string, S extends Schema = any, D = unknown, C extends BaseProviderConfig<ID, S, D> = BaseProviderConfig<ID, S, D>> {
+export type ProviderThisType<P extends BaseProvider> = ThisType<P & Omit<P['$options'], keyof P> & Omit<P['$data'], keyof P> & Omit<P['$methods'], keyof P>>;
+export class BaseProvider<ID extends string = string, S extends Schema = any, D = unknown, M extends { readonly [name: string]: () => unknown } = { readonly [name: string]: () => unknown }, C extends BaseProviderConfig<ID, S, D, M> = BaseProviderConfig<ID, S, D, M>> {
     public readonly $id: ID;
     public readonly $optionsSchema: S;
     public readonly $options: SchemaType<S>;
     public $data: D;
+    public $methods: M;
     constructor(
         public readonly $config: C
     ) {
@@ -30,8 +32,13 @@ export class BaseProvider<ID extends string = string, S extends Schema = any, D 
         this.$options = store.get<string, SchemaType<S>>(`${$config.providersStoreKey}.${$config.id as ID}`);
         this.$options = defaultsDeep(this.$options, $config.defaultOptions);
         this.$data = $config.data();
+        this.$methods = { ...($config.methods ?? {} as M) };
+        for (const i in this.$methods) {
+            this.$methods[i] = this.$methods[i].bind(this) as M[Extract<keyof M, string>];
+        }
         this.bindData(this.$options);
         this.bindData(this.$data);
+        this.bindData(this.$methods);
         logger({ id: this.$id, options: this.$options });
         try {
             const initRet = $config.init?.call(this);
