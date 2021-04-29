@@ -296,6 +296,7 @@ function dev() {
             await buildRender();
         } else if (process.argv[2] === 'build:test') {
             buildTest();
+            buildWorkers();
         } else if (process.argv[2] === 'dev') {
             dev();
         } else {
