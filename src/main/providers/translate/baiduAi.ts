@@ -4,8 +4,8 @@ import crypto from 'crypto';
 import querystring from 'querystring';
 
 export default defineTranslateProvider({
-    id: '百度AI开发平台',
-    description: '百度AI开发平台机器翻译API，详见 https://api.fanyi.baidu.com \n此翻译器会向 api.fanyi.baidu.com 发送数据',
+    id: '百度AI开放平台',
+    description: '百度AI开放平台机器翻译API，详见 https://api.fanyi.baidu.com \n此翻译器会向 api.fanyi.baidu.com 发送数据',
     optionsSchema: {
         enable: Boolean,
         apiConfig: {
