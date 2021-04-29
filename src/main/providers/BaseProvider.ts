@@ -24,12 +24,14 @@ export class BaseProvider<ID extends string = string, S extends Schema = any, D 
     public readonly $options: SchemaType<S>;
     public $data: D;
     public $methods: M;
+    public whenInitDone = () => Promise.resolve();
     constructor(
-        public readonly $config: C
+        public readonly $config: C,
+        getStoreOptions = () => store.get<string, SchemaType<S>>(`${$config.providersStoreKey}.${$config.id as ID}`)
     ) {
         this.$id = $config.id;
         this.$optionsSchema = $config.optionsSchema;
-        this.$options = store.get<string, SchemaType<S>>(`${$config.providersStoreKey}.${$config.id as ID}`);
+        this.$options = getStoreOptions();
         this.$options = defaultsDeep(this.$options, $config.defaultOptions);
         this.$data = $config.data();
         this.$methods = { ...($config.methods ?? {} as M) };
@@ -43,6 +45,7 @@ export class BaseProvider<ID extends string = string, S extends Schema = any, D 
         try {
             const initRet = $config.init?.call(this);
             if (initRet instanceof Promise) {
+                this.whenInitDone = () => initRet;
                 initRet.catch(e => logger(`${this.$id} throw a error while calling the async 'init' function, error: %O`, e));
             }
         } catch (e) {

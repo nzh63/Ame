@@ -32,40 +32,39 @@ export default defineTranslateProvider({
         await app.whenReady();
         const browserWindow = new InsecureRemoteBrowserWindow();
         browserWindow.webContents.loadURL('https://fanyi.baidu.com/');
-        browserWindow.webContents.on('dom-ready', async () => {
-            await browserWindow.webContents.executeJavaScriptInIsolatedWorld(1,
-                [{
-                    code:
-                        '(async function() {' +
-                        "    document.querySelector('.select-from-language .language-selected').click();" +
-                        '    await new Promise(resolve => setTimeout(resolve, 0));' +
-                        `    let node = Array.from(document.querySelectorAll('.lang-table .lang-item')).find(i => i.innerText === ${JSON.stringify(this.fromLanguage)});` +
-                        '    if (node){' +
-                        "        if  (node.className.split(' ').includes('selected')){" +
-                        "            document.querySelector('.select-from-language .language-selected').click();" +
-                        '        } else {' +
-                        '            node.click();' +
-                        '        }' +
-                        '    }' +
-                        '' +
-                        '    await new Promise(resolve => setTimeout(resolve, 0));' +
-                        '' +
-                        "    document.querySelector('.select-to-language .language-selected').click();" +
-                        '    await new Promise(resolve => setTimeout(resolve, 0));' +
-                        `    node = Array.from(document.querySelectorAll('.lang-table .lang-item')).find(i => i.innerText === ${JSON.stringify(this.toLanguage)});` +
-                        '    if (node){' +
-                        "        if  (node.className.split(' ').includes('selected')){" +
-                        "            document.querySelector('.select-to-language .language-selected').click()" +
-                        '        } else {' +
-                        '            node.click();' +
-                        '        }' +
-                        '    }' +
-                        '})();'
-                }]
-            );
-            this.browserWindow = browserWindow;
-            this.ready = true;
-        });
+        await new Promise(resolve => browserWindow.webContents.on('dom-ready', resolve));
+        await browserWindow.webContents.executeJavaScriptInIsolatedWorld(1,
+            [{
+                code:
+                    '(async function() {' +
+                    "    document.querySelector('.select-from-language .language-selected').click();" +
+                    '    await new Promise(resolve => setTimeout(resolve, 0));' +
+                    `    let node = Array.from(document.querySelectorAll('.lang-table .lang-item')).find(i => i.innerText === ${JSON.stringify(this.fromLanguage)});` +
+                    '    if (node){' +
+                    "        if  (node.className.split(' ').includes('selected')){" +
+                    "            document.querySelector('.select-from-language .language-selected').click();" +
+                    '        } else {' +
+                    '            node.click();' +
+                    '        }' +
+                    '    }' +
+                    '' +
+                    '    await new Promise(resolve => setTimeout(resolve, 0));' +
+                    '' +
+                    "    document.querySelector('.select-to-language .language-selected').click();" +
+                    '    await new Promise(resolve => setTimeout(resolve, 0));' +
+                    `    node = Array.from(document.querySelectorAll('.lang-table .lang-item')).find(i => i.innerText === ${JSON.stringify(this.toLanguage)});` +
+                    '    if (node){' +
+                    "        if  (node.className.split(' ').includes('selected')){" +
+                    "            document.querySelector('.select-to-language .language-selected').click()" +
+                    '        } else {' +
+                    '            node.click();' +
+                    '        }' +
+                    '    }' +
+                    '})();'
+            }]
+        );
+        this.browserWindow = browserWindow;
+        this.ready = true;
     },
     isReady() { return this.enable && this.ready && !!this.browserWindow; },
     translate(t) {

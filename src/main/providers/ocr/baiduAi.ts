@@ -14,7 +14,7 @@ export default defineOcrProvider({
                 enum: ['CHN_ENG', 'ENG', 'JAP', 'KOR', 'FRE', 'SPA', 'POR', 'GER', 'ITA', 'RUS']
             }
         }
-    },
+    } as const,
     defaultOptions: {
         enable: true,
         apiConfig: {

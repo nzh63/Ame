@@ -32,9 +32,6 @@ export default defineOcrProvider({
         const worker = new Worker(path.join(__workers, './tesseract.js'), {
             workerData: { lang: this.language, __static }
         });
-        worker.once('message', arg => {
-            this.worker = worker;
-        });
         if (import.meta.env.DEV) {
             worker.on('message', args => {
                 if (args.type === 'log') {
@@ -42,13 +39,14 @@ export default defineOcrProvider({
                 }
             });
         }
+        await new Promise(resolve => worker.once('message', resolve));
+        this.worker = worker;
     },
     isReady() { return this.enable && !!this.worker; },
     async recognize(img) {
         if (!this.worker) throw new Error('worker not init');
         const grey = (await img.clone().resize(1, 1).greyscale().raw().toBuffer()).readUInt8();
         let image = img;
-        console.log(grey);
         if (grey < 128) {
             image = img.clone().removeAlpha().negate();
         }

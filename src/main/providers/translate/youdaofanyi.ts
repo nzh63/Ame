@@ -32,21 +32,20 @@ export default defineTranslateProvider({
         await app.whenReady();
         const browserWindow = new InsecureRemoteBrowserWindow();
         browserWindow.webContents.loadURL('https://fanyi.youdao.com/');
-        browserWindow.webContents.on('dom-ready', async () => {
-            await browserWindow.webContents.executeJavaScriptInIsolatedWorld(1,
-                [{
-                    code:
-                        '(async function() {' +
-                        "    document.querySelector('.select-text').click();" +
-                        '    await new Promise(resolve => setTimeout(resolve, 0));' +
-                        `    let node = Array.from(document.querySelectorAll('#languageSelect li a')).find(i => /${this.fromLanguage}.*${this.toLanguage}/.test(i.innerText));` +
-                        '    node?.click();' +
-                        '})();'
-                }]
-            );
-            this.browserWindow = browserWindow;
-            this.ready = true;
-        });
+        await new Promise(resolve => browserWindow.webContents.on('dom-ready', resolve));
+        await browserWindow.webContents.executeJavaScriptInIsolatedWorld(1,
+            [{
+                code:
+                    '(async function() {' +
+                    "    document.querySelector('.select-text').click();" +
+                    '    await new Promise(resolve => setTimeout(resolve, 0));' +
+                    `    let node = Array.from(document.querySelectorAll('#languageSelect li a')).find(i => /${this.fromLanguage}.*${this.toLanguage}/.test(i.innerText));` +
+                    '    node?.click();' +
+                    '})();'
+            }]
+        );
+        this.browserWindow = browserWindow;
+        this.ready = true;
     },
     isReady() { return this.enable && this.ready && !!this.browserWindow; },
     translate(t) {

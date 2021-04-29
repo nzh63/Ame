@@ -32,10 +32,9 @@ export default defineTranslateProvider({
         await app.whenReady();
         const browserWindow = new InsecureRemoteBrowserWindow();
         browserWindow.webContents.loadURL(`https://translate.google.cn/?sl=${this.fromLanguage}&tl=${this.toLanguage}&op=translate`);
-        browserWindow.webContents.on('dom-ready', async () => {
-            this.browserWindow = browserWindow;
-            this.ready = true;
-        });
+        await new Promise(resolve => browserWindow.webContents.on('dom-ready', resolve));
+        this.browserWindow = browserWindow;
+        this.ready = true;
     },
     isReady() { return this.enable && this.ready && !!this.browserWindow; },
     async translate(t) {

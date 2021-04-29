@@ -32,28 +32,27 @@ export default defineTranslateProvider({
         await app.whenReady();
         const browserWindow = new InsecureRemoteBrowserWindow();
         browserWindow.webContents.loadURL('https://fanyi.qq.com/');
-        browserWindow.webContents.on('dom-ready', async () => {
-            await browserWindow.webContents.executeJavaScriptInIsolatedWorld(1,
-                [{
-                    code:
-                        '(async function() {' +
-                        "    document.querySelector('#language-button-group-source .language-button').click();" +
-                        '    await new Promise(resolve => setTimeout(resolve, 0));' +
-                        `    let node = Array.from(document.querySelectorAll('[node-type="source_language_list"] li')).find(i => i.innerText === ${JSON.stringify(this.fromLanguage)});` +
-                        '    node?.click();' +
-                        '' +
-                        '    await new Promise(resolve => setTimeout(resolve, 0));' +
-                        '' +
-                        "    document.querySelector('#language-button-group-target .language-button').click();" +
-                        '    await new Promise(resolve => setTimeout(resolve, 0));' +
-                        `    node = Array.from(document.querySelectorAll('[node-type="target_language_list"] li')).find(i => i.innerText === ${JSON.stringify(this.toLanguage)});` +
-                        '    node?.click();' +
-                        '})();'
-                }]
-            );
-            this.browserWindow = browserWindow;
-            this.ready = true;
-        });
+        await new Promise(resolve => browserWindow.webContents.on('dom-ready', resolve));
+        await browserWindow.webContents.executeJavaScriptInIsolatedWorld(1,
+            [{
+                code:
+                    '(async function() {' +
+                    "    document.querySelector('#language-button-group-source .language-button').click();" +
+                    '    await new Promise(resolve => setTimeout(resolve, 0));' +
+                    `    let node = Array.from(document.querySelectorAll('[node-type="source_language_list"] li')).find(i => i.innerText === ${JSON.stringify(this.fromLanguage)});` +
+                    '    node?.click();' +
+                    '' +
+                    '    await new Promise(resolve => setTimeout(resolve, 0));' +
+                    '' +
+                    "    document.querySelector('#language-button-group-target .language-button').click();" +
+                    '    await new Promise(resolve => setTimeout(resolve, 0));' +
+                    `    node = Array.from(document.querySelectorAll('[node-type="target_language_list"] li')).find(i => i.innerText === ${JSON.stringify(this.toLanguage)});` +
+                    '    node?.click();' +
+                    '})();'
+            }]
+        );
+        this.browserWindow = browserWindow;
+        this.ready = true;
     },
     isReady() { return this.enable && this.ready && !!this.browserWindow; },
     translate(t) {
