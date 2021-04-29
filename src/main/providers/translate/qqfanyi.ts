@@ -28,7 +28,7 @@ export default defineTranslateProvider({
     }
 }, {
     async init() {
-        if (!this.options.enable) return;
+        if (!this.enable) return;
         await app.whenReady();
         const browserWindow = new InsecureRemoteBrowserWindow();
         browserWindow.webContents.loadURL('https://fanyi.qq.com/');
@@ -39,26 +39,26 @@ export default defineTranslateProvider({
                         '(async function() {' +
                         "    document.querySelector('#language-button-group-source .language-button').click();" +
                         '    await new Promise(resolve => setTimeout(resolve, 0));' +
-                        `    let node = Array.from(document.querySelectorAll('[node-type="source_language_list"] li')).find(i => i.innerText === ${JSON.stringify(this.options.fromLanguage)});` +
+                        `    let node = Array.from(document.querySelectorAll('[node-type="source_language_list"] li')).find(i => i.innerText === ${JSON.stringify(this.fromLanguage)});` +
                         '    node?.click();' +
                         '' +
                         '    await new Promise(resolve => setTimeout(resolve, 0));' +
                         '' +
                         "    document.querySelector('#language-button-group-target .language-button').click();" +
                         '    await new Promise(resolve => setTimeout(resolve, 0));' +
-                        `    node = Array.from(document.querySelectorAll('[node-type="target_language_list"] li')).find(i => i.innerText === ${JSON.stringify(this.options.toLanguage)});` +
+                        `    node = Array.from(document.querySelectorAll('[node-type="target_language_list"] li')).find(i => i.innerText === ${JSON.stringify(this.toLanguage)});` +
                         '    node?.click();' +
                         '})();'
                 }]
             );
-            this.data.browserWindow = browserWindow;
-            this.data.ready = true;
+            this.browserWindow = browserWindow;
+            this.ready = true;
         });
     },
-    isReady() { return this.options.enable && this.data.ready && !!this.data.browserWindow; },
+    isReady() { return this.enable && this.ready && !!this.browserWindow; },
     translate(t) {
-        if (!this.data.browserWindow) throw new Error('browserView is not ready');
-        return this.data.browserWindow.webContents.executeJavaScriptInIsolatedWorld(1,
+        if (!this.browserWindow) throw new Error('browserView is not ready');
+        return this.browserWindow.webContents.executeJavaScriptInIsolatedWorld(1,
             [{
                 code:
                     'new Promise(resolve => {' +
@@ -74,7 +74,7 @@ export default defineTranslateProvider({
         );
     },
     destroy() {
-        this.data.browserWindow?.destroy();
-        this.data.browserWindow = null;
+        this.browserWindow?.destroy();
+        this.browserWindow = null;
     }
 });

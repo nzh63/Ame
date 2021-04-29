@@ -14,8 +14,8 @@ export class OcrManager extends BaseManager<OcrProvider> {
         for (const provider of this.providers) {
             if (!provider.isReady()) continue;
             provider.recognize(img)
-                .then(text => callback(undefined, { providerId: provider.id, img, text }))
-                .catch((e) => callback(e, { providerId: provider.id, img, text: '' }));
+                .then(text => callback(undefined, { providerId: provider.$id, img, text }))
+                .catch((e) => callback(e, { providerId: provider.$id, img, text: '' }));
         }
     }
 }

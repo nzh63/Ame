@@ -39,22 +39,22 @@ export default defineTranslateProvider({
 }, {
     init() { },
     isReady() {
-        return this.options.enable &&
-            this.options.apiConfig.appid !== null &&
-            this.options.apiConfig.key !== null;
+        return this.enable &&
+            this.apiConfig.appid !== null &&
+            this.apiConfig.key !== null;
     },
     async translate(text) {
         const salt = (new Date()).getTime();
-        const str1 = this.options.apiConfig.appid + text + salt + this.options.apiConfig.key;
+        const str1 = this.apiConfig.appid + text + salt + this.apiConfig.key;
         const md5 = crypto.createHash('md5');
         const sign = md5.update(str1).digest('hex');
         return new Promise<string>((resolve, reject) => {
             const request = net.request('https://fanyi-api.baidu.com/api/trans/vip/translate?' + querystring.stringify({
                 q: text,
-                appid: this.options.apiConfig.appid,
+                appid: this.apiConfig.appid,
                 salt: salt,
-                from: this.options.apiConfig.fromLanguage,
-                to: this.options.apiConfig.toLanguage,
+                from: this.apiConfig.fromLanguage,
+                to: this.apiConfig.toLanguage,
                 sign: sign
             }));
             request.on('response', async (response) => {

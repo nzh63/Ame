@@ -11,8 +11,8 @@ export class TranslateManager extends BaseManager<TranslateProvider> {
         for (const provider of this.providers) {
             if (!provider.isReady()) continue;
             provider.translate(originalText)
-                .then(translateText => callback(undefined, { providerId: provider.id, key, originalText, translateText }))
-                .catch((e) => callback(e, { providerId: provider.id, key, originalText, translateText: '' }));
+                .then(translateText => callback(undefined, { providerId: provider.$id, key, originalText, translateText }))
+                .catch((e) => callback(e, { providerId: provider.$id, key, originalText, translateText: '' }));
         }
     }
 }

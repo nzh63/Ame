@@ -35,21 +35,21 @@ export default defineTranslateProvider({
     }
 }, {
     init() {
-        if (!this.options.enable || !this.options.path.dll) return;
-        this.data.process = spawn(path.join(__static, 'native/bin/JBeijingCli.exe'), [
-            this.options.path.dll,
-            ...this.options.path.userDicts.split(';'), '', '', ''
+        if (!this.enable || !this.path.dll) return;
+        this.process = spawn(path.join(__static, 'native/bin/JBeijingCli.exe'), [
+            this.path.dll,
+            ...this.path.userDicts.split(';'), '', '', ''
         ], { stdio: 'pipe' });
     },
-    isReady() { return this.options.enable && !!this.options.path.dll && !!this.data.process && this.data.process.exitCode === null; },
+    isReady() { return this.enable && !!this.path.dll && !!this.process && this.process.exitCode === null; },
     async translate(t) {
-        if (!this.data.process) throw new Error('cli process not init');
-        const promise = this.data.queue.then(() => new Promise<string>(resolve => {
+        if (!this.process) throw new Error('cli process not init');
+        const promise = this.queue.then(() => new Promise<string>(resolve => {
             const input = Buffer.from(t, 'ucs2');
             const inputSize = Buffer.alloc(2);
             inputSize.writeUInt16LE(input.length);
-            this.data.process?.stdin?.write(inputSize);
-            this.data.process?.stdin?.write(input);
+            this.process?.stdin?.write(inputSize);
+            this.process?.stdin?.write(input);
             let output = Buffer.alloc(0);
             let outputSize = Buffer.alloc(0);
             const callback = (_c: any) => {
@@ -68,18 +68,18 @@ export default defineTranslateProvider({
             const finish = () => {
                 clearTimeout(timeoutId);
                 resolve(output.toString('ucs2'));
-                this.data.process?.stdout?.off('data', callback);
+                this.process?.stdout?.off('data', callback);
             };
             const timeoutId = setTimeout(finish, 1000);
-            this.data.process?.stdout?.on('data', callback);
+            this.process?.stdout?.on('data', callback);
         }));
-        this.data.queue = promise;
+        this.queue = promise;
         return promise;
     },
     destroy() {
-        this.data.process?.stdin?.write(Buffer.alloc(2, 0));
+        this.process?.stdin?.write(Buffer.alloc(2, 0));
         setTimeout(() => {
-            if (this.data.process && this.data.process.exitCode === null) this.data.process.kill();
+            if (this.process && this.process.exitCode === null) this.process.kill();
         }, 500);
     }
 });

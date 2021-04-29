@@ -9,12 +9,12 @@ describe('BaseProvider', function() {
     let initSuccess = false;
     let isReadySuccess = false;
     let destroySuccess = false;
-    function check(that: any) {
+    function check(that: typeof provider) {
         let success = true;
-        if (!that || !that.options || that.options.foo !== 'defaultValue') {
+        if (!that || !that.$options || that.$options.foo !== 'defaultValue') {
             success = false;
         }
-        if (!that || !that.data || that.data.bar !== 'baz') {
+        if (!that || !that.$data || that.$data.bar !== 'baz') {
             success = false;
         }
         return success;

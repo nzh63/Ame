@@ -38,22 +38,22 @@ export default defineOcrProvider({
     }
 }, {
     async init() {
-        if (!this.options.apiConfig.apiKey || !this.options.apiConfig.secretKey) return;
-        fetch(`https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=${this.options.apiConfig.apiKey}&client_secret=${this.options.apiConfig.secretKey}`, { method: 'POST', timeout: 3000 })
+        if (!this.apiConfig.apiKey || !this.apiConfig.secretKey) return;
+        fetch(`https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=${this.apiConfig.apiKey}&client_secret=${this.apiConfig.secretKey}`, { method: 'POST', timeout: 3000 })
             .then(res => res.json())
             .then(json => {
-                this.data.accessToken = '' + json.access_token;
+                this.accessToken = '' + json.access_token;
             });
     },
-    isReady() { return this.options.enable && !!this.options.apiConfig.apiKey && !!this.options.apiConfig.secretKey && !!this.data.accessToken; },
+    isReady() { return this.enable && !!this.apiConfig.apiKey && !!this.apiConfig.secretKey && !!this.accessToken; },
     async recognize(img) {
-        if (!this.data.accessToken) throw new Error('no access token');
-        const json = await fetch(`https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic?access_token=${this.data.accessToken}`, {
+        if (!this.accessToken) throw new Error('no access token');
+        const json = await fetch(`https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic?access_token=${this.accessToken}`, {
             method: 'POST',
             timeout: 3000,
             body: querystring.stringify({
                 image: (await img.png().toBuffer()).toString('base64'),
-                language_type: this.options.apiConfig.language
+                language_type: this.apiConfig.language
             })
         })
             .then(res => res.json())

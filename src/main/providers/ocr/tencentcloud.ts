@@ -57,11 +57,11 @@ export default defineOcrProvider({
     }
 }, {
     init() {
-        if (!this.options.apiConfig.credential.secretId || !this.options.apiConfig.credential.secretKey) return;
+        if (!this.apiConfig.credential.secretId || !this.apiConfig.credential.secretKey) return;
         const clientConfig = {
             credential: {
-                secretId: this.options.apiConfig.credential.secretId,
-                secretKey: this.options.apiConfig.credential.secretKey
+                secretId: this.apiConfig.credential.secretId,
+                secretKey: this.apiConfig.credential.secretKey
             },
             region: 'ap-guangzhou',
             profile: {
@@ -70,18 +70,18 @@ export default defineOcrProvider({
                 }
             }
         };
-        this.data.client = new Client(clientConfig);
+        this.client = new Client(clientConfig);
     },
     isReady() {
-        return this.options.enable &&
-            this.options.apiConfig.credential.secretId !== null &&
-            this.options.apiConfig.credential.secretKey !== null &&
-            !!this.data.client;
+        return this.enable &&
+            this.apiConfig.credential.secretId !== null &&
+            this.apiConfig.credential.secretKey !== null &&
+            !!this.client;
     },
     async recognize(img) {
-        if (!this.data.client) throw new Error('client have not been init');
-        const params = { ...this.options.apiConfig.params, ImageBase64: Buffer.from(await img.clone().png().toBuffer()).toString('base64') };
-        const res = await this.data.client.GeneralBasicOCR(params);
+        if (!this.client) throw new Error('client have not been init');
+        const params = { ...this.apiConfig.params, ImageBase64: Buffer.from(await img.clone().png().toBuffer()).toString('base64') };
+        const res = await this.client.GeneralBasicOCR(params);
         if (res.TextDetections) {
             return res.TextDetections.map(i => i.DetectedText).join('');
         }

@@ -26,7 +26,7 @@ export default defineTranslateProvider({
             dllTransCOM: [String, null],
             dllTransCOMEC: [String, null]
         },
-        translate: {
+        translateType: {
             type: String,
             enum: ['日->中', '中->日', '英->中', '中->英']
         }
@@ -37,15 +37,15 @@ export default defineTranslateProvider({
             dllTransCOM: null,
             dllTransCOMEC: null
         },
-        translate: '日->中'
+        translateType: '日->中'
     },
     optionsDescription: {
         enable: '启用',
         path: {
-            dllTransCOM: { readableName: 'TransCOM.dll 的路径', description: '可在 安装目录/DreyeMT/SDK/bin下找到' },
-            dllTransCOMEC: { readableName: 'TransCOMEC.dll 的路径', description: '可在 安装目录/DreyeMT/SDK/bin下找到' }
+            dllTransCOM: { readableName: 'TransCOM.dll 的路径', description: '可在"安装目录/DreyeMT/SDK/bin"下找到' },
+            dllTransCOMEC: { readableName: 'TransCOMEC.dll 的路径', description: '可在"安装目录/DreyeMT/SDK/bin"下找到' }
         },
-        translate: '翻译选项'
+        translateType: '翻译选项'
     },
     data() {
         return {
@@ -60,41 +60,41 @@ export default defineTranslateProvider({
 }, {
     async init() {
         let dll, suffix, dat;
-        if (this.options.translate === '日->中') {
-            dll = this.options.path.dllTransCOM;
+        if (this.translateType === '日->中') {
+            dll = this.path.dllTransCOM;
             suffix = 'CJ';
             dat = DAT.JC;
-            this.data.enc.src = ENC.JA;
-            this.data.enc.dest = ENC.ZH;
-        } else if (this.options.translate === '中->日') {
-            dll = this.options.path.dllTransCOM;
+            this.enc.src = ENC.JA;
+            this.enc.dest = ENC.ZH;
+        } else if (this.translateType === '中->日') {
+            dll = this.path.dllTransCOM;
             suffix = 'CJ';
             dat = DAT.JC;
-            this.data.enc.src = ENC.ZH;
-            this.data.enc.dest = ENC.JA;
-        } else if (this.options.translate === '英->中') {
-            dll = this.options.path.dllTransCOMEC;
+            this.enc.src = ENC.ZH;
+            this.enc.dest = ENC.JA;
+        } else if (this.translateType === '英->中') {
+            dll = this.path.dllTransCOMEC;
             suffix = 'EC';
             dat = DAT.EC;
-            this.data.enc.src = ENC.EN;
-            this.data.enc.dest = ENC.ZH;
-        } else if (this.options.translate === '中->英') {
-            dll = this.options.path.dllTransCOMEC;
+            this.enc.src = ENC.EN;
+            this.enc.dest = ENC.ZH;
+        } else if (this.translateType === '中->英') {
+            dll = this.path.dllTransCOMEC;
             suffix = 'EC';
             dat = DAT.EC;
-            this.data.enc.src = ENC.ZH;
-            this.data.enc.dest = ENC.EN;
+            this.enc.src = ENC.ZH;
+            this.enc.dest = ENC.EN;
         } else {
             // eslint-disable-next-line  @typescript-eslint/no-unused-vars
-            const _typeCheck: never = this.options.translate;
+            const _typeCheck: never = this.translateType;
         }
-        if (!this.options.enable || !dll) return;
+        if (!this.enable || !dll) return;
         try {
             await fs.promises.stat(dll);
         } catch (e) {
             return;
         }
-        this.data.process = spawn(path.join(__static, 'native/bin/DrEyeCli.exe'), [
+        this.process = spawn(path.join(__static, 'native/bin/DrEyeCli.exe'), [
             dll,
             'MTInit' + suffix,
             'MTEnd' + suffix,
@@ -103,21 +103,21 @@ export default defineTranslateProvider({
         ], { stdio: 'pipe', cwd: path.dirname(dll) });
     },
     isReady() {
-        return this.options.enable && (
-            (this.options.translate === '日->中' && this.options.path.dllTransCOM !== null) ||
-            (this.options.translate === '中->日' && this.options.path.dllTransCOM !== null) ||
-            (this.options.translate === '英->中' && this.options.path.dllTransCOMEC !== null) ||
-            (this.options.translate === '中->英' && this.options.path.dllTransCOMEC !== null)
-        ) && !!this.data.process && this.data.process.exitCode === null;
+        return this.enable && (
+            (this.translateType === '日->中' && this.path.dllTransCOM !== null) ||
+            (this.translateType === '中->日' && this.path.dllTransCOM !== null) ||
+            (this.translateType === '英->中' && this.path.dllTransCOMEC !== null) ||
+            (this.translateType === '中->英' && this.path.dllTransCOMEC !== null)
+        ) && !!this.process && this.process.exitCode === null;
     },
     async translate(t) {
-        if (!this.data.process) throw new Error('cli process not init');
-        const promise = this.data.queue.then(() => new Promise<string>(resolve => {
-            const input = encode(t, this.data.enc.src);
+        if (!this.process) throw new Error('cli process not init');
+        const promise = this.queue.then(() => new Promise<string>(resolve => {
+            const input = encode(t, this.enc.src);
             const inputSize = Buffer.alloc(2);
             inputSize.writeUInt16LE(input.length);
-            this.data.process?.stdin?.write(inputSize);
-            this.data.process?.stdin?.write(input);
+            this.process?.stdin?.write(inputSize);
+            this.process?.stdin?.write(input);
             let output = Buffer.alloc(0);
             let outputSize = Buffer.alloc(0);
             const callback = (_c: any) => {
@@ -135,19 +135,19 @@ export default defineTranslateProvider({
             };
             const finish = () => {
                 clearTimeout(timeoutId);
-                resolve(decode(output, this.data.enc.dest));
-                this.data.process?.stdout?.off('data', callback);
+                resolve(decode(output, this.enc.dest));
+                this.process?.stdout?.off('data', callback);
             };
             const timeoutId = setTimeout(finish, 1000);
-            this.data.process?.stdout?.on('data', callback);
+            this.process?.stdout?.on('data', callback);
         }));
-        this.data.queue = promise;
+        this.queue = promise;
         return promise;
     },
     destroy() {
-        this.data.process?.stdin?.write(Buffer.alloc(2, 0));
+        this.process?.stdin?.write(Buffer.alloc(2, 0));
         setTimeout(() => {
-            if (this.data.process && this.data.process.exitCode === null) this.data.process.kill();
+            if (this.process && this.process.exitCode === null) this.process.kill();
         }, 500);
     }
 });

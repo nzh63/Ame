@@ -69,11 +69,11 @@ export default defineTranslateProvider({
     }
 }, {
     init() {
-        if (!this.options.apiConfig.credential.secretId || !this.options.apiConfig.credential.secretKey) return;
+        if (!this.apiConfig.credential.secretId || !this.apiConfig.credential.secretKey) return;
         const clientConfig = {
             credential: {
-                secretId: this.options.apiConfig.credential.secretId,
-                secretKey: this.options.apiConfig.credential.secretKey
+                secretId: this.apiConfig.credential.secretId,
+                secretKey: this.apiConfig.credential.secretKey
             },
             region: 'ap-guangzhou',
             profile: {
@@ -82,18 +82,18 @@ export default defineTranslateProvider({
                 }
             }
         };
-        this.data.client = new Client(clientConfig);
+        this.client = new Client(clientConfig);
     },
     isReady() {
-        return this.options.enable &&
-            this.options.apiConfig.credential.secretId !== null &&
-            this.options.apiConfig.credential.secretKey !== null &&
-            !!this.data.client;
+        return this.enable &&
+            this.apiConfig.credential.secretId !== null &&
+            this.apiConfig.credential.secretKey !== null &&
+            !!this.client;
     },
     async translate(SourceText) {
-        const params = { ...this.options.apiConfig.params, SourceText };
-        if (!this.data.client) throw new Error('client have not been init');
-        const res = await this.data.client.TextTranslate(params);
+        const params = { ...this.apiConfig.params, SourceText };
+        if (!this.client) throw new Error('client have not been init');
+        const res = await this.client.TextTranslate(params);
         if (res.TargetText !== undefined) {
             return res.TargetText;
         }

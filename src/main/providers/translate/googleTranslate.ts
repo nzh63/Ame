@@ -28,19 +28,19 @@ export default defineTranslateProvider({
     }
 }, {
     async init() {
-        if (!this.options.enable) return;
+        if (!this.enable) return;
         await app.whenReady();
         const browserWindow = new InsecureRemoteBrowserWindow();
-        browserWindow.webContents.loadURL(`https://translate.google.cn/?sl=${this.options.fromLanguage}&tl=${this.options.toLanguage}&op=translate`);
+        browserWindow.webContents.loadURL(`https://translate.google.cn/?sl=${this.fromLanguage}&tl=${this.toLanguage}&op=translate`);
         browserWindow.webContents.on('dom-ready', async () => {
-            this.data.browserWindow = browserWindow;
-            this.data.ready = true;
+            this.browserWindow = browserWindow;
+            this.ready = true;
         });
     },
-    isReady() { return this.options.enable && this.data.ready && !!this.data.browserWindow; },
+    isReady() { return this.enable && this.ready && !!this.browserWindow; },
     async translate(t) {
-        if (!this.data.browserWindow) throw new Error('browserView is not ready');
-        await this.data.browserWindow.webContents.executeJavaScriptInIsolatedWorld(1,
+        if (!this.browserWindow) throw new Error('browserView is not ready');
+        await this.browserWindow.webContents.executeJavaScriptInIsolatedWorld(1,
             [{
                 code:
                     `document.querySelector('textarea[aria-label="原文"]').value = ${JSON.stringify(t)};` +
@@ -49,8 +49,8 @@ export default defineTranslateProvider({
             }]
         );
         await new Promise(resolve => setImmediate(resolve));
-        await this.data.browserWindow.webContents.insertText(' ');
-        const promise = this.data.browserWindow.webContents.executeJavaScriptInIsolatedWorld(1,
+        await this.browserWindow.webContents.insertText(' ');
+        const promise = this.browserWindow.webContents.executeJavaScriptInIsolatedWorld(1,
             [{
                 code:
                     'new Promise(resolve => {' +
@@ -67,7 +67,7 @@ export default defineTranslateProvider({
         return promise;
     },
     destroy() {
-        this.data.browserWindow?.destroy();
-        this.data.browserWindow = null;
+        this.browserWindow?.destroy();
+        this.browserWindow = null;
     }
 });

@@ -28,12 +28,12 @@ export default defineOcrProvider({
     }
 }, {
     async init() {
-        if (!this.options.enable) return;
+        if (!this.enable) return;
         const worker = new Worker(path.join(__workers, './tesseract.js'), {
-            workerData: { lang: this.options.language, __static }
+            workerData: { lang: this.language, __static }
         });
         worker.once('message', arg => {
-            this.data.worker = worker;
+            this.worker = worker;
         });
         if (import.meta.env.DEV) {
             worker.on('message', args => {
@@ -43,9 +43,9 @@ export default defineOcrProvider({
             });
         }
     },
-    isReady() { return this.options.enable && !!this.data.worker; },
+    isReady() { return this.enable && !!this.worker; },
     async recognize(img) {
-        if (!this.data.worker) throw new Error('worker not init');
+        if (!this.worker) throw new Error('worker not init');
         const grey = (await img.clone().resize(1, 1).greyscale().raw().toBuffer()).readUInt8();
         let image = img;
         console.log(grey);
@@ -53,21 +53,21 @@ export default defineOcrProvider({
             image = img.clone().removeAlpha().negate();
         }
         const id = Math.floor(Math.random() * 10000);
-        this.data.worker.postMessage({ type: 'recognize', id, img: await image.png().toBuffer() });
+        this.worker.postMessage({ type: 'recognize', id, img: await image.png().toBuffer() });
         return new Promise<string>(resolve => {
             const callback = (arg: { type: string; id: number; text: string; }) => {
                 if (arg.type === 'reply') {
                     if (arg.id === id) {
-                        this.data.worker?.off('message', callback);
+                        this.worker?.off('message', callback);
                         resolve(arg.text);
                     }
                 }
             };
-            this.data.worker?.on('message', callback);
+            this.worker?.on('message', callback);
         });
     },
     destroy() {
-        this.data.worker?.postMessage({ type: 'exit' });
-        this.data.worker?.removeAllListeners();
+        this.worker?.postMessage({ type: 'exit' });
+        this.worker?.removeAllListeners();
     }
 });

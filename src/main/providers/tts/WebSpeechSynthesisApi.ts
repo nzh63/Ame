@@ -33,27 +33,27 @@ export default defineTtsProvider({
     }
 }, {
     async init() {
-        if (!this.options.enable) return;
+        if (!this.enable) return;
         await app.whenReady();
         const browserWindow = new BrowserWindow({ show: false });
         browserWindow.webContents.loadURL('about:black');
         browserWindow.webContents.executeJavaScript('speechSynthesis.getVoices()');
-        this.data.browserWindow = browserWindow;
+        this.browserWindow = browserWindow;
     },
-    isReady() { return this.options.enable && !!this.data.browserWindow; },
+    isReady() { return this.enable && !!this.browserWindow; },
     speak(text, type) {
-        if (!this.data.browserWindow) return;
+        if (!this.browserWindow) return;
         const execCode = `
         (function() {
             speechSynthesis.cancel();
             const utter = new SpeechSynthesisUtterance(${JSON.stringify(text)});
     ${(() => {
         let voiceURI: string | null = null;
-        if (this.options.voice.originalVoiceURI && type === 'original') {
-            voiceURI = this.options.voice.originalVoiceURI;
+        if (this.voice.originalVoiceURI && type === 'original') {
+            voiceURI = this.voice.originalVoiceURI;
         }
-        if (this.options.voice.translateVoiceURI && type === 'translate') {
-            voiceURI = this.options.voice.translateVoiceURI;
+        if (this.voice.translateVoiceURI && type === 'translate') {
+            voiceURI = this.voice.translateVoiceURI;
         }
         if (voiceURI) {
             return `utter.voice = speechSynthesis.getVoices().find(v => v.voiceURI === ${JSON.stringify(voiceURI)});`;
@@ -63,11 +63,11 @@ export default defineTtsProvider({
             speechSynthesis.speak(utter);
         })()`;
         logger('execCode: %s', execCode);
-        logger('options: %O', this.options);
-        this.data.browserWindow.webContents.executeJavaScript(execCode, true);
+        logger('options: %O', this);
+        this.browserWindow.webContents.executeJavaScript(execCode, true);
     },
     destroy() {
-        this.data.browserWindow?.destroy();
-        this.data.browserWindow = null;
+        this.browserWindow?.destroy();
+        this.browserWindow = null;
     }
 });

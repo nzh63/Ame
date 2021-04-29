@@ -16,7 +16,7 @@ export class TtsManager extends BaseManager<TtsProvider> {
 
     public async speak(text: string, type: 'original' | 'translate'): Promise<void> {
         if (this.options.defaultProvider) {
-            const defaultProvider = this.providers.find(i => i.id === this.options.defaultProvider);
+            const defaultProvider = this.providers.find(i => i.$id === this.options.defaultProvider);
             if (defaultProvider && defaultProvider.isReady()) {
                 return await defaultProvider.speak(text, type);
             }
