@@ -1,7 +1,7 @@
 import { defineTranslateProvider } from '@main/providers/translate';
-import { net } from 'electron';
 import crypto from 'crypto';
 import querystring from 'querystring';
+import fetch from 'electron-fetch';
 
 export default defineTranslateProvider({
     id: '百度AI开放平台',
@@ -48,32 +48,18 @@ export default defineTranslateProvider({
         const str1 = this.apiConfig.appid + text + salt + this.apiConfig.key;
         const md5 = crypto.createHash('md5');
         const sign = md5.update(str1).digest('hex');
-        return new Promise<string>((resolve, reject) => {
-            const request = net.request('https://fanyi-api.baidu.com/api/trans/vip/translate?' + querystring.stringify({
-                q: text,
-                appid: this.apiConfig.appid,
-                salt: salt,
-                from: this.apiConfig.fromLanguage,
-                to: this.apiConfig.toLanguage,
-                sign: sign
-            }));
-            request.on('response', async (response) => {
-                if (!response.statusCode || response.statusCode >= 400) {
-                    throw new Error(`http error: ${response.statusCode} ${response.statusMessage}`);
-                }
-                try {
-                    let body = '';
-                    response.on('data', (chunk) => { body += chunk.toString(); });
-                    await new Promise(resolve => response.once('end', resolve));
-                    const translateResult = JSON.parse(body);
-                    if (!translateResult.trans_result) reject(translateResult);
-                    resolve(translateResult.trans_result.map((i: any) => i.dst).join('\n'));
-                } catch (e) {
-                    reject(e);
-                }
+        return fetch('https://fanyi-api.baidu.com/api/trans/vip/translate?' + querystring.stringify({
+            q: text,
+            appid: this.apiConfig.appid,
+            salt: salt,
+            from: this.apiConfig.fromLanguage,
+            to: this.apiConfig.toLanguage,
+            sign: sign
+        }))
+            .then(res => res.json())
+            .then(res => {
+                if (!res.trans_result) throw res;
+                return res.trans_result.map((i: any) => i.dst).join('\n');
             });
-            request.on('error', (e) => reject(e));
-            request.end();
-        });
     }
 });
