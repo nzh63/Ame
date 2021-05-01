@@ -19,6 +19,7 @@ const externalPackages = [
     'electron/main',
     'electron/common',
     'electron/renderer',
+    'mocha',
     ...builtinModules,
     ...Object.keys(dependencies)
 ];
