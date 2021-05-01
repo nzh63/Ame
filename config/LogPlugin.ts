@@ -1,12 +1,13 @@
 import MagicString, { SourceMap } from 'magic-string';
 import path from 'path';
 import { Plugin } from 'rollup';
-const { createFilter } = require('@rollup/pluginutils');
+import ts from 'typescript';
+import { createFilter, FilterPattern } from '@rollup/pluginutils';
 
 interface Options {
     logFunction: { [i: string]: string };
-    include?: string[];
-    exclude?: string[];
+    include?: FilterPattern;
+    exclude?: FilterPattern;
     sourceMap?: boolean;
     sourcemap?: boolean;
     loggerPath?: string;
@@ -25,9 +26,10 @@ export default function replace(options: Options = { logFunction: {} }) {
     const filter = createFilter(options.include, options.exclude);
     const pattern = new RegExp(`(?<![a-zA-Z0-9.])(${Object.keys(options.logFunction).map(i => escape(i)).join('|')})[\\b\\n]*\\([\\b\\n]*(['"\`]?)`, 'g');
 
-    function executeReplacement(code: string, id: string) {
+    function executeModify(code: string, id: string) {
         const magicString = new MagicString(code);
-        if (!codeHasReplacements(code, id, magicString)) {
+        const modify = options.disableLog === true ? codeRemove : codeReplace;
+        if (!modify(code, id, magicString)) {
             return null;
         }
         const result: Result = { code: magicString.toString() };
@@ -37,7 +39,7 @@ export default function replace(options: Options = { logFunction: {} }) {
         return result;
     }
 
-    function codeHasReplacements(code: string, id: string, magicString: MagicString) {
+    function codeReplace(code: string, id: string, magicString: MagicString) {
         let result = false;
         let match: RegExpExecArray;
 
@@ -64,6 +66,29 @@ export default function replace(options: Options = { logFunction: {} }) {
         }
         return result;
     }
+    function codeRemove(code: string, id: string, magicString: MagicString) {
+        if (!pattern.test(code)) return false;
+        function walk(node: ts.SourceFile, callback: (node: ts.Node) => boolean | void) {
+            function visit(node: ts.Node) {
+                if (!callback(node)) { ts.forEachChild(node, visit); }
+            }
+            if (!callback(node)) { ts.forEachChild(node, visit); }
+        }
+        try {
+            walk(ts.createSourceFile(id, code, ts.ScriptTarget.ESNext, true), (node) => {
+                if (node.kind === ts.SyntaxKind.CallExpression) {
+                    if ((node as ts.CallExpression).expression.getText() === 'logger') {
+                        magicString.overwrite(node.getStart(), node.getEnd(), '(void 0)');
+                        return true;
+                    }
+                }
+            });
+        } catch (e) {
+            return false;
+        }
+
+        return true;
+    }
 
     function isSourceMapEnabled() {
         return options.sourceMap !== false && options.sourcemap !== false;
@@ -76,13 +101,13 @@ export default function replace(options: Options = { logFunction: {} }) {
             const id = chunk.fileName;
             if (!filter(id)) return null;
             if (id.endsWith('/')) return null;
-            return executeReplacement(code, id);
+            return executeModify(code, id);
         },
 
         transform(code: string, id: string) {
             if (!filter(id)) return null;
             if (id.endsWith('/')) return null;
-            return executeReplacement(code, id);
+            return executeModify(code, id);
         },
 
         resolveId(id) {
