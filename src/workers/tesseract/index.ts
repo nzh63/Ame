@@ -1,12 +1,13 @@
 import path from 'path';
 import { workerData, parentPort } from 'worker_threads';
 import { createScheduler, createWorker, Worker } from 'tesseract.js';
+import { range } from 'lodash-es';
 
 const { __static, lang } = workerData;
 
 (async function() {
     const scheduler = createScheduler();
-    for (let i = 0; i < 4; i++) {
+    await Promise.all(range(4).map(async _ => {
         const worker: Worker = createWorker({
             langPath: path.join(__static, 'lang-data'),
             cacheMethod: 'none',
@@ -18,7 +19,7 @@ const { __static, lang } = workerData;
         await worker.loadLanguage(lang);
         await worker.initialize(lang);
         scheduler.addWorker(worker);
-    }
+    }));
     parentPort?.on('message', async (args) => {
         if (args.type === 'recognize') {
             const { data } = await scheduler.addJob('recognize', args.img);
