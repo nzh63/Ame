@@ -55,8 +55,9 @@ export default defineTranslateProvider({
             const callback = (_c: any) => {
                 let c = Buffer.from(_c);
                 if (outputSize.length < 2) {
-                    outputSize = outputSize.length ? Buffer.concat([outputSize, c.slice(0, 2 - outputSize.length)]) : c.slice(0, 2 - outputSize.length);
-                    c = c.slice(outputSize.length);
+                    const oldLength = outputSize.length;
+                    outputSize = oldLength ? Buffer.concat([outputSize, c.slice(0, 2 - oldLength)]) : c.slice(0, 2);
+                    c = c.slice(outputSize.length - oldLength);
                 }
                 if (c.length) {
                     output = output.length ? Buffer.concat([output, c]) : c;
