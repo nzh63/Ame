@@ -44,10 +44,13 @@ export default defineTranslateProvider({
                     '})();'
             }]
         );
-        this.browserWindow = browserWindow;
-        this.ready = true;
+        if (!this.isDestroyed()) {
+            this.browserWindow = browserWindow;
+        } else {
+            browserWindow.destroy();
+        }
     },
-    isReady() { return this.enable && this.ready && !!this.browserWindow; },
+    isReady() { return this.enable && !!this.browserWindow; },
     translate(t) {
         if (!this.browserWindow) throw new Error('browserView is not ready');
         return this.browserWindow.webContents.executeJavaScriptInIsolatedWorld(1,

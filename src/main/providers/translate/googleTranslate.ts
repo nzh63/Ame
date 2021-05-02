@@ -22,8 +22,7 @@ export default defineTranslateProvider({
     },
     data() {
         return {
-            browserWindow: null as InsecureRemoteBrowserWindow | null,
-            ready: false
+            browserWindow: null as InsecureRemoteBrowserWindow | null
         };
     }
 }, {
@@ -33,10 +32,13 @@ export default defineTranslateProvider({
         const browserWindow = new InsecureRemoteBrowserWindow();
         browserWindow.webContents.loadURL(`https://translate.google.cn/?sl=${this.fromLanguage}&tl=${this.toLanguage}&op=translate`);
         await new Promise(resolve => browserWindow.webContents.on('dom-ready', resolve));
-        this.browserWindow = browserWindow;
-        this.ready = true;
+        if (!this.isDestroyed()) {
+            this.browserWindow = browserWindow;
+        } else {
+            browserWindow.destroy();
+        }
     },
-    isReady() { return this.enable && this.ready && !!this.browserWindow; },
+    isReady() { return this.enable && !!this.browserWindow; },
     async translate(t) {
         if (!this.browserWindow) throw new Error('browserView is not ready');
         await this.browserWindow.webContents.executeJavaScriptInIsolatedWorld(1,

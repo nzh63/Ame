@@ -38,7 +38,11 @@ export default defineTtsProvider({
         const browserWindow = new BrowserWindow({ show: false });
         browserWindow.webContents.loadURL('about:black');
         browserWindow.webContents.executeJavaScript('speechSynthesis.getVoices()');
-        this.browserWindow = browserWindow;
+        if (!this.isDestroyed()) {
+            this.browserWindow = browserWindow;
+        } else {
+            browserWindow.destroy();
+        }
     },
     isReady() { return this.enable && !!this.browserWindow; },
     speak(text, type) {

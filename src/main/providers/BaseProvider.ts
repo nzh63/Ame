@@ -25,6 +25,7 @@ export class BaseProvider<ID extends string = string, S extends Schema = any, D 
     public $data: D;
     public $methods: M;
     public whenInitDone = () => Promise.resolve();
+    #destroyed = false;
     constructor(
         public readonly $config: C,
         getStoreOptions = () => store.get<string, SchemaType<S>>(`${$config.providersStoreKey}.${$config.id as ID}`)
@@ -81,9 +82,14 @@ export class BaseProvider<ID extends string = string, S extends Schema = any, D 
         } catch (e) {
             logger(`${this.$id} throw a error while calling the 'destroy' function, error: %O`, e);
         }
+        this.#destroyed = true;
     }
 
     public get optionsJSONSchema(): JSONSchema {
         return toJSONSchema(this.$optionsSchema, this.$config.defaultOptions);
+    }
+
+    public isDestroyed() {
+        return this.#destroyed;
     }
 }
