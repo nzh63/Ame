@@ -21,7 +21,7 @@ export function buildTest<C extends OcrProviderConfig<string, any, unknown, any>
         const width = 400;
         const height = 300;
         await window.run(`(function(){const { width, height } = screen.screenToDipRect(window, { x: 0, y: 0, width: ${width}, height: ${height} }); window.setSize(width, height);})()`);
-        await window.run('window.webContents.executeJavaScript(`document.open();document.write(\'<div style="width:100%;height:100%;display:flex;align-items:center;align-content:center;justify-content:center;"><h1>こんにちは。<hi><div>\');document.close();`)');
+        await window.run('window.webContents.executeJavaScript(`document.open();document.write(\'<div style="width:100%;height:100%;display:flex;align-items:center;align-content:center;justify-content:center;"><h1>こんにちは。</h1></div>\');document.close();`)');
         screenCapturer = new ScreenCapturer(window.pids);
     });
 
