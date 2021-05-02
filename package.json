@@ -21,7 +21,6 @@
     "dev": "node ./config/build.js dev",
     "download:dep": "node ./config/build.js download:dep",
     "lint": "eslint . --ignore-path .gitignore --ext .ts,.js,.vue --fix",
-    "postinstall": "electron-builder install-app-deps",
     "test": "yarn build:test && electron-mocha --colors ./dist/test",
     "type-check": "vue-tsc --noEmit"
   },
