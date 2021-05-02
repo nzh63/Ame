@@ -1,4 +1,5 @@
 # Ame - Visual Novel Translator
+[![Build](https://github.com/nzh63/Ame/actions/workflows/ci.yml/badge.svg)](https://github.com/nzh63/Ame/actions/workflows/ci.yml)
 
 ![例子](./doc/example.png)
 
