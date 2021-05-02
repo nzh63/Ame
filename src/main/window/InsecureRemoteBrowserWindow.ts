@@ -18,5 +18,6 @@ export class InsecureRemoteBrowserWindow extends BrowserWindow {
         this.webContents.on('will-navigate', (e) => e.preventDefault());
         this.webContents.on('will-attach-webview', (e) => e.preventDefault());
         this.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+        this.webContents.setAudioMuted(true);
     }
 }
