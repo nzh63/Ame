@@ -1,49 +1,49 @@
 import type { JSONSchema as _JSONSchema } from 'json-schema-typed';
 export type JSONSchema = _JSONSchema;
 
-export type Schema = null | TrueBooleanSchema | FalseBooleanSchema | BooleanSchema | NumberSchema | StringSchema | ArraySchema | UnionSchema | _UnionSchemaEnum | ObjectSchema;
+export type Schema =
+    null
+    | TrueBooleanSchema
+    | FalseBooleanSchema
+    | BooleanSchema
+    | NumberSchema
+    | StringSchema
+    | ArraySchema
+    | UnionSchema
+    | _UnionSchemaEnum
+    | ObjectSchema;
 type TrueBooleanSchema = true | { type: true, enum?: [true] };
 type FalseBooleanSchema = false | { type: false, enum?: [false] };
 type BooleanSchema = BooleanConstructor | { type: BooleanConstructor, enum?: [true, false] | [false, true] | [true] | [false] };
 type NumberSchema = NumberConstructor | { type: NumberConstructor, enum?: readonly number[] };
 type StringSchema = StringConstructor | { type: StringConstructor, enum?: readonly string[] };
-type ObjectSchema = {
-    [key: string]: Schema;
-};
+type ObjectSchema = { [key: string]: Schema; };
 type ArraySchema = { type: ArrayConstructor, items: Schema };
 type UnionSchema = readonly Schema[];
 type _UnionSchemaEnum = { type: UnionSchema, enum?: any[] };
 type UnionSchemaEnum<T extends UnionSchema> = { type: T, enum?: SchemaType<T>[] };
 
-type UnionToF<U> =
-    (U extends Schema ? (k: (x: U) => void) => void : never) extends (k: infer I) => void
-    ? I
-    : never;
-type UnionToSchemaType<U extends Schema> =
-    UnionToF<U> extends { (a: infer A): void; }
-    ? A extends Schema ? SchemaType<A> | UnionToSchemaType<Exclude<U, A>> : never
-    : never;
 export type SchemaType<S extends Schema> =
-    [S] extends [Exclude<S, Schema>] ? unknown
-    : [S] extends [null] ? null
-    : [S] extends [TrueBooleanSchema] ? true
-    : [S] extends [FalseBooleanSchema] ? false
-    : [S] extends [BooleanSchema] ? EnumOrCommon<S, boolean>
-    : [S] extends [NumberSchema] ? EnumOrCommon<S, number>
-    : [S] extends [StringSchema] ? EnumOrCommon<S, string>
-    : [S] extends [ArraySchema] ? SchemaArrayType<S>
-    : [S] extends [UnionSchema] ? SchemaUnionType<S>
-    : [S] extends [UnionSchemaEnum<infer R>] ? SchemaUnionType<R>
-    : [S] extends [Record<string, Schema | _UnionSchemaEnum>] ? SchemaObjectType<S>
-    : [S] extends [Schema] ? UnionToSchemaType<S>
+    S extends never ? unknown
+    : S extends null ? null
+    : S extends TrueBooleanSchema ? true
+    : S extends FalseBooleanSchema ? false
+    : S extends BooleanSchema ? MayBeEnum<S, boolean>
+    : S extends NumberSchema ? MayBeEnum<S, number>
+    : S extends StringSchema ? MayBeEnum<S, string>
+    : S extends ArraySchema ? SchemaArrayType<S>
+    : S extends UnionSchema ? SchemaUnionType<S>
+    : S extends UnionSchemaEnum<infer R> ? SchemaUnionType<R>
+    : S extends Record<string, Schema> ? SchemaObjectType<S>
     : never;
 type SchemaArrayType<T extends ArraySchema> = SchemaType<T['items']>[];
 type SchemaObjectType<T extends Record<string, Schema>> = {
     [key in keyof T]: SchemaType<T[key]>;
 };
-type EnumOrCommon<T, D> = T extends { enum: infer R } ? (R extends readonly D[] ? R[number] : D) : D;
+type MayBeEnum<T, D> = T extends { enum: infer R } ? (R extends readonly D[] ? R[number] : D) : D;
 type Rest<S extends readonly [T, ...Schema[]], T> = S extends readonly [T, ...infer R] ? R extends Schema ? R : never : never;
-type SchemaUnionType<S extends Schema> = S extends readonly [null] ? null
+type SchemaUnionType<S extends UnionSchema> =
+    S extends readonly [null] ? null
     : S extends readonly [TrueBooleanSchema] ? true
     : S extends readonly [FalseBooleanSchema] ? false
     : S extends readonly [BooleanSchema] ? boolean
@@ -61,24 +61,19 @@ type SchemaUnionType<S extends Schema> = S extends readonly [null] ? null
     : S extends readonly [Record<string, Schema>, ...Schema[]] ? SchemaObjectType<S[0]> | SchemaUnionType<Rest<S, Record<string, Schema>>>
     : never;
 
-type UnionToSchemaDescription<U extends Schema> =
-    UnionToF<U> extends { (a: infer A): void; }
-    ? A extends Schema ? SchemaDescription<A> | UnionToSchemaDescription<Exclude<U, A>> : never
-    : never;
 export type SchemaDescription<S extends Schema> =
-    [S] extends [Exclude<S, Schema>] ? unknown
-    : [S] extends [null] ? (string | undefined)
-    : [S] extends [TrueBooleanSchema] ? (Description | undefined)
-    : [S] extends [FalseBooleanSchema] ? (Description | undefined)
-    : [S] extends [BooleanSchema] ? (Description | undefined)
-    : [S] extends [NumberSchema] ? (Description | undefined)
-    : [S] extends [StringSchema] ? (Description | undefined)
-    : [S] extends [ArraySchema] ? (Description | undefined)
+    S extends never ? unknown
+    : S extends null ? (Description | undefined)
+    : S extends TrueBooleanSchema ? (Description | undefined)
+    : S extends FalseBooleanSchema ? (Description | undefined)
+    : S extends BooleanSchema ? (Description | undefined)
+    : S extends NumberSchema ? (Description | undefined)
+    : S extends StringSchema ? (Description | undefined)
+    : S extends ArraySchema ? (Description | undefined)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    : [S] extends [UnionSchemaEnum<infer R>] ? (Description | undefined)
-    : [S] extends [UnionSchema] ? (Description | undefined)
-    : [S] extends [Record<string, Schema | _UnionSchemaEnum>] ? (SchemaObjectDescription<S> | undefined)
-    : [S] extends [Schema] ? UnionToSchemaDescription<S>
+    : S extends UnionSchemaEnum<infer R> ? (Description | undefined)
+    : S extends UnionSchema ? (Description | undefined)
+    : S extends Record<string, Schema> ? (SchemaObjectDescription<S> | undefined)
     : never;
 type Description = string | { readableName: string, description: string };
 type SchemaObjectDescription<T extends Record<string, Schema>> = {
