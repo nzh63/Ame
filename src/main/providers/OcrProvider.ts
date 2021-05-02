@@ -21,7 +21,8 @@ export type OcrProviderMethods<ID extends string, S extends Schema, D, M extends
 
 export type OcrProviderConfig<ID extends string, S extends Schema, D, M extends { readonly [name: string]: () => unknown }> = OcrProviderOptions<ID, S, D> & OcrProviderMethods<ID, S, D, M> & { providersStoreKey: 'ocrProviders' };
 
-export class OcrProvider<ID extends string = string, S extends Schema = any, D = unknown, M extends { readonly [name: string]: () => unknown } = { readonly [name: string]: () => unknown }> extends BaseProvider<ID, S, D, M, OcrProviderConfig<ID, S, D, M>> {
+// eslint-disable-next-line @typescript-eslint/ban-types
+export class OcrProvider<ID extends string = string, S extends Schema = any, D = unknown, M extends { readonly [name: string]: () => unknown } = {}> extends BaseProvider<ID, S, D, M, OcrProviderConfig<ID, S, D, M>> {
     public async recognize(img: sharp.Sharp): Promise<string> {
         logger(`${this.$id} recognize`);
         try {

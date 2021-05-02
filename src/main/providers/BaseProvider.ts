@@ -3,7 +3,8 @@ import { defaultsDeep } from 'lodash-es';
 import store from '@main/store';
 import logger from '@logger/providers/baseProvider';
 
-export type BaseProviderConfig<ID extends string = string, S extends Schema = any, D = unknown, M extends { readonly [name: string]: () => unknown } = { readonly [name: string]: () => unknown }> = {
+// eslint-disable-next-line @typescript-eslint/ban-types
+export type BaseProviderConfig<ID extends string = string, S extends Schema = any, D = unknown, M extends { readonly [name: string]: () => unknown } = {}> = {
     providersStoreKey: string;
     id: ID;
     optionsSchema: S;
@@ -18,7 +19,8 @@ export type BaseProviderConfig<ID extends string = string, S extends Schema = an
 } & ProviderThisType<BaseProvider<ID, S, D, M>>;
 
 export type ProviderThisType<P extends BaseProvider> = ThisType<P & Omit<P['$options'], keyof P> & Omit<P['$data'], keyof P> & Omit<P['$methods'], keyof P>>;
-export class BaseProvider<ID extends string = string, S extends Schema = any, D = unknown, M extends { readonly [name: string]: () => unknown } = { readonly [name: string]: () => unknown }, C extends BaseProviderConfig<ID, S, D, M> = BaseProviderConfig<ID, S, D, M>> {
+// eslint-disable-next-line @typescript-eslint/ban-types
+export class BaseProvider<ID extends string = string, S extends Schema = any, D = unknown, M extends { readonly [name: string]: () => unknown } = {}, C extends BaseProviderConfig<ID, S, D, M> = BaseProviderConfig<ID, S, D, M>> {
     public readonly $id: ID;
     public readonly $optionsSchema: S;
     public readonly $options: SchemaType<S>;

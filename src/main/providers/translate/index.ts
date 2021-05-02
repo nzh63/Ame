@@ -10,7 +10,8 @@ import googleTranslate from './googleTranslate';
 import JBeijing from './JBeijing';
 import DrEye from './DrEye';
 
-export function defineTranslateProvider<ID extends string, S extends Schema, D, M extends { readonly [name: string]:() => any }>(arg: TranslateProviderOptions<ID, S, D>, methods: TranslateProviderMethods<ID, S, D, M>) {
+// eslint-disable-next-line @typescript-eslint/ban-types
+export function defineTranslateProvider<ID extends string, S extends Schema, D, M extends { readonly [name: string]:() => any } = {}>(arg: TranslateProviderOptions<ID, S, D>, methods: TranslateProviderMethods<ID, S, D, M>) {
     return { ...arg, ...methods, providersStoreKey: 'translateProviders' } as TranslateProviderConfig<ID, S, D, M>;
 }
 

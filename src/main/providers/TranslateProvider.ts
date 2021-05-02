@@ -20,7 +20,8 @@ export type TranslateProviderMethods<ID extends string, S extends Schema, D, M e
 
 export type TranslateProviderConfig<ID extends string, S extends Schema, D, M extends { readonly [name: string]: () => unknown }> = TranslateProviderOptions<ID, S, D> & TranslateProviderMethods<ID, S, D, M> & { providersStoreKey: 'translateProviders' };
 
-export class TranslateProvider<ID extends string = string, S extends Schema = any, D = unknown, M extends { readonly [name: string]: () => unknown } = { readonly [name: string]: () => unknown }> extends BaseProvider<ID, S, D, M, TranslateProviderConfig<ID, S, D, M>> {
+// eslint-disable-next-line @typescript-eslint/ban-types
+export class TranslateProvider<ID extends string = string, S extends Schema = any, D = unknown, M extends { readonly [name: string]: () => unknown } = {}> extends BaseProvider<ID, S, D, M, TranslateProviderConfig<ID, S, D, M>> {
     public async translate(text: string): Promise<string> {
         try {
             return await this.$config.translate.call(this, text);

@@ -4,7 +4,8 @@ import tesseract from './tesseract';
 import tencentcloud from './tencentcloud';
 import baiduAi from './baiduAi';
 
-export function defineOcrProvider<ID extends string, S extends Schema, D, M extends { readonly [name: string]:() => any }>(arg: OcrProviderOptions<ID, S, D>, methods: OcrProviderMethods<ID, S, D, M>) {
+// eslint-disable-next-line @typescript-eslint/ban-types
+export function defineOcrProvider<ID extends string, S extends Schema, D, M extends { readonly [name: string]:() => any } = {}>(arg: OcrProviderOptions<ID, S, D>, methods: OcrProviderMethods<ID, S, D, M>) {
     return { ...arg, ...methods, providersStoreKey: 'ocrProviders' } as OcrProviderConfig<ID, S, D, M>;
 }
 
