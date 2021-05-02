@@ -59,6 +59,7 @@ export default defineConfig(({ mode } = { command: 'build', mode: 'production' }
         emptyOutDir: true,
         minify: mode === 'production',
         sourcemap: mode !== 'production',
+        target: 'es2020',
         rollupOptions: {
             input: [
                 path.join(__dirname, '../src/render/MainWindow.html'),

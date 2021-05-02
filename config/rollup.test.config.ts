@@ -47,6 +47,7 @@ export default (mode = 'production') => ({
         esbuild({
             minify: mode === 'production',
             sourceMap: mode !== 'production',
+            target: 'es2020',
             define: {
                 'import.meta.env.DEV': JSON.stringify(mode !== 'production'),
                 'import.meta.env.PROD': JSON.stringify(mode === 'production')

@@ -147,7 +147,7 @@ export class General {
             const games = store.get('games');
             const game = games.find(i => i.uuid === this.uuid);
             if (game) {
-                game.textractor = game.textractor ?? {};
+                game.textractor ??= {};
                 game.textractor.postProcessOption = option;
                 store.set('games', games);
             }
@@ -165,7 +165,7 @@ export class General {
             const games = store.get('games');
             const game = games.find(i => i.uuid === this.uuid);
             if (game) {
-                game.ocr = game.ocr ?? {};
+                game.ocr ??= {};
                 game.ocr.rect = rect;
                 store.set('games', games);
             }
@@ -180,7 +180,7 @@ export class General {
             const games = store.get('games');
             const game = games.find(i => i.uuid === this.uuid);
             if (game) {
-                game.ocr = game.ocr ?? {};
+                game.ocr ??= {};
                 game.ocr.preprocess = option;
                 store.set('games', games);
             }

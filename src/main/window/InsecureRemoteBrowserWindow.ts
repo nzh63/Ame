@@ -7,9 +7,9 @@ app.whenReady().then(() => {
 
 export class InsecureRemoteBrowserWindow extends BrowserWindow {
     constructor(options?: BrowserWindowConstructorOptions) {
-        options = options ?? {};
+        options ??= {};
         options.show = false;
-        options.webPreferences = options.webPreferences ?? {};
+        options.webPreferences ??= {};
         options.webPreferences.sandbox = true;
         options.webPreferences.enableRemoteModule = false;
         options.webPreferences.autoplayPolicy = 'user-gesture-required';
