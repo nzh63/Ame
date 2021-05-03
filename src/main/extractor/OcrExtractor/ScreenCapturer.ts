@@ -2,10 +2,12 @@ import type { DModel as M } from 'win32-def';
 import { promisify } from 'util';
 import sharp from 'sharp';
 import { gdi32, user32 } from '@main/win32';
+import { TaskQueue } from '@main/utils';
 
 export class ScreenCapturer {
     private static emptyImage = () => sharp(Buffer.alloc(1, 0), { raw: { width: 1, height: 1, channels: 1 } });
     private hwnd?: M.HWND;
+    private taskQueue = new TaskQueue();
     constructor(
         public gamePids: number[],
         hwnd?: M.HWND
@@ -14,23 +16,29 @@ export class ScreenCapturer {
         else this.findWindow();
     }
 
-    private findWindow() {
-        const ret = user32.EnumWindows(hwnd => {
-            const lpdwProcessId = Buffer.alloc(4, 0);
-            user32.GetWindowThreadProcessId(hwnd, lpdwProcessId);
-            const pid = lpdwProcessId.readUInt32LE(0);
-            if (user32.IsWindowEnabled(hwnd) && user32.IsWindowVisible(hwnd) && this.gamePids.includes(pid)) {
-                this.hwnd = hwnd;
-                return 0;
-            } else {
-                return 1;
-            }
-        }, 0);
+    private async findWindow() {
+        let findHwnd: M.HWND | undefined;
+        // 不能同时运行两个EnumWindows函数，否则会造成效率明显降低，原因不详
+        // 这里使用taskQueue来等待上一个EnumWindows运行完成会再运行新的
+        const ret = await this.taskQueue.dispatch(
+            () => user32.EnumWindows.async(hwnd => {
+                Promise.resolve().then(() => {
+                    const lpdwProcessId = Buffer.alloc(4, 0);
+                    user32.GetWindowThreadProcessId(hwnd, lpdwProcessId);
+                    const pid = lpdwProcessId.readUInt32LE(0);
+                    if (user32.IsWindowEnabled(hwnd) && user32.IsWindowVisible(hwnd) && this.gamePids.includes(pid)) {
+                        findHwnd = hwnd;
+                    }
+                });
+                return findHwnd ? 0 : 1;
+            }, 0)
+        );
+        this.hwnd = findHwnd;
         delete ret.callbackEntry;
     }
 
     public async capture(canRetry = true): Promise<sharp.Sharp> {
-        if (!this.hwnd) this.findWindow();
+        if (!this.hwnd) await this.findWindow();
         if (!this.hwnd) return ScreenCapturer.emptyImage();
 
         const rect = Buffer.alloc(4 * 4, 0);

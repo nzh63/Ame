@@ -1,3 +1,4 @@
+import { promisify } from 'util';
 import ffi from 'ffi-napi';
 import ref from 'ref-napi';
 import { DModel as M, DTypes as W } from 'win32-def';
@@ -76,66 +77,129 @@ type ReturnTypeWithCallbackEntry<T> = {
     callbackEntry?: Buffer; // avoid GC
 };
 
+type RemoveLast<T> = T extends [...infer R, unknown] ? R : T;
+type Last<T> = T extends [...unknown[], infer S] ? S : T;
+type Promisify<T extends (...args: [...any[], (err: any, value: any) => void]) => unknown> = Last<Parameters<T>> extends (err: any, value: infer R) => unknown ? (...args: RemoveLast<Parameters<T>>) => Promise<R> : never;
+function ffiWrapper<T extends ForeignFunction<(...args: any[]) => any>, P extends any[], >(
+    ffi: T,
+    wrapper: (f: T | Promisify<T['async']>, ...args: P) => ReturnType<T> | Promise<ReturnType<T>>
+): {
+    (...args: P): ReturnType<T>;
+    async(...args: P): Promise<ReturnType<T>>;
+} {
+    const f = function(...args: P) {
+        return wrapper(ffi, ...args) as ReturnType<T>;
+    };
+    f.async = async function(...args: P) {
+        return wrapper(promisify(ffi.async) as Promisify<T>, ...args) as Promise<ReturnType<T>>;
+    };
+    return f;
+}
+function ffiWithCallbackWrapper<T extends ForeignFunction<(...args: any[]) => any>, P extends any[]>(
+    ffi: T,
+    wrapper: (f: T | Promisify<T['async']>, ...args: P) => ReturnTypeWithCallbackEntry<ReturnType<T> | Promise<ReturnType<T>>>
+): {
+    (...args: P): ReturnTypeWithCallbackEntry<ReturnType<T>>;
+    async(...args: P): Promise<ReturnTypeWithCallbackEntry<ReturnType<T>>>;
+} {
+    const f = function(...args: P) {
+        return wrapper(ffi, ...args) as ReturnTypeWithCallbackEntry<ReturnType<T>>;
+    };
+    f.async = async function(...args: P) {
+        const ret = wrapper(promisify(ffi.async) as Promisify<T>, ...args) as ReturnTypeWithCallbackEntry<Promise<ReturnType<T>>>;
+        return {
+            nativeReturnValue: await ret.nativeReturnValue,
+            callbackEntry: ret.callbackEntry
+        };
+    };
+    return f;
+}
+
 export const user32 = {
     ..._user32,
-    SetWinEventHook(
-        eventMin: M.DWORD,
-        eventMax: M.DWORD,
-        hmodWinEventProc: M.HMODULE,
-        pfnWinEventProc: (
-            hWinEventHook: M.HANDLE,
-            event: M.DWORD,
-            hwnd: M.HANDLE,
-            idObject: M.LONG,
-            idChild: M.LONG,
-            idEventThread: M.DWORD,
-            dwmsEventTime: M.DWORD
-        ) => void,
-        idProcess: M.DWORD,
-        idThread: M.DWORD,
-        dwFlags: M.DWORD
-    ): ReturnTypeWithCallbackEntry<M.HANDLE> {
-        const _pfnWinEventProc = ffi.Callback(W.VOID, [W.HWINEVENTHOOK, W.DWORD, W.HWND, W.LONG, W.LONG, W.DWORD, W.DWORD], pfnWinEventProc);
-        return {
-            nativeReturnValue: _user32.SetWinEventHook(eventMin, eventMax, hmodWinEventProc, _pfnWinEventProc, idProcess, idThread, dwFlags),
-            callbackEntry: _pfnWinEventProc
-        };
-    },
-    UnhookWinEvent(hWinEventHook: ReturnTypeWithCallbackEntry<M.HANDLE>) {
-        _user32.UnhookWinEvent(hWinEventHook.nativeReturnValue);
-        delete hWinEventHook.callbackEntry;
-    },
-    EnumWindows(lpEnumFunc: (hwnd: M.HWND, lParam: M.LPARAM) => M.BOOL, lParam: M.LPARAM): ReturnTypeWithCallbackEntry<M.BOOL> {
-        const _lpEnumFunc = ffi.Callback(W.BOOL, [W.HWND, W.LPARAM], lpEnumFunc);
-        return {
-            nativeReturnValue: _user32.EnumWindows(_lpEnumFunc, lParam),
-            callbackEntry: _lpEnumFunc
-        };
-    },
-    EnumChildWindows(hWndParent: M.HWND, lpEnumFunc: (hwnd: M.HWND, lParam: M.LPARAM) => M.BOOL, lParam: M.LPARAM): ReturnTypeWithCallbackEntry<M.BOOL> {
-        const _lpEnumFunc = ffi.Callback(W.BOOL, [W.HWND, W.LPARAM], lpEnumFunc);
-        return {
-            nativeReturnValue: _user32.EnumChildWindows(hWndParent, _lpEnumFunc, lParam),
-            callbackEntry: _lpEnumFunc
-        };
-    },
-    WindowFromPoint(x: number, y: number) {
-        const buf = Buffer.alloc(8);
-        buf.writeUInt32LE(x, 0);
-        buf.writeUInt32LE(y, 4);
-        return _user32.WindowFromPoint(ref.readUInt64LE(buf, 0));
-    },
-    SetWindowsHookExA(idHook: M.INT, lpfn: (nCode: M.INT, wParam: M.WPARAM, lParam: Buffer) => M.LRESULT, hmod: M.HINSTANCE, dwThreadId: M.DWORD): ReturnTypeWithCallbackEntry<M.HHOOK> {
-        const _lpfn = ffi.Callback(W.LRESULT, [W.INT, W.WPARAM, ref.refType(ref.types.uint64)], lpfn);
-        return {
-            nativeReturnValue: _user32.SetWindowsHookExA(idHook, _lpfn, hmod, dwThreadId),
-            callbackEntry: _lpfn
-        };
-    },
-    UnhookWindowsHookEx(hhk: ReturnTypeWithCallbackEntry<M.HHOOK>) {
-        _user32.UnhookWindowsHookEx(hhk.nativeReturnValue);
-        delete hhk.callbackEntry;
-    }
+    SetWinEventHook: ffiWithCallbackWrapper(
+        _user32.SetWinEventHook,
+        function(
+            SetWinEventHook,
+            eventMin: M.DWORD,
+            eventMax: M.DWORD,
+            hmodWinEventProc: M.HMODULE,
+            pfnWinEventProc: (
+                hWinEventHook: M.HANDLE,
+                event: M.DWORD,
+                hwnd: M.HANDLE,
+                idObject: M.LONG,
+                idChild: M.LONG,
+                idEventThread: M.DWORD,
+                dwmsEventTime: M.DWORD
+            ) => void,
+            idProcess: M.DWORD,
+            idThread: M.DWORD,
+            dwFlags: M.DWORD
+        ) {
+            const _pfnWinEventProc = ffi.Callback(W.VOID, [W.HWINEVENTHOOK, W.DWORD, W.HWND, W.LONG, W.LONG, W.DWORD, W.DWORD], pfnWinEventProc);
+            return {
+                nativeReturnValue: SetWinEventHook(eventMin, eventMax, hmodWinEventProc, _pfnWinEventProc, idProcess, idThread, dwFlags),
+                callbackEntry: _pfnWinEventProc
+            };
+        }),
+    UnhookWinEvent: ffiWrapper(
+        _user32.UnhookWinEvent,
+        function(UnhookWinEvent, hWinEventHook: ReturnTypeWithCallbackEntry<M.HANDLE>) {
+            const ret = UnhookWinEvent(hWinEventHook.nativeReturnValue);
+            if (ret instanceof Promise) {
+                ret.then(() => delete hWinEventHook.callbackEntry);
+            } else {
+                delete hWinEventHook.callbackEntry;
+            }
+            return ret;
+        }),
+    EnumWindows: ffiWithCallbackWrapper(
+        _user32.EnumWindows,
+        function(EnumWindows, lpEnumFunc: (hwnd: M.HWND, lParam: M.LPARAM) => M.BOOL, lParam: M.LPARAM) {
+            const _lpEnumFunc = ffi.Callback(W.BOOL, [W.HWND, W.LPARAM], lpEnumFunc);
+            return {
+                nativeReturnValue: EnumWindows(_lpEnumFunc, lParam),
+                callbackEntry: _lpEnumFunc
+            };
+        }),
+    EnumChildWindows: ffiWithCallbackWrapper(
+        _user32.EnumChildWindows,
+        function(EnumChildWindows, hWndParent: M.HWND, lpEnumFunc: (hwnd: M.HWND, lParam: M.LPARAM) => M.BOOL, lParam: M.LPARAM) {
+            const _lpEnumFunc = ffi.Callback(W.BOOL, [W.HWND, W.LPARAM], lpEnumFunc);
+            return {
+                nativeReturnValue: EnumChildWindows(hWndParent, _lpEnumFunc, lParam),
+                callbackEntry: _lpEnumFunc
+            };
+        }),
+    WindowFromPoint: ffiWrapper(
+        _user32.WindowFromPoint,
+        function(WindowFromPoint, x: number, y: number) {
+            const buf = Buffer.alloc(8);
+            buf.writeUInt32LE(x, 0);
+            buf.writeUInt32LE(y, 4);
+            return WindowFromPoint(ref.readUInt64LE(buf, 0));
+        }),
+    SetWindowsHookExA: ffiWithCallbackWrapper(
+        _user32.SetWindowsHookExA,
+        function(SetWindowsHookExA, idHook: M.INT, lpfn: (nCode: M.INT, wParam: M.WPARAM, lParam: Buffer) => M.LRESULT, hmod: M.HINSTANCE, dwThreadId: M.DWORD) {
+            const _lpfn = ffi.Callback(W.LRESULT, [W.INT, W.WPARAM, ref.refType(ref.types.uint64)], lpfn);
+            return {
+                nativeReturnValue: SetWindowsHookExA(idHook, _lpfn, hmod, dwThreadId),
+                callbackEntry: _lpfn
+            };
+        }),
+    UnhookWindowsHookEx: ffiWrapper(
+        _user32.UnhookWindowsHookEx,
+        function(UnhookWindowsHookEx, hhk: ReturnTypeWithCallbackEntry<M.HHOOK>) {
+            const ret = UnhookWindowsHookEx(hhk.nativeReturnValue);
+            if (ret instanceof Promise) {
+                ret.then(() => delete hhk.callbackEntry);
+            } else {
+                delete hhk.callbackEntry;
+            }
+            return ret;
+        })
 };
 
 export const gdi32: {
