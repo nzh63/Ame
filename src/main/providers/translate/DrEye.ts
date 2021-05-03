@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { encode, decode } from 'iconv-lite';
 import { defineTranslateProvider } from '@main/providers/translate';
+import { TaskQueue } from '@main/utils';
 import { __static } from '@main/paths';
 
 enum DAT {
@@ -50,11 +51,11 @@ export default defineTranslateProvider({
     data() {
         return {
             process: null as ChildProcess | null,
-            queue: Promise.resolve() as Promise<any>,
             enc: {
                 src: ENC.JA,
                 dest: ENC.ZH
-            }
+            },
+            taskQueue: new TaskQueue()
         };
     }
 }, {
@@ -112,7 +113,7 @@ export default defineTranslateProvider({
     },
     async translate(t) {
         if (!this.process) throw new Error('cli process not init');
-        const promise = this.queue.then(() => new Promise<string>(resolve => {
+        return this.taskQueue.dispatch(() => {
             const input = encode(t, this.enc.src);
             const inputSize = Buffer.alloc(2);
             inputSize.writeUInt16LE(input.length);
@@ -120,30 +121,30 @@ export default defineTranslateProvider({
             this.process?.stdin?.write(input);
             let output = Buffer.alloc(0);
             let outputSize = Buffer.alloc(0);
-            const callback = (_c: any) => {
-                let c = Buffer.from(_c);
-                if (outputSize.length < 2) {
-                    const oldLength = outputSize.length;
-                    outputSize = oldLength ? Buffer.concat([outputSize, c.slice(0, 2 - oldLength)]) : c.slice(0, 2);
-                    c = c.slice(outputSize.length - oldLength);
-                }
-                if (c.length) {
-                    output = output.length ? Buffer.concat([output, c]) : c;
-                    if (output.length >= outputSize.readUInt16LE()) {
-                        finish();
+            return new Promise<string>(resolve => {
+                const callback = (_c: any) => {
+                    let c = Buffer.from(_c);
+                    if (outputSize.length < 2) {
+                        const oldLength = outputSize.length;
+                        outputSize = oldLength ? Buffer.concat([outputSize, c.slice(0, 2 - oldLength)]) : c.slice(0, 2);
+                        c = c.slice(outputSize.length - oldLength);
                     }
-                }
-            };
-            const finish = () => {
-                clearTimeout(timeoutId);
-                resolve(decode(output, this.enc.dest));
-                this.process?.stdout?.off('data', callback);
-            };
-            const timeoutId = setTimeout(finish, 1000);
-            this.process?.stdout?.on('data', callback);
-        }));
-        this.queue = promise;
-        return promise;
+                    if (c.length) {
+                        output = output.length ? Buffer.concat([output, c]) : c;
+                        if (output.length >= outputSize.readUInt16LE()) {
+                            finish();
+                        }
+                    }
+                };
+                const finish = () => {
+                    clearTimeout(timeoutId);
+                    resolve(decode(output, this.enc.dest));
+                    this.process?.stdout?.off('data', callback);
+                };
+                const timeoutId = setTimeout(finish, 1000);
+                this.process?.stdout?.on('data', callback);
+            });
+        });
     },
     destroy() {
         this.process?.stdin?.write(Buffer.alloc(2, 0));
