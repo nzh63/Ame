@@ -14,14 +14,16 @@
 * 图形化的、易于配置的设置界面。
 
 ## 编译与运行
-你首先需要安装[node.js](https://nodejs.org/en/)(v12+)、[yarn](https://yarnpkg.com/)、[CMake](https://cmake.org/)和[Visual Studio](https://visualstudio.microsoft.com/)，然后执行以下命令即可进行开发与调试。
-```powershell
-git clone https://github.com/nzh63/Ame
-cd Ame
-yarn
-yarn dev
-yarn build
-```
+1. 首先安装[node.js](https://nodejs.org/en/)(v12+)、[yarn](https://yarnpkg.com/)，然后：
+2. 然后安装[python](https://www.python.org/)与[Visual Studio](https://visualstudio.microsoft.com/vs)，可以通过执行`yarn global add windows-build-tools`来安装它们。
+3. 执行以下命令即可进行开发与调试。
+    ```cmd
+    git clone https://github.com/nzh63/Ame
+    cd Ame
+    yarn
+    yarn dev
+    yarn build
+    ```
 
 ## 贡献
 遵循一般的fork，branch，commit ，Pull request的流程。

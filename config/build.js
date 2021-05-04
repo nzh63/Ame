@@ -124,7 +124,7 @@ async function downloadDependencies() {
     await downloadLanguageData();
 }
 
-async function buildNative(generator = 'Visual Studio 15 2017') {
+async function buildNative() {
     const files = [
         'native/bin/JBeijingCli.exe',
         'native/bin/DrEyeCli.exe'
@@ -133,9 +133,9 @@ async function buildNative(generator = 'Visual Studio 15 2017') {
 
     console.log('build native module...');
     const exec = util.promisify(child_process.exec);
-    await fsPromise.mkdir(path.join(__dirname, '../native/build'), { recursive: true });
-    await exec(`cmake -S ${path.join(__dirname, '../native')} -B ${path.join(__dirname, '../native/build')} -G "${generator}" -A win32`);
-    await exec(`cmake --build ${path.join(__dirname, '../native/build')} --config Release --target install`);
+    await fsPromise.mkdir(path.join(__dirname, '../static/native/bin'), { recursive: true });
+    await exec(`yarn node-gyp -C ${path.join(__dirname, '../native')} configure --arch=ia32`);
+    await exec(`yarn node-gyp -C ${path.join(__dirname, '../native')} build`, { env: {} });
     await fsPromise.rmdir(path.join(__dirname, '../native/build'), { recursive: true });
 }
 
@@ -303,15 +303,20 @@ function dev(mode = 'development') {
         } else if (process.argv[2] === 'build:render') {
             await buildRender(mode);
         } else if (process.argv[2] === 'build:test') {
-            buildTest('development');
-            buildWorkers('development');
+            await Promise.all([
+                buildTest('development'),
+                buildWorkers('development')
+            ]);
         } else if (process.argv[2] === 'dev') {
             dev(mode);
         } else {
             buildAll(mode);
         }
     }
-})();
+})().catch(e => {
+    console.error(e);
+    process.exit(1);
+});
 process.once('SIGINT', () => {
     if (electronProcess) electronProcess.kill();
     electronProcess = null;
