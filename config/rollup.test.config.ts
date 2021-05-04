@@ -7,6 +7,7 @@ import json from '@rollup/plugin-json';
 import alias from '@rollup/plugin-alias';
 import esbuild from 'rollup-plugin-esbuild';
 import log from './LogPlugin';
+import devSpeedup from './DevSpeedupPlugin';
 
 import builtinModules from 'builtin-modules/static';
 import { dependencies } from '../package.json';
@@ -35,6 +36,7 @@ export default (mode = 'production') => ({
             logFunction: { logger: 'logger' },
             disableLog: true
         }),
+        mode === 'development' ? devSpeedup() : null,
         alias({
             customResolver: resolve as any,
             entries: {

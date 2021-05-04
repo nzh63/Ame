@@ -40,8 +40,8 @@ export default defineConfig(({ mode } = { command: 'build', mode: 'production' }
     }),
     vue(),
     nodeResolve({ extensions: ['.js', '.ts', '.node'], browser: true }),
-    ...(mode === 'production'
-        ? [license({
+    mode === 'production'
+        ? license({
             thirdParty: {
                 includePrivate: false,
                 output: {
@@ -51,9 +51,9 @@ export default defineConfig(({ mode } = { command: 'build', mode: 'production' }
                     }
                 }
             }
-        })]
-        : []
-    )],
+        })
+        : null
+    ],
     build: {
         outDir: path.join(__dirname, '../dist/render'),
         emptyOutDir: true,

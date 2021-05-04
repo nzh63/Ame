@@ -152,7 +152,7 @@ async function clear(type) {
 }
 
 async function build(type, mode = 'production') {
-    console.log(`build ${type}...`);
+    console.log(`building ${type} for ${mode}...`);
     await clear(type);
     const config = require(`./rollup.${type}.config`).default(mode);
     const bundle = await rollup.rollup(config);
@@ -264,22 +264,28 @@ function buildLicense() {
     }
 }
 
-async function buildAll() {
-    await buildMain();
-    await buildWorkers();
-    await buildRender();
-    buildLicense();
+async function buildAll(mode = 'production') {
+    await buildMain(mode);
+    await buildWorkers(mode);
+    await buildRender(mode);
+    if (mode === 'production') buildLicense();
 }
 
-function dev() {
-    devMainAndWorkers()
-        .then(devRender)
+function dev(mode = 'development') {
+    devMainAndWorkers(mode)
+        .then(() => devRender(mode))
         .catch(err => {
             console.error(err);
         });
 }
 
 (async function() {
+    let mode;
+    if (process.argv.includes('--dev')) {
+        mode = 'development';
+    } else if (process.argv.includes('--prod')) {
+        mode = 'production';
+    }
     if (process.argv[2] === 'download:dep') {
         await downloadDependencies();
     } else if (process.argv[2] === 'build:native') {
@@ -289,20 +295,20 @@ function dev() {
         await buildNative(process.env.GENERATOR || undefined);
 
         if (process.argv[2] === 'build:js') {
-            await buildAll();
+            await buildAll(mode);
         } else if (process.argv[2] === 'build:main') {
-            await buildMain();
+            await buildMain(mode);
         } else if (process.argv[2] === 'build:workers') {
-            await buildWorkers();
+            await buildWorkers(mode);
         } else if (process.argv[2] === 'build:render') {
-            await buildRender();
+            await buildRender(mode);
         } else if (process.argv[2] === 'build:test') {
-            buildTest();
-            buildWorkers();
+            buildTest('development');
+            buildWorkers('development');
         } else if (process.argv[2] === 'dev') {
-            dev();
+            dev(mode);
         } else {
-            buildAll();
+            buildAll(mode);
         }
     }
 })();

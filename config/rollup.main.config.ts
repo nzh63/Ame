@@ -7,6 +7,7 @@ import alias from '@rollup/plugin-alias';
 import { wasm } from '@rollup/plugin-wasm';
 import esbuild from 'rollup-plugin-esbuild';
 import log from './LogPlugin';
+import devSpeedup from './DevSpeedupPlugin';
 
 import builtinModules from 'builtin-modules/static';
 import { dependencies } from '../package.json';
@@ -33,6 +34,7 @@ export default (mode = 'production') => ({
             logFunction: { logger: 'logger' },
             disableLog: mode === 'production'
         }),
+        mode === 'development' ? devSpeedup() : null,
         alias({
             customResolver: resolve as any,
             entries: {
@@ -55,8 +57,8 @@ export default (mode = 'production') => ({
         json(),
         wasm(),
         commonjs(),
-        ...(mode === 'production'
-            ? [license({
+        mode === 'production'
+            ? license({
                 thirdParty: {
                     includePrivate: false,
                     output: {
@@ -66,9 +68,9 @@ export default (mode = 'production') => ({
                         }
                     }
                 }
-            })]
-            : []
-        )],
+            })
+            : null
+    ],
     input: path.join(__dirname, mode === 'production' ? '../src/main/index.ts' : '../src/main/index.dev.ts'),
     output: {
         dir: path.join(__dirname, '../dist/main'),
