@@ -20,6 +20,7 @@ export function buildTest<C extends TranslateProviderConfig<string, any, unknown
         this.timeout(20000);
         const result = await provider.translate('こんにちは。');
         expect(result).to.be.a('string').and.not.to.be.empty;
+        expect(result).to.match(/[你您]好[.。!！]?/);
     }));
 
     suite.afterAll(function() {
