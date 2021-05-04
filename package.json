@@ -21,7 +21,8 @@
     "dev": "node ./config/build.js dev",
     "download:dep": "node ./config/build.js download:dep",
     "lint": "eslint . --ignore-path .gitignore --ext .ts,.js,.vue --fix",
-    "test": "yarn build:test && electron-mocha --colors ./dist/test",
+    "pretest": "yarn build:test",
+    "test": "electron-mocha --colors --require source-map-support/register ./dist/test",
     "type-check": "vue-tsc --noEmit"
   },
   "dependencies": {
@@ -77,6 +78,7 @@
     "rollup-plugin-esbuild": "^4.0.1",
     "rollup-plugin-license": "^2.3.0",
     "rollup-plugin-typescript2": "^0.30.0",
+    "source-map-support": "^0.5.19",
     "tencentcloud-sdk-nodejs": "^4.0.95",
     "tesseract.js": "^2.1.4",
     "ts-node": "^9.1.1",

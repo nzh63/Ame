@@ -206,6 +206,8 @@ let manualRestart = false;
 function startElectron() {
     let args = [
         '--inspect=5858',
+        '--require',
+        'source-map-support/register',
         path.join(__dirname, '../dist/main/index.js')
     ];
 
