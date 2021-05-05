@@ -5,8 +5,10 @@ import nodeResolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
 import alias from '@rollup/plugin-alias';
+import { wasm } from '@rollup/plugin-wasm';
 import esbuild from 'rollup-plugin-esbuild';
 import log from './LogPlugin';
+import native from './NativePlugin';
 import devSpeedup from './DevSpeedupPlugin';
 
 import builtinModules from 'builtin-modules/static';
@@ -57,12 +59,13 @@ export default (mode = 'production') => ({
         }),
         resolve,
         json(),
+        wasm(),
+        native(),
         commonjs()],
     input: testEntries,
     output: {
         dir: path.join(__dirname, '../dist/test'),
         entryFileNames: '[name].js',
-        assetFileNames: '[name].[hash].js',
         format: 'commonjs',
         sourcemap: mode !== 'production'
     },

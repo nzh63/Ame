@@ -19,8 +19,8 @@ describe('WindowEventHook', function() {
         await window.destroy();
     });
 
-    beforeEach(function() {
-        hook = new WindowEventHook(event, window.pids);
+    beforeEach(async function() {
+        hook = await WindowEventHook.create(event, window.pids);
     });
 
     afterEach(function() {

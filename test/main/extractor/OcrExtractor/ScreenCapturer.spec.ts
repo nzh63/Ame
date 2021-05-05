@@ -29,8 +29,8 @@ describe('ScreenCapturer', function() {
             await window.run(`(function(){const { width, height } = screen.screenToDipRect(window, { x: 0, y: 0, width: ${width}, height: ${height} }); window.setSize(width, height);})()`);
             const img = await screenCapturer.capture();
             const meta = await img.metadata();
-            expect(meta.width).to.equal(width);
-            expect(meta.height).to.equal(height);
+            expect(meta.width).to.gt(width - 20).and.lt(width + 20);
+            expect(meta.height).to.gt(height - 20).and.lt(height + 20);
         }
     });
 

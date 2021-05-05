@@ -1,7 +1,7 @@
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import { EOL } from 'os';
 import { join } from 'path';
-import { knl32, nt } from '@main/win32';
+import { isWow64 } from '@main/win32';
 import { __static } from '@main/paths';
 import { BaseExtractor } from '@main/extractor/BaseExtractor';
 import logger from '@logger/extractor/textractor';
@@ -49,11 +49,7 @@ export class Textractor extends BaseExtractor {
     }
 
     private get isWow64() {
-        const handle = knl32.OpenProcess(0x0400/* PROCESS_QUERY_INFORMATION  */, 0, this.gamePids[0]);
-        const buf = Buffer.from(new Uint8Array({ length: 8 }));
-        const returnLength = Buffer.from(new Uint8Array({ length: 8 }));
-        nt.NtQueryInformationProcess(handle, 26/* ProcessWow64Information */, buf, 8, returnLength);
-        return buf.readBigInt64LE(0) !== 0n;
+        return isWow64(this.gamePids[0]);
     }
 
     private get textractorCliPath() {

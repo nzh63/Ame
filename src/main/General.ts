@@ -16,7 +16,6 @@ export type TranslateWatchErrorCallback = (err: any, arg: Ame.Translator.Transla
 export class General {
     private static instances: General[] = [];
 
-    private hook: Hook;
     public extractor: BaseExtractor;
 
     private translatorWindow: TranslatorWindow;
@@ -25,17 +24,17 @@ export class General {
     private originalWatchList: { [key in Ame.Extractor.Key]: OriginalWatchCallback } = {};
     private translateWatchList: { [key in Ame.Extractor.Key]: OriginalWatchCallback } = {};
 
-    constructor(
+    private constructor(
         public uuid: string,
         public gamePids: number[],
-        public hookCode = '',
-        public type: Ame.Extractor.ExtractorType = 'textractor',
-        public translateManager: TranslateManager = new TranslateManager(),
-        public ttsManager: TtsManager = new TtsManager()
+        public hookCode: string,
+        public type: Ame.Extractor.ExtractorType,
+        public translateManager: TranslateManager,
+        public ttsManager: TtsManager,
+        private hook: Hook
     ) {
         logger('start game for pids %O', this.gamePids);
         General.instances.push(this);
-        this.hook = new Hook(this.gamePids);
         this.extractor = this.type === 'textractor'
             ? new Textractor(this.gamePids, this.hookCode)
             : new OcrExtractor(this.gamePids, this.hook);
@@ -82,6 +81,25 @@ export class General {
             logger('%o window restored', this.gamePids);
             this.translatorWindow.restore();
         });
+    }
+
+    public static async create(
+        uuid: string,
+        gamePids: number[],
+        hookCode = '',
+        type: Ame.Extractor.ExtractorType = 'textractor',
+        translateManager: TranslateManager = new TranslateManager(),
+        ttsManager: TtsManager = new TtsManager()
+    ) {
+        return new General(
+            uuid,
+            gamePids,
+            hookCode,
+            type,
+            translateManager,
+            ttsManager,
+            await Hook.create(gamePids)
+        );
     }
 
     private setupTextractorExtractor() {

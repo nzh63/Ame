@@ -1,6 +1,6 @@
 import { parse } from 'path';
-import { promisify } from 'util';
-import { knl32, execPowerShell } from '@main/win32';
+import { execPowerShell } from '@main/win32';
+import ProcessAddons from '@addons/Process';
 
 export async function findProcess(path: string) {
     const { stdout } = await execPowerShell(`Get-Process | where ProcessName -eq '${parse(path).name}' | where Path -eq '${path}' | sort StartTime | select id`);
@@ -11,20 +11,5 @@ export async function findProcess(path: string) {
         .map(i => parseInt(i));
 }
 
-export async function waitProcessForExit(pids: number[]) {
-    const WaitForSingleObject = promisify(knl32.WaitForSingleObject.async);
-    const handles = pids.map(pid => knl32.OpenProcess(0x00100000 /* SYNCHRONIZE */, 0, pid));
-    for (const handle of handles) {
-        if (handle === 0) {
-            // process may have exited.
-            continue;
-        }
-        let ret = 0;
-        do {
-            ret = 0;
-            try {
-                ret = await WaitForSingleObject(handle, 0xffffffff);
-            } catch (e) { }
-        } while (ret === 0x00000102 /* WAIT_TIMEOUT */);
-    }
-}
+export const waitProcessForExit = ProcessAddons.waitProcessForExit;
+export const isWow64 = ProcessAddons.isWow64;

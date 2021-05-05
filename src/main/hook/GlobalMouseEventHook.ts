@@ -1,9 +1,9 @@
 import EventEmitter from 'events';
-import { user32 } from '@main/win32';
+import WindowsHookAddons from '@addons/WindowsHook';
 import logger from '@logger/hook/globalmouseEventHook';
 
 export class GlobalMouseEventHook {
-    private mouseEventHookHandle?: ReturnType<typeof user32.SetWinEventHook>;
+    private mouseEventHookHandle?: WindowsHookAddons.HANDLE;
     constructor(
         public event: EventEmitter
     ) {
@@ -12,41 +12,31 @@ export class GlobalMouseEventHook {
 
     private startHook() {
         logger('start GlobalMouseEvent hook');
-        this.mouseEventHookHandle = user32.SetWindowsHookExA(
-            14, /* WH_MOUSE_LL */
-            (nCode, wParam, lParam) => {
-                setImmediate(() => {
-                    if (nCode >= 0) {
-                        const x = lParam.readUInt32LE(0);
-                        const y = lParam.readUInt32LE(4);
-                        if (wParam === 0x0201 /* WM_LBUTTONDOWN */) {
-                            logger('mouse-left-down %O', { x, y });
-                            this.event.emit('mouse-left-down', { x, y });
-                        } else if (wParam === 0x0202 /* WM_LBUTTONUP */) {
-                            logger('mouse-left-up %O', { x, y });
-                            this.event.emit('mouse-left-up', { x, y });
-                        } else if (wParam === 0x020A /* WM_MOUSEWHEEL */) {
-                            logger('mouse-wheel %O', { x, y });
-                            this.event.emit('mouse-wheel', { x, y });
-                        }
-                    }
-                });
-                return user32.CallNextHookEx(0, nCode, wParam, lParam);
-            },
-            0,
-            0
-        );
-        if (this.mouseEventHookHandle.nativeReturnValue) {
+        try {
+            this.mouseEventHookHandle = WindowsHookAddons.startGlobalMouseHook((wParam, pt) => {
+                logger('%O %O', wParam, pt);
+                if (wParam === 0x0201 /* WM_LBUTTONDOWN */) {
+                    logger('mouse-left-down %O', pt);
+                    this.event.emit('mouse-left-down', pt);
+                } else if (wParam === 0x0202 /* WM_LBUTTONUP */) {
+                    logger('mouse-left-up %O', pt);
+                    this.event.emit('mouse-left-up', pt);
+                } else if (wParam === 0x020A /* WM_MOUSEWHEEL */) {
+                    logger('mouse-wheel %O', pt);
+                    this.event.emit('mouse-wheel', pt);
+                }
+            });
             logger('hook success');
-        } else {
-            logger('hook fail');
+        } catch (e) {
+            this.mouseEventHookHandle = undefined;
+            logger('hook fail %O', e);
         }
     }
 
     private stopHook() {
         logger('stop GlobalKeyboardEvent hook');
         if (this.mouseEventHookHandle) {
-            user32.UnhookWindowsHookEx(this.mouseEventHookHandle);
+            WindowsHookAddons.stopHook(this.mouseEventHookHandle);
         }
         this.mouseEventHookHandle = undefined;
     }

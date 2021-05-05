@@ -8,6 +8,7 @@ import alias from '@rollup/plugin-alias';
 import { wasm } from '@rollup/plugin-wasm';
 import esbuild from 'rollup-plugin-esbuild';
 import log from './LogPlugin';
+import native from './NativePlugin';
 import devSpeedup from './DevSpeedupPlugin';
 
 import builtinModules from 'builtin-modules/static';
@@ -60,6 +61,7 @@ export default (mode = 'production') => ({
         resolve,
         json(),
         wasm(),
+        native(),
         commonjs(),
         mode === 'production'
             ? license({

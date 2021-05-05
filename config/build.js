@@ -58,7 +58,7 @@ async function gotLicense(url, dest) {
 
 async function checkFiles(files) {
     try {
-        await Promise.all(files.map(i => fsPromise.stat(path.join(__dirname, '../static/', i))));
+        await Promise.all(files.map(i => fsPromise.stat(path.join(__dirname, '../', i))));
         return true;
     } catch (e) {
         return false;
@@ -67,10 +67,10 @@ async function checkFiles(files) {
 
 async function downloadTextractor(version = '4.16.0') {
     const files = [
-        'lib/x86/TextractorCLI.exe',
-        'lib/x86/texthook.dll',
-        'lib/x64/TextractorCLI.exe',
-        'lib/x64/texthook.dll'
+        'static/lib/x86/TextractorCLI.exe',
+        'static/lib/x86/texthook.dll',
+        'static/lib/x64/TextractorCLI.exe',
+        'static/lib/x64/texthook.dll'
     ];
     if (await checkFiles(files)) return;
 
@@ -88,25 +88,25 @@ async function downloadTextractor(version = '4.16.0') {
     );
     await extract(
         path.join(tmp, './Textractor.zip'),
-        files.map(i => i.replace('lib/', 'Textractor/')),
+        files.map(i => i.replace('static/lib/', 'Textractor/')),
         (entry) => entry.fileName.replace(/^Textractor\//, path.join(__dirname, '../static/lib/'))
     );
     await fsPromise.rmdir(tmp, { recursive: true });
     await l;
 }
 
-async function downloadLanguageData(version = '4.16.0') {
+async function downloadLanguageData() {
     const files = [
-        'lang-data/jpn.traineddata'
+        'static/lang-data/jpn.traineddata'
     ];
     if (await checkFiles(files)) return;
 
     const pipeline = util.promisify(stream.pipeline);
     const l = gotLicense('https://github.com/tesseract-ocr/tessdata_fast/raw/master/LICENSE', path.join(__dirname, '../static/lang-data/LICENSE.tesseract.txt'));
     for (const file of files) {
-        const dstPath = path.join(__dirname, '../static/', file);
+        const dstPath = path.join(__dirname, '../', file);
         fs.mkdirSync(path.dirname(dstPath), { recursive: true });
-        const url = `https://github.com/tesseract-ocr/tessdata_fast/raw/master/${file.replace('lang-data/', '')}`;
+        const url = `https://github.com/tesseract-ocr/tessdata_fast/raw/master/${file.replace('static/lang-data/', '')}`;
         console.log('downloading', url);
         await pipeline(
             got.stream(url)
@@ -126,17 +126,26 @@ async function downloadDependencies() {
 
 async function buildNative() {
     const files = [
-        'native/bin/JBeijingCli.exe',
-        'native/bin/DrEyeCli.exe'
+        'dist/addons/ScreenCapturer.node',
+        'dist/addons/WindowEventHook.node',
+        'dist/addons/WindowsHook.node',
+        'dist/addons/Process.node',
+        'static/native/bin/JBeijingCli.exe',
+        'static/native/bin/DrEyeCli.exe'
     ];
     if (await checkFiles(files)) return;
 
     console.log('build native module...');
     const exec = util.promisify(child_process.exec);
     await fsPromise.mkdir(path.join(__dirname, '../static/native/bin'), { recursive: true });
-    await exec(`yarn node-gyp -C ${path.join(__dirname, '../native')} configure --arch=ia32`);
-    await exec(`yarn node-gyp -C ${path.join(__dirname, '../native')} build`, { env: {} });
-    await fsPromise.rmdir(path.join(__dirname, '../native/build'), { recursive: true });
+    await exec(`yarn node-gyp -C ${path.join(__dirname, '../native/cli')} configure --arch=ia32`);
+    await exec(`yarn node-gyp -C ${path.join(__dirname, '../native/cli')} build`, { env: {} });
+    await fsPromise.rmdir(path.join(__dirname, '../native/cli/build'), { recursive: true });
+
+    await fsPromise.mkdir(path.join(__dirname, '../dist/addons'), { recursive: true });
+    await exec(`yarn node-gyp -C ${path.join(__dirname, '../native/addons')} configure`);
+    await exec(`yarn node-gyp -C ${path.join(__dirname, '../native/addons')} build`, { env: {} });
+    await fsPromise.rmdir(path.join(__dirname, '../native/addons/build'), { recursive: true });
 }
 
 async function buildRender(mode = 'production') {
@@ -279,6 +288,15 @@ function dev(mode = 'development') {
         });
 }
 
+function clean() {
+    return Promise.all(
+        [
+            'dist',
+            'static/native'
+        ].map(i => fsPromise.rmdir(path.join(__dirname, '..', i), { recursive: true }))
+    );
+}
+
 (async function() {
     let mode;
     if (process.argv.includes('--dev')) {
@@ -290,6 +308,8 @@ function dev(mode = 'development') {
         await downloadDependencies();
     } else if (process.argv[2] === 'build:native') {
         await buildNative(process.env.GENERATOR || undefined);
+    } else if (process.argv[2] === 'clean') {
+        await clean();
     } else {
         await downloadDependencies();
         await buildNative(process.env.GENERATOR || undefined);
