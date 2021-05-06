@@ -156,7 +156,7 @@ export default defineComponent({
         },
         save() {
             this.showEdit = !this.showEdit;
-            this.$emit('save', this.id, this.formState);
+            this.$emit('save', this.id, { ...this.formState, uuid: this.uuid });
         },
         async play() {
             this.starting = true;
