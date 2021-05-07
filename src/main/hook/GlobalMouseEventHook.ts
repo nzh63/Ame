@@ -1,9 +1,9 @@
 import EventEmitter from 'events';
-import WindowsHookAddons from '@addons/WindowsHook';
+import { startGlobalMouseHook, stopHook, HANDLE } from '@addons/WindowsHook';
 import logger from '@logger/hook/globalmouseEventHook';
 
 export class GlobalMouseEventHook {
-    private mouseEventHookHandle?: WindowsHookAddons.HANDLE;
+    private mouseEventHookHandle?: HANDLE;
     constructor(
         public event: EventEmitter
     ) {
@@ -13,7 +13,7 @@ export class GlobalMouseEventHook {
     private startHook() {
         logger('start GlobalMouseEvent hook');
         try {
-            this.mouseEventHookHandle = WindowsHookAddons.startGlobalMouseHook((wParam, pt) => {
+            this.mouseEventHookHandle = startGlobalMouseHook((wParam, pt) => {
                 logger('%O %O', wParam, pt);
                 if (wParam === 0x0201 /* WM_LBUTTONDOWN */) {
                     logger('mouse-left-down %O', pt);
@@ -36,7 +36,7 @@ export class GlobalMouseEventHook {
     private stopHook() {
         logger('stop GlobalKeyboardEvent hook');
         if (this.mouseEventHookHandle) {
-            WindowsHookAddons.stopHook(this.mouseEventHookHandle);
+            stopHook(this.mouseEventHookHandle);
         }
         this.mouseEventHookHandle = undefined;
     }

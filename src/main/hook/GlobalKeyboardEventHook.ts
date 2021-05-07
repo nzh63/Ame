@@ -1,9 +1,9 @@
 import EventEmitter from 'events';
-import WindowsHookAddons from '@addons/WindowsHook';
+import { startGlobalKeyboardHook, stopHook, HANDLE } from '@addons/WindowsHook';
 import logger from '@logger/hook/globalKeyboardEventHook';
 
 export class GlobalKeyboardEventHook {
-    private keyboardEventHookHandle?: WindowsHookAddons.HANDLE;
+    private keyboardEventHookHandle?: HANDLE;
     constructor(
         public event: EventEmitter
     ) {
@@ -13,7 +13,7 @@ export class GlobalKeyboardEventHook {
     private startHook() {
         logger('start GlobalKeyboardEvent hook');
         try {
-            this.keyboardEventHookHandle = WindowsHookAddons.startGlobalKeyboardHook((wParam, vkCode) => {
+            this.keyboardEventHookHandle = startGlobalKeyboardHook((wParam, vkCode) => {
                 if (wParam === 0x0100 /* WM_KEYDOWN */) {
                     logger('key-down %d', vkCode);
                     this.event.emit('key-down', vkCode);
@@ -32,7 +32,7 @@ export class GlobalKeyboardEventHook {
     private stopHook() {
         logger('stop GlobalKeyboardEvent hook');
         if (this.keyboardEventHookHandle) {
-            WindowsHookAddons.stopHook(this.keyboardEventHookHandle);
+            stopHook(this.keyboardEventHookHandle);
         }
         this.keyboardEventHookHandle = undefined;
     }

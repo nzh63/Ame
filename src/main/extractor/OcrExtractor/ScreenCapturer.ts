@@ -1,10 +1,10 @@
 import type { DModel as M } from 'win32-def';
 import sharp from 'sharp';
-import ScreenCapturerAddons from '@addons/ScreenCapturer';
+import { findWindow, capture, CaptureResult, HWND } from '@addons/ScreenCapturer';
 
 export class ScreenCapturer {
     private static emptyImage = () => sharp(Buffer.alloc(1, 0), { raw: { width: 1, height: 1, channels: 1 } });
-    private hwnd?: ScreenCapturerAddons.HWND;
+    private hwnd?: HWND;
     constructor(
         public gamePids: number[],
         hwnd?: M.HWND
@@ -14,16 +14,16 @@ export class ScreenCapturer {
     }
 
     private async findWindow() {
-        this.hwnd = await ScreenCapturerAddons.findWindow(this.gamePids);
+        this.hwnd = await findWindow(this.gamePids);
     }
 
     public async capture(canRetry = true): Promise<sharp.Sharp> {
         if (!this.hwnd) await this.findWindow();
         if (!this.hwnd) return ScreenCapturer.emptyImage();
 
-        let result: ScreenCapturerAddons.CaptureResult;
+        let result: CaptureResult;
         try {
-            result = await ScreenCapturerAddons.capture(this.hwnd);
+            result = await capture(this.hwnd);
         } catch (e) {
             if (canRetry) return this.capture(false);
             else return ScreenCapturer.emptyImage();

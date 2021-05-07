@@ -1,6 +1,6 @@
 import { parse } from 'path';
 import { execPowerShell } from '@main/win32';
-import ProcessAddons from '@addons/Process';
+export { waitProcessForExit, isWow64 } from '@addons/Process';
 
 export async function findProcess(path: string) {
     const { stdout } = await execPowerShell(`Get-Process | where ProcessName -eq '${parse(path).name}' | where Path -eq '${path}' | sort StartTime | select id`);
@@ -10,6 +10,3 @@ export async function findProcess(path: string) {
         .filter(i => /\d+/.test(i))
         .map(i => parseInt(i));
 }
-
-export const waitProcessForExit = ProcessAddons.waitProcessForExit;
-export const isWow64 = ProcessAddons.isWow64;

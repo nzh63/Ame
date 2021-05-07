@@ -20,7 +20,10 @@ export default function native() {
                     name: path.basename(file),
                     source: await fs.promises.readFile(file)
                 });
-                return `export default require(import.meta.NATIVE_FILE_${ref})`;
+                return {
+                    code: `export default require(import.meta.NATIVE_FILE_${ref})`,
+                    syntheticNamedExports: true
+                };
             }
             return undefined;
         },
@@ -28,7 +31,7 @@ export default function native() {
             if (property.startsWith('NATIVE_FILE_')) {
                 const ref = /^NATIVE_FILE_(.*)$/.exec(property)?.[1];
                 if (ref) {
-                    const requirePath = './' + path.relative(path.dirname(chunkId), this.getFileName(ref));
+                    const requirePath = './' + path.relative(path.dirname(chunkId), this.getFileName(ref)).replace(/\\/g, '/');
                     return JSON.stringify(requirePath);
                 }
             }
