@@ -21,7 +21,7 @@ export default defineComponent({
             setTextractorPostProcessOption(toRaw(option.value));
         };
 
-        watch(() => option.value.removeDuplication, saveOption);
+        watch(option, saveOption, { deep: true });
 
         return {
             option

@@ -130,6 +130,7 @@ export class General {
                 this.type = type;
                 this.extractor.destroy();
                 this.extractor = new Textractor(this.gamePids, this.hookCode);
+                this.setupTextractorExtractor();
             }
         } else if (type === 'ocr') {
             if (!(this.extractor instanceof OcrExtractor)) {

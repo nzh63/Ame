@@ -2,7 +2,7 @@
     <div>
         <a-form :label-col="{ span: 3 }" :wrapper-col="{ span: 21 }">
             <a-form-item label="提取方法">
-                <a-select v-model:value="type">
+                <a-select :value="type" @change="changeType">
                     <a-select-option value="textractor">
                         Textractor
                     </a-select-option>
@@ -25,7 +25,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, inject, watch, ref } from 'vue';
+import { defineComponent, inject, ref } from 'vue';
 import { ReloadOutlined } from '@ant-design/icons-vue';
 import TextractorSetting from '@render/component/TextractorSetting.vue';
 import { switchExtractorType, getExtractorType, openOcrGuideWindow } from '@render/remote';
@@ -44,15 +44,18 @@ export default defineComponent({
 
         const setHookCodeInject = inject<(h: string) => void>('setHookCode');
         const setRunning = inject<(h: boolean) => void>('setRunning');
-        watch(type, () => {
+
+        const changeType = async (newType: Ame.Extractor.ExtractorType) => {
             setRunning?.(false);
             setHookCodeInject?.('');
-            switchExtractorType(type.value);
-        });
+            await switchExtractorType(newType);
+            type.value = newType;
+        }
 
         return {
             screen,
             type,
+            changeType,
             openOcrGuideWindow
         };
     }
