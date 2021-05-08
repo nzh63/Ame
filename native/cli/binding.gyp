@@ -21,13 +21,13 @@
                 '<(PRODUCT_DIR)/JBeijingCli.exe'
             ],
             'outputs': [
-                '../../static/native/bin/DrEyeCli.exe',
-                '../../static/native/bin/JBeijingCli.exe'
+                '<(module_root_dir)/../../static/native/bin/DrEyeCli.exe',
+                '<(module_root_dir)/../../static/native/bin/JBeijingCli.exe'
             ],
             'action': [
                 'copy',
                 '<(PRODUCT_DIR)/*.exe',
-                '../../static/native/bin'
+                '<(module_root_dir)/../../static/native/bin'
             ]
         }]
     }]

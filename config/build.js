@@ -20,19 +20,19 @@ function extract(zipPath, files, dst) {
         yauzl.open(zipPath, { lazyEntries: true }, (err, zipFile) => {
             if (err) return reject(err);
             zipFile.readEntry();
-            zipFile.on('entry', function(entry) {
+            zipFile.on('entry', function (entry) {
                 if (entry.fileName.endsWith('/')) {
                     zipFile.readEntry();
                 } else {
                     if (files.includes(entry.fileName)) {
                         files.splice(files.findIndex(i => i === entry.fileName), 1);
-                        zipFile.openReadStream(entry, function(err, readStream) {
+                        zipFile.openReadStream(entry, function (err, readStream) {
                             if (err) return reject(err);
                             const dstPath = dst(entry);
                             fs.mkdirSync(path.dirname(dstPath), { recursive: true });
                             const out = fs.createWriteStream(dstPath, { flags: 'w+' });
                             readStream.pipe(out);
-                            readStream.on('end', function() {
+                            readStream.on('end', function () {
                                 out.end();
                                 if (files.length) zipFile.readEntry();
                                 else { zipFile.close(); resolve(); }
@@ -136,16 +136,19 @@ async function buildNative() {
     if (await checkFiles(files)) return;
 
     console.log('build native module...');
-    const exec = util.promisify(child_process.exec);
-    await fsPromise.mkdir(path.join(__dirname, '../static/native/bin'), { recursive: true });
-    await exec(`yarn node-gyp -C ${path.join(__dirname, '../native/cli')} configure --arch=ia32`);
-    await exec(`yarn node-gyp -C ${path.join(__dirname, '../native/cli')} build`, { env: {} });
-    await fsPromise.rmdir(path.join(__dirname, '../native/cli/build'), { recursive: true });
 
-    await fsPromise.mkdir(path.join(__dirname, '../dist/addons'), { recursive: true });
-    await exec(`yarn node-gyp -C ${path.join(__dirname, '../native/addons')} configure`);
-    await exec(`yarn node-gyp -C ${path.join(__dirname, '../native/addons')} build`, { env: {} });
-    await fsPromise.rmdir(path.join(__dirname, '../native/addons/build'), { recursive: true });
+    await Promise.all([
+        gypBuild('native/cli', 'static/native/bin', '--arch=ia32'),
+        gypBuild('native/addons', 'dist/addons')
+    ]);
+
+    async function gypBuild(dir, output, configureOptions = '') {
+        const exec = util.promisify(child_process.exec);
+        await fsPromise.mkdir(path.join(__dirname, '..', output), { recursive: true });
+        await exec(`yarn node-gyp -C ${path.join(__dirname, '..', dir)} configure ${configureOptions}`);
+        await exec(`yarn node-gyp -C ${path.join(__dirname, '..', dir)} build -j max`);
+        await fsPromise.rmdir(path.join(__dirname, '..', dir, 'build'), { recursive: true });
+    }
 }
 
 async function buildRender(mode = 'production') {
@@ -192,6 +195,9 @@ async function devRender(mode = 'development') {
         mode
     });
     await server.listen(9080);
+    process.once('SIGINT', () => {
+        server.close();
+    });
 }
 
 async function devMainAndWorkers(mode = 'development') {
@@ -203,6 +209,8 @@ async function devMainAndWorkers(mode = 'development') {
     watcher.on('event', ev => {
         if (ev.code === 'END') {
             electronProcess ? restartElectron() : startElectron();
+        } else if (ev.code === 'START') {
+            killElectron();
         } else if (ev.code === 'ERROR') {
             console.error(ev.error);
             process.exit(1);
@@ -241,6 +249,16 @@ function restartElectron() {
         process.kill(electronProcess.pid);
         electronProcess = null;
         startElectron();
+
+        setTimeout(() => { manualRestart = false; }, 1000);
+    }
+}
+
+function killElectron() {
+    if (electronProcess && electronProcess.kill) {
+        manualRestart = true;
+        process.kill(electronProcess.pid);
+        electronProcess = null;
 
         setTimeout(() => { manualRestart = false; }, 1000);
     }
@@ -297,7 +315,7 @@ function clean() {
     );
 }
 
-(async function() {
+(async function () {
     let mode;
     if (process.argv.includes('--dev')) {
         mode = 'development';

@@ -39,14 +39,14 @@
                 '<(PRODUCT_DIR)/WindowsHook.node',
             ],
             'outputs': [
-                '../../dist/addons/ScreenCapturer.node',
-                '../../dist/addons/WindowEventHook.node',
-                '../../dist/addons/WindowsHook.node',
+                '<(module_root_dir)/../../dist/addons/ScreenCapturer.node',
+                '<(module_root_dir)/../../dist/addons/WindowEventHook.node',
+                '<(module_root_dir)/../../dist/addons/WindowsHook.node',
             ],
             'action': [
                 'copy',
                 '<(PRODUCT_DIR)/*.node',
-                '../../dist/addons'
+                '<(module_root_dir)/../../dist/addons'
             ]
         }]
     }]
