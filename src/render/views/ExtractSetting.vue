@@ -50,7 +50,7 @@ export default defineComponent({
             setHookCodeInject?.('');
             await switchExtractorType(newType);
             type.value = newType;
-        }
+        };
 
         return {
             screen,
