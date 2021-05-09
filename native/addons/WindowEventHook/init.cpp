@@ -90,7 +90,7 @@ napi_value startWindowEventHook(napi_env env, napi_callback_info info, std::func
     napi_value argv[2];
     std::vector<PID> pids;
     std::vector<HWINEVENTHOOK> hooks;
-    NAPI_CALL_EXPECT(napi_get_cb_info(env, info, &argc, argv, 0, 0), argc == 2, "expect 2 argument.", env);
+    NAPI_CALL_EXPECT(napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr), argc == 2, "expect 2 argument.", env);
 
     bool isArray;
     NAPI_CALL_EXPECT(napi_is_array(env, argv[0], &isArray), isArray, "expect array", env);
@@ -107,11 +107,10 @@ napi_value startWindowEventHook(napi_env env, napi_callback_info info, std::func
     }
 
     napi_value resource_name;
-    napi_threadsafe_function tsfn;
+    napi_threadsafe_function tsfn = nullptr;
     NAPI_CALL(napi_create_string_utf8(env, "WindowEventHookCallback", NAPI_AUTO_LENGTH, &resource_name));
-    napi_create_threadsafe_function(env, argv[1], nullptr, resource_name, 0, 1, nullptr, nullptr, nullptr,
-                                    callJsCallback, &tsfn);
-    NAPI_CALL(napi_acquire_threadsafe_function(tsfn));
+    NAPI_CALL(napi_create_threadsafe_function(env, argv[1], nullptr, resource_name, 0, 1, nullptr, nullptr, nullptr,
+                                              callJsCallback, &tsfn));
     for (const auto pid : pids) {
         auto hook = createHook(pid);
         callbacks[hook] = tsfn;
@@ -127,6 +126,8 @@ napi_value startWindowEventHook(napi_env env, napi_callback_info info, std::func
     }
     return result;
 err:
+    if (tsfn)
+        napi_release_threadsafe_function(tsfn, napi_tsfn_abort);
     return throwError(env);
 }
 
@@ -154,7 +155,7 @@ napi_value stopWindowEventHook(napi_env env, napi_callback_info info) {
     size_t argc = 1;
     napi_value argv[1];
     std::vector<HWINEVENTHOOK> hooks;
-    NAPI_CALL_EXPECT(napi_get_cb_info(env, info, &argc, argv, 0, 0), argc == 1, "expect 1 argument.", env);
+    NAPI_CALL_EXPECT(napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr), argc == 1, "expect 1 argument.", env);
 
     bool isArray;
     NAPI_CALL_EXPECT(napi_is_array(env, argv[0], &isArray), isArray, "expect array", env);

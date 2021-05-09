@@ -9,9 +9,9 @@
 struct CheckWindowData {
     std::vector<PID> pids;
     HWND result = nullptr;
-    napi_deferred deferred;
-    napi_value promise;
-    napi_async_work work;
+    napi_deferred deferred = nullptr;
+    napi_value promise = nullptr;
+    napi_async_work work = nullptr;
 };
 
 BOOL CALLBACK checkWindow(HWND hwnd, LPARAM data) {
@@ -51,7 +51,8 @@ napi_value findWindow(napi_env env, napi_callback_info info) {
     size_t argc = 1;
     napi_value n_pids;
     auto *data = new CheckWindowData();
-    NAPI_CALL_EXPECT(napi_get_cb_info(env, info, &argc, &n_pids, 0, 0), argc == 1, "expect one argument.", env);
+    NAPI_CALL_EXPECT(napi_get_cb_info(env, info, &argc, &n_pids, nullptr, nullptr), argc == 1, "expect one argument.",
+                     env);
 
     bool isArray;
     NAPI_CALL_EXPECT(napi_is_array(env, n_pids, &isArray), isArray, "expect array", env);
@@ -77,6 +78,10 @@ napi_value findWindow(napi_env env, napi_callback_info info) {
 
     return data->promise;
 err:
+    if (data->deferred)
+        napi_reject_deferred(env, data->deferred, createError(env, nullptr, ""));
+    if (data->work)
+        napi_delete_async_work(env, data->work);
     delete data;
     return throwError(env);
 }

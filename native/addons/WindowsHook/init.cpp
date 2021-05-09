@@ -1,7 +1,8 @@
 #include <Windows.h>
+#include <node_api.h>
+
 #include <algorithm>
 #include <functional>
-#include <node_api.h>
 #include <vector>
 
 #include "../utils.h"
@@ -12,14 +13,13 @@ napi_value startHook(napi_env env, napi_callback_info info, std::function<HHOOK(
     size_t argc = 1;
     napi_value argv[1];
     std::vector<PID> pids;
-    NAPI_CALL_EXPECT(napi_get_cb_info(env, info, &argc, argv, 0, 0), argc == 1, "expect 1 argument.", env);
+    NAPI_CALL_EXPECT(napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr), argc == 1, "expect 1 argument.", env);
 
     napi_value resource_name;
-    napi_threadsafe_function tsfn;
+    napi_threadsafe_function tsfn = nullptr;
     NAPI_CALL(napi_create_string_utf8(env, "WindowHookCallback", NAPI_AUTO_LENGTH, &resource_name));
-    napi_create_threadsafe_function(env, argv[0], nullptr, resource_name, 0, 1, nullptr, nullptr, nullptr,
-                                    callJsCallback, &tsfn);
-    NAPI_CALL(napi_acquire_threadsafe_function(tsfn));
+    NAPI_CALL(napi_create_threadsafe_function(env, argv[0], nullptr, resource_name, 0, 1, nullptr, nullptr, nullptr,
+                                              callJsCallback, &tsfn));
 
     if (!handle) {
         handle = createHook();
@@ -32,6 +32,8 @@ napi_value startHook(napi_env env, napi_callback_info info, std::function<HHOOK(
     NAPI_CALL(napi_create_bigint_uint64(env, (uint64_t)(void *)tsfn, &ret));
     return ret;
 err:
+    if (tsfn)
+        napi_release_threadsafe_function(tsfn, napi_tsfn_abort);
     return throwError(env);
 }
 
@@ -127,7 +129,7 @@ napi_value stopHook(napi_env env, napi_callback_info info) {
     napi_threadsafe_function tsfn;
     bool lossless;
     std::vector<napi_threadsafe_function>::iterator it;
-    NAPI_CALL_EXPECT(napi_get_cb_info(env, info, &argc, argv, 0, 0), argc == 1, "expect 1 argument.", env);
+    NAPI_CALL_EXPECT(napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr), argc == 1, "expect 1 argument.", env);
     NAPI_CALL(napi_get_value_bigint_uint64(env, argv[0], (uint64_t *)(void *)&tsfn, &lossless));
     it = std::find(keyboardCallbacks.begin(), keyboardCallbacks.end(), tsfn);
     if (it != keyboardCallbacks.end())
@@ -145,7 +147,7 @@ napi_value stopHook(napi_env env, napi_callback_info info) {
         UnhookWindowsHookEx(mouseHookHandle);
         mouseHookHandle = nullptr;
     }
-    NAPI_CALL(napi_release_threadsafe_function(tsfn, napi_tsfn_release));
+    NAPI_CALL(napi_release_threadsafe_function(tsfn, napi_tsfn_abort));
     return nullptr;
 err:
     return throwError(env);

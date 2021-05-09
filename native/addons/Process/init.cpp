@@ -12,7 +12,7 @@ napi_value isWow64(napi_env env, napi_callback_info info) {
     napi_value argv[1];
     PID pid;
     std::vector<napi_threadsafe_function>::iterator it;
-    NAPI_CALL_EXPECT(napi_get_cb_info(env, info, &argc, argv, 0, 0), argc == 1, "expect 1 argument.", env);
+    NAPI_CALL_EXPECT(napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr), argc == 1, "expect 1 argument.", env);
     NAPI_CALL(napi_get_value_uint32(env, argv[0], (uint32_t *)&pid));
     auto handle = OpenProcess(PROCESS_QUERY_INFORMATION, false, pid);
     ULONG_PTR ret = 0;
@@ -31,9 +31,9 @@ err:
 struct WaitData {
     std::vector<PID> pids;
     std::vector<HANDLE> handles;
-    napi_deferred deferred;
-    napi_value promise;
-    napi_threadsafe_function tsfn;
+    napi_deferred deferred = nullptr;
+    napi_value promise = nullptr;
+    napi_threadsafe_function tsfn = nullptr;
 };
 
 void waitCallback(void *_data, BOOLEAN isTimedOut) {
@@ -64,7 +64,8 @@ napi_value waitProcessForExit(napi_env env, napi_callback_info info) {
     size_t argc = 1;
     napi_value n_pids;
     auto *data = new WaitData();
-    NAPI_CALL_EXPECT(napi_get_cb_info(env, info, &argc, &n_pids, 0, 0), argc == 1, "expect one argument.", env);
+    NAPI_CALL_EXPECT(napi_get_cb_info(env, info, &argc, &n_pids, nullptr, nullptr), argc == 1, "expect one argument.",
+                     env);
 
     bool isArray;
     NAPI_CALL_EXPECT(napi_is_array(env, n_pids, &isArray), isArray, "expect array", env);
@@ -84,9 +85,8 @@ napi_value waitProcessForExit(napi_env env, napi_callback_info info) {
     napi_value resource_name;
     NAPI_CALL(napi_create_promise(env, &data->deferred, &data->promise));
     NAPI_CALL(napi_create_string_utf8(env, "WaitCallback", NAPI_AUTO_LENGTH, &resource_name));
-    napi_create_threadsafe_function(env, nullptr, nullptr, resource_name, 0, 1, nullptr, nullptr, data, resolvePromise,
-                                    &data->tsfn);
-    NAPI_CALL(napi_acquire_threadsafe_function(data->tsfn));
+    NAPI_CALL(napi_create_threadsafe_function(env, nullptr, nullptr, resource_name, 0, 1, nullptr, nullptr, data,
+                                              resolvePromise, &data->tsfn));
 
     if (data->handles.size()) {
         auto handle = data->handles.back();
@@ -98,6 +98,10 @@ napi_value waitProcessForExit(napi_env env, napi_callback_info info) {
 
     return data->promise;
 err:
+    if (data->tsfn)
+        napi_release_threadsafe_function(data->tsfn, napi_tsfn_abort);
+    if (data->deferred)
+        napi_reject_deferred(env, data->deferred, createError(env, nullptr, ""));
     delete data;
     return throwError(env);
 }

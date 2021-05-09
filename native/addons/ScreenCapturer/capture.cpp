@@ -13,9 +13,9 @@ struct CaptureData {
     int height = 0;
     uint8_t *buffer = nullptr;
     int bufferSize = 0;
-    napi_deferred deferred;
-    napi_value promise;
-    napi_async_work work;
+    napi_deferred deferred = nullptr;
+    napi_value promise = nullptr;
+    napi_async_work work = nullptr;
 };
 
 void executeCapture(napi_env env, void *_data) {
@@ -51,10 +51,10 @@ void completeCapture(napi_env env, napi_status status, void *_data) {
     napi_value result, width, height, buffer;
     NAPI_CALL(napi_create_uint32(env, data.width, &width));
     NAPI_CALL(napi_create_uint32(env, data.height, &height));
-    napi_create_external_buffer(
+    NAPI_CALL(napi_create_external_buffer(
         env, data.bufferSize, data.buffer,
         [](napi_env env, void *finalize_data, void *finalize_hint) { delete[](uint8_t *) finalize_hint; },
-        (void *)data.buffer, &buffer);
+        (void *)data.buffer, &buffer));
     napi_property_descriptor desc[3] = {
         {"width", nullptr, nullptr, nullptr, nullptr, width, napi_enumerable, nullptr},
         {"height", nullptr, nullptr, nullptr, nullptr, height, napi_enumerable, nullptr},
@@ -78,7 +78,8 @@ napi_value capture(napi_env env, napi_callback_info info) {
     size_t argc = 1;
     napi_value n_hwnd;
     auto *data = new CaptureData();
-    NAPI_CALL_EXPECT(napi_get_cb_info(env, info, &argc, &n_hwnd, 0, 0), argc == 1, "expect one argument.", env);
+    NAPI_CALL_EXPECT(napi_get_cb_info(env, info, &argc, &n_hwnd, nullptr, nullptr), argc == 1, "expect one argument.",
+                     env);
     bool lossless;
     NAPI_CALL(napi_get_value_bigint_uint64(env, n_hwnd, (uint64_t *)&data->hwnd, &lossless));
 
@@ -91,6 +92,10 @@ napi_value capture(napi_env env, napi_callback_info info) {
 
     return data->promise;
 err:
+    if (data->deferred)
+        napi_reject_deferred(env, data->deferred, createError(env, nullptr, ""));
+    if (data->work)
+        napi_delete_async_work(env, data->work);
     delete data;
     return throwError(env);
 }
