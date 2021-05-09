@@ -18,7 +18,7 @@ constexpr auto USER_DICT_PATH_SIZE = 0x204;
 constexpr auto MAX_USER_DICT_COUNT = 3;
 constexpr auto USER_DICT_BUFFER_SIZE = USER_DICT_PATH_SIZE * MAX_USER_DICT_COUNT;
 
-array<char, USER_DICT_BUFFER_SIZE> userDictBuffer{0};
+array<wchar_t, USER_DICT_BUFFER_SIZE> userDictBuffer{0};
 array<char, BUFFER_SIZE> input;
 array<char, BUFFER_SIZE> output;
 array<char, BUFFER_SIZE> buf;
@@ -28,10 +28,17 @@ int(__cdecl *DJC_CloseAllUserDic)(int);
 int(__cdecl *JC_Transfer_Unicode)(HWND hwnd, UINT fromCodePage, UINT toCodePage, int unknown1, int unknown2, void *from,
                                   void *to, int *toCapacity, void *buffer, int *bufferCapacity);
 
-int main(int argc, char **argv) {
+int main() {
     _setmode(_fileno(stdin), _O_BINARY);
     _setmode(_fileno(stdout), _O_BINARY);
-    HMODULE dll = LoadLibraryA(argv[1]);
+    int argc;
+    wchar_t **argv;
+    argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+    if (argv == nullptr) {
+        cout << "CommandLineToArgvW fail" << endl;
+        return 1;
+    }
+    HMODULE dll = LoadLibraryW(argv[1]);
     if (!dll) {
         cout << "dll open fail" << endl;
         return 1;
@@ -45,12 +52,12 @@ int main(int argc, char **argv) {
         return 1;
     }
     for (int i = 0; i < 3; i++) {
-        auto len = strlen(argv[i + 2]) + 1;
+        auto len = wcslen(argv[i + 2]) + 1;
         if (len > BUFFER_SIZE)
             len = BUFFER_SIZE;
-        strcpy_s(userDictBuffer.data() + i * USER_DICT_PATH_SIZE, len, argv[i + 2]);
+        wcscpy_s(userDictBuffer.data() + i * USER_DICT_PATH_SIZE, len, argv[i + 2]);
     }
-    DJC_OpenAllUserDic_Unicode((LPWSTR)userDictBuffer.data(), 0);
+    DJC_OpenAllUserDic_Unicode(userDictBuffer.data(), 0);
     // cout << "ok" << endl;
 
     while (1) {
