@@ -144,7 +144,12 @@ async function buildNative() {
 
     async function gypBuild(dir, output, configureOptions = []) {
         if (typeof configureOptions === 'string') configureOptions = [configureOptions];
-        const execFile = util.promisify(child_process.execFile);
+        const execFile = async (...args) => {
+            const ret = await util.promisify(child_process.execFile)(...args);
+            console.log(ret.stderr);
+            console.log(ret.stdout);
+            return ret;
+        };
         await fsPromise.mkdir(path.join(__dirname, '..', output), { recursive: true });
         await execFile('yarn', ['node-gyp', '-C', path.join(__dirname, '..', dir), 'configure', ...configureOptions], { shell: true });
         await execFile('yarn', ['node-gyp', '-C', path.join(__dirname, '..', dir), 'build', '-j', 'max'], { shell: true });
