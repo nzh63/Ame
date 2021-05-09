@@ -29,7 +29,7 @@ describe('process', function() {
     });
 
     it('waitProcessForExit - empty pids', async function() {
-        this.timeout(1);
+        this.timeout(32);
         await waitProcessForExit([]);
     });
 });

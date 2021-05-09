@@ -31,9 +31,11 @@ err:
 struct WaitData {
     std::vector<PID> pids;
     std::vector<HANDLE> handles;
+    bool noPids = false;
     napi_deferred deferred = nullptr;
     napi_value promise = nullptr;
     napi_threadsafe_function tsfn = nullptr;
+    napi_async_work work = nullptr;
 };
 
 void waitCallback(void *_data, BOOLEAN isTimedOut) {
@@ -60,6 +62,29 @@ err:
     return;
 }
 
+void executeWait(napi_env env, void *_data) {
+    auto *data = (WaitData *)_data;
+    for (const auto pid : data->pids) {
+        auto handle = OpenProcess(SYNCHRONIZE, false, pid);
+        data->handles.push_back(handle);
+    }
+
+    if (data->handles.size()) {
+        auto handle = data->handles.back();
+        HANDLE waitHandle;
+        RegisterWaitForSingleObject(&waitHandle, handle, waitCallback, (void *)data, INFINITE, WT_EXECUTEONLYONCE);
+    } else {
+        data->noPids = true;
+    }
+}
+
+void completeWait(napi_env env, napi_status status, void *_data) {
+    auto *data = (WaitData *)_data;
+    if (data->noPids) {
+        resolvePromise(env, nullptr, _data, nullptr);
+    }
+}
+
 napi_value waitProcessForExit(napi_env env, napi_callback_info info) {
     size_t argc = 1;
     napi_value n_pids;
@@ -79,22 +104,14 @@ napi_value waitProcessForExit(napi_env env, napi_callback_info info) {
         uint32_t pid;
         NAPI_CALL(napi_get_value_uint32(env, n_pid, &pid));
         data->pids.push_back(pid);
-        auto handle = OpenProcess(SYNCHRONIZE, false, pid);
-        data->handles.push_back(handle);
     }
     napi_value resource_name;
     NAPI_CALL(napi_create_promise(env, &data->deferred, &data->promise));
     NAPI_CALL(napi_create_string_utf8(env, "WaitCallback", NAPI_AUTO_LENGTH, &resource_name));
     NAPI_CALL(napi_create_threadsafe_function(env, nullptr, nullptr, resource_name, 0, 1, nullptr, nullptr, data,
                                               resolvePromise, &data->tsfn));
-
-    if (data->handles.size()) {
-        auto handle = data->handles.back();
-        HANDLE waitHandle;
-        RegisterWaitForSingleObject(&waitHandle, handle, waitCallback, (void *)data, INFINITE, WT_EXECUTEONLYONCE);
-    } else {
-        NAPI_CALL(napi_call_threadsafe_function(data->tsfn, nullptr, napi_tsfn_nonblocking));
-    }
+    NAPI_CALL(napi_create_async_work(env, nullptr, resource_name, executeWait, completeWait, data, &data->work));
+    NAPI_CALL(napi_queue_async_work(env, data->work));
 
     return data->promise;
 err:
