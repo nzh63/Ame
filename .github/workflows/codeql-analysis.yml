@@ -36,6 +36,11 @@ jobs:
 
     - name: Autobuild
       uses: github/codeql-action/autobuild@v1
+      if: ${{ matrix.language == 'javascript' }}
+
+    - name: Build
+      run: yarn build:native
+      if: ${{ matrix.language == 'cpp' }}
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
