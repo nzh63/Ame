@@ -1,0 +1,56 @@
+# For most projects, this workflow file will not need changing; you simply need
+# to commit it to your repository.
+#
+# You may wish to alter this file to override the set of languages analyzed,
+# or to provide custom queries or build logic.
+name: "CodeQL"
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  schedule:
+    - cron: '20 19 * * 6'
+
+jobs:
+  analyze:
+    name: CodeQL
+    runs-on: windows-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'javascript', 'cpp' ]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v1
+      with:
+        languages: ${{ matrix.language }}
+
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v1
+      if: ${{ matrix.language == 'javascript' }}
+
+    - name: Setup
+      if: ${{ matrix.language == 'cpp' }}
+      run: |
+        yarn global add node-gyp
+        yarn global bin | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+    - name: Build
+      if: ${{ matrix.language == 'cpp' }}
+      run: |
+        node-gyp -C native/cli configure --arch=ia32
+        node-gyp -C native/cli build -j max
+        node-gyp -C native/addons configure
+        node-gyp -C native/addons build -j max
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v1
