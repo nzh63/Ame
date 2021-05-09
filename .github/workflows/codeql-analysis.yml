@@ -40,10 +40,10 @@ jobs:
 
     - name: Build
       run: |
-        node-gyp -C native/cli configure --arch=ia32
-        node-gyp -C native/cli build -j max
-        node-gyp -C native/addons configure
-        node-gyp -C native/addons build -j max
+        npx node-gyp -C native/cli configure --arch=ia32
+        npx node-gyp -C native/cli build -j max
+        npx node-gyp -C native/addons configure
+        npx node-gyp -C native/addons build -j max
       if: ${{ matrix.language == 'cpp' }}
 
     - name: Perform CodeQL Analysis
