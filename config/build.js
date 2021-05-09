@@ -137,10 +137,8 @@ async function buildNative() {
 
     console.log('build native module...');
 
-    await Promise.all([
-        gypBuild('native/cli', 'static/native/bin', '--arch=ia32'),
-        gypBuild('native/addons', 'dist/addons')
-    ]);
+    await gypBuild('native/cli', 'static/native/bin', '--arch=ia32');
+    await gypBuild('native/addons', 'dist/addons');
 
     async function gypBuild(dir, output, configureOptions = []) {
         if (typeof configureOptions === 'string') configureOptions = [configureOptions];
