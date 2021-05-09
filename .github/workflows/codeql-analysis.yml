@@ -38,11 +38,19 @@ jobs:
       uses: github/codeql-action/autobuild@v1
       if: ${{ matrix.language == 'javascript' }}
 
-    - name: Build
-      run: |
-        yarn
-        yarn build:native
+    - name: Setup
       if: ${{ matrix.language == 'cpp' }}
+      run: |
+        yarn global add node-gyp
+        yarn global bin >> $GITHUB_PATH
+
+    - name: Build
+      if: ${{ matrix.language == 'cpp' }}
+      run: |
+        node-gyp -C native/cli configure --arch=ia32
+        node-gyp -C native/cli build -j max
+        node-gyp -C native/addons configure
+        node-gyp -C native/addons build -j max
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
