@@ -27,4 +27,9 @@ describe('process', function() {
         await new Promise(resolve => setImmediate(resolve));
         processes.forEach(i => expect(i.exitCode).to.equal(0));
     });
+
+    it('waitProcessForExit - empty pids', async function() {
+        this.timeout(1);
+        await waitProcessForExit([]);
+    });
 });

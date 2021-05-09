@@ -93,13 +93,12 @@ napi_value waitProcessForExit(napi_env env, napi_callback_info info) {
         HANDLE waitHandle;
         RegisterWaitForSingleObject(&waitHandle, handle, waitCallback, (void *)data, INFINITE, WT_EXECUTEONLYONCE);
     } else {
-        napi_value undefined;
-        NAPI_CALL(napi_get_undefined(env, &undefined));
-        NAPI_CALL(napi_resolve_deferred(env, data->deferred, undefined));
+        NAPI_CALL(napi_call_threadsafe_function(data->tsfn, nullptr, napi_tsfn_nonblocking));
     }
 
     return data->promise;
 err:
+    delete data;
     return throwError(env);
 }
 

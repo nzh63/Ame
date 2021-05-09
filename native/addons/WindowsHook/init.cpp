@@ -84,8 +84,8 @@ struct MouseData {
 };
 
 void callMouseJsCallback(napi_env env, napi_value js_cb, void *context, void *_data) {
+    auto *data = (MouseData *)_data;
     if (env != nullptr) {
-        auto *data = (MouseData *)_data;
         napi_value undefined, args[2], x, y;
         NAPI_CALL(napi_get_undefined(env, &undefined));
         NAPI_CALL(napi_create_uint32(env, data->wParam, &args[0]));
@@ -97,6 +97,7 @@ void callMouseJsCallback(napi_env env, napi_value js_cb, void *context, void *_d
         NAPI_CALL(napi_call_function(env, undefined, js_cb, 2, args, nullptr));
     }
 err:
+    delete data;
     return;
 }
 LRESULT globalMouseHookCallback(int nCode, WPARAM wParam, LPARAM lParam) {
@@ -104,7 +105,7 @@ LRESULT globalMouseHookCallback(int nCode, WPARAM wParam, LPARAM lParam) {
         if (wParam == WM_LBUTTONDOWN || wParam == WM_LBUTTONUP || wParam == WM_MOUSEWHEEL) {
             for (const auto tsfn : mouseCallbacks) {
                 auto *data = new MouseData{wParam, ((MSLLHOOKSTRUCT *)lParam)->pt};
-                napi_call_threadsafe_function(tsfn, (void *)data, napi_tsfn_nonblocking);
+                NAPI_CALL(napi_call_threadsafe_function(tsfn, (void *)data, napi_tsfn_nonblocking));
                 continue;
             err:
                 delete data;
