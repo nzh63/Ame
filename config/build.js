@@ -142,11 +142,12 @@ async function buildNative() {
         gypBuild('native/addons', 'dist/addons')
     ]);
 
-    async function gypBuild(dir, output, configureOptions = '') {
-        const exec = util.promisify(child_process.exec);
+    async function gypBuild(dir, output, configureOptions = []) {
+        if (typeof configureOptions === 'string') configureOptions = [configureOptions];
+        const execFile = util.promisify(child_process.execFile);
         await fsPromise.mkdir(path.join(__dirname, '..', output), { recursive: true });
-        await exec(`yarn node-gyp -C ${path.join(__dirname, '..', dir)} configure ${configureOptions}`);
-        await exec(`yarn node-gyp -C ${path.join(__dirname, '..', dir)} build -j max`);
+        await execFile('yarn', ['node-gyp', '-C', path.join(__dirname, '..', dir), 'configure', ...configureOptions], { shell: true });
+        await execFile('yarn', ['node-gyp', '-C', path.join(__dirname, '..', dir), 'build', '-j', 'max'], { shell: true });
         await fsPromise.rmdir(path.join(__dirname, '..', dir, 'build'), { recursive: true });
     }
 }
