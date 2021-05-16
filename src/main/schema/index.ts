@@ -74,7 +74,7 @@ export type SchemaDescription<S extends Schema> =
     : S extends BooleanSchema ? (Description | undefined)
     : S extends NumberSchema ? (Description | undefined)
     : S extends StringSchema ? (Description | undefined)
-    : S extends ArraySchema ? (Description | undefined)
+    : S extends ArraySchema ? (Description | undefined) | readonly (Description | undefined)[]
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     : S extends UnionSchemaEnum<infer R> ? (Description | undefined)
     : S extends UnionSchema ? (Description | undefined)

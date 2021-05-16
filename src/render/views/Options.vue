@@ -40,7 +40,6 @@
                     <a-input
                         v-else
                         v-model:value="i.optionsValueString"
-                        :placeholder="stringify(i.typeInfo)"
                         @pressEnter="onUpdate(i.optionsValueString, i.key, i)"
                         @blur="onUpdate(i.optionsValueString, i.key, i)"
                     >
@@ -158,15 +157,20 @@ export default defineComponent({
                 if (root.type === 'object') {
                     Object.keys(root.properties ?? {}).forEach(i => f(root.properties?.[i], options?.[i], optionsDescription?.[i], [...key, i]));
                 } else if (root.type === 'array' && optionsDescription instanceof Array) {
-                    optionsDescription.forEach((i, index) => f(root.items as JSONSchema, options[index], optionsDescription[index], [...key, index]));
+                    const items = root.items;
+                    if (items instanceof Array) {
+                        items.forEach((i, index) => f(items[index], options[index], optionsDescription[index], [...key, index]));
+                    } else {
+                        optionsDescription.forEach((i, index) => f(items, options[index], optionsDescription[index], [...key, index]));
+                    }
                 } else {
                     const item: ListItem = {
                         optionsValue: options,
-                        optionsValueString: options === null ? '<null>' : typeof options === 'string' ? options : JSON.stringify(options),
+                        optionsValueString: options === null ? '<null>' : typeof options === 'string' ? options : JSON.stringify(options) ?? '',
                         description: optionsDescription?.description,
                         readableName: optionsDescription?.readableName ?? optionsDescription ?? key.join('.'),
                         key,
-                        typeInfo: root.type ? [root.type as string] : root.anyOf?.map(i => (i as JSONSchema).type as string) ?? [],
+                        typeInfo: typeof root.type === 'string' ? [root.type] : root.anyOf?.map(i => (i as JSONSchema).type as string) ?? [],
                         enumSelectId: -1
                     };
                     if (root.enum) {

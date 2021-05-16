@@ -6,6 +6,6 @@ buildTest(JBeijing, {
     enable: true,
     path: {
         dll: process.env.TEST_PROVIDERS_TRANSLATE_JBEIJING_DLL ?? null,
-        userDicts: ''
+        userDicts: []
     }
 }, !process.env.TEST_PROVIDERS_TRANSLATE_JBEIJING_DLL);

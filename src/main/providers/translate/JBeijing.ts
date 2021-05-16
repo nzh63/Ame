@@ -3,6 +3,7 @@ import path from 'path';
 import { defineTranslateProvider } from '@main/providers/translate';
 import { TaskQueue } from '@main/utils';
 import { __static } from '@main/paths';
+import { range } from 'lodash-es';
 
 export default defineTranslateProvider({
     id: 'JBeijing',
@@ -11,21 +12,24 @@ export default defineTranslateProvider({
         enable: Boolean,
         path: {
             dll: [String, null],
-            userDicts: String
+            userDicts: {
+                type: Array,
+                items: String
+            }
         }
     } as const,
     defaultOptions: {
         enable: true,
         path: {
             dll: null,
-            userDicts: ''
+            userDicts: []
         }
     },
     optionsDescription: {
         enable: '启用',
         path: {
             dll: 'JBJCT.dll 的路径',
-            userDicts: '用户辞书路径，以半角分号（;）分隔'
+            userDicts: range(1, 4).map(i => `用户辞书${i}的路径`)
         }
     },
     data() {
@@ -39,7 +43,7 @@ export default defineTranslateProvider({
         if (!this.enable || !this.path.dll) return;
         this.process = spawn(path.join(__static, 'native/bin/JBeijingCli.exe'), [
             this.path.dll,
-            ...this.path.userDicts.split(';'), '', '', ''
+            ...this.path.userDicts.filter(i => i.trim()), '', '', ''
         ], { stdio: 'pipe' });
     },
     isReady() { return this.enable && !!this.path.dll && !!this.process && this.process.exitCode === null; },
