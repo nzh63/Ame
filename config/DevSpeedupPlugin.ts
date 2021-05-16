@@ -6,15 +6,23 @@ export default function devSpeedup() {
         resolveId(id) {
             if (id === 'lodash-es') id = 'lodash';
             if (id.trim().startsWith('.')) return null;
-            try {
-                const packageJson = require(id + '/package.json');
-                if (packageJson.type !== 'module') {
-                    return {
-                        id,
-                        external: true
-                    };
+            let tryId = id;
+            while (tryId) {
+                try {
+                    const tryPackage = tryId + '/package.json';
+                    if (require.resolve('../package.json') === require.resolve(tryPackage)) { throw new Error(); }
+                    const packageJson = require(tryPackage);
+                    if (packageJson.type !== 'module') {
+                        return {
+                            id,
+                            external: true
+                        };
+                    } else {
+                        return null;
+                    }
+                } catch (e) {
+                    tryId = tryId.substr(0, tryId.lastIndexOf('/'));
                 }
-            } catch (e) {
             }
             return null;
         }
