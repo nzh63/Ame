@@ -69,11 +69,18 @@ void executeWait(napi_env env, void *_data) {
         data->handles.push_back(handle);
     }
 
-    if (data->handles.size()) {
+    while (data->handles.size()) {
         auto handle = data->handles.back();
         HANDLE waitHandle;
-        RegisterWaitForSingleObject(&waitHandle, handle, waitCallback, (void *)data, INFINITE, WT_EXECUTEONLYONCE);
-    } else {
+        auto ret =
+            RegisterWaitForSingleObject(&waitHandle, handle, waitCallback, (void *)data, INFINITE, WT_EXECUTEONLYONCE);
+        if (ret == 0) { // fail
+            data->handles.pop_back();
+        } else {
+            break;
+        }
+    }
+    if (!data->handles.size()) {
         data->noPids = true;
     }
 }
