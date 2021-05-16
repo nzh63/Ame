@@ -83,6 +83,7 @@ void completeWait(napi_env env, napi_status status, void *_data) {
     if (data->noPids) {
         resolvePromise(env, nullptr, _data, nullptr);
     }
+    napi_delete_async_work(env, data->work);
 }
 
 napi_value waitProcessForExit(napi_env env, napi_callback_info info) {
@@ -119,6 +120,8 @@ err:
         napi_release_threadsafe_function(data->tsfn, napi_tsfn_abort);
     if (data->deferred)
         napi_reject_deferred(env, data->deferred, createError(env, nullptr, ""));
+    if (data->work)
+        napi_delete_async_work(env, data->work);
     delete data;
     return throwError(env);
 }

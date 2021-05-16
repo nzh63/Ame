@@ -8,8 +8,10 @@ using PID = DWORD;
         status = (f);                                                                                                  \
         if (status != napi_ok)                                                                                         \
             goto err;                                                                                                  \
-        if (!(expect))                                                                                                 \
+        if (!(expect)) {                                                                                               \
             napi_throw_error((env), nullptr, (errorMsg));                                                              \
+            goto err;                                                                                                  \
+        }                                                                                                              \
     } while (0)
 #define NAPI_CALL_GOTOERR(f, err) NAPI_CALL_EXPECT_GOTOERR(f, err, true, "", nullptr)
 #define NAPI_CALL_EXPECT(f, expect, errorMsg, env) NAPI_CALL_EXPECT_GOTOERR(f, err, expect, errorMsg, env)
