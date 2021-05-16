@@ -30,7 +30,7 @@ export class BaseProvider<ID extends string = string, S extends Schema = any, D 
     #destroyed = false;
     constructor(
         public readonly $config: C,
-        getStoreOptions = () => store.get<string, SchemaType<S>>(`${$config.providersStoreKey}.${$config.id as ID}`)
+        getStoreOptions = () => store.get<string, SchemaType<S>>(`${$config.providersStoreKey}.${$config.id}`)
     ) {
         this.$id = $config.id;
         this.$optionsSchema = $config.optionsSchema;

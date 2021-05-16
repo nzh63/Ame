@@ -102,24 +102,35 @@ export class General {
         );
     }
 
+    public extractorTypeIs<T extends Ame.Extractor.ExtractorType>(type: T): this is (
+        typeof type extends 'ocr' ? OcrGeneral
+        : typeof type extends 'textractor' ? TextractorGeneral
+        : never
+    ) {
+        return this.type === type;
+    }
+
     private setupTextractorExtractor() {
+        if (!this.extractorTypeIs('textractor')) return;
         const game = store.get('games').find(i => i.uuid === this.uuid);
         if (game?.textractor?.postProcessOption) {
-            (this.extractor as Textractor).postProcessOption = game?.textractor.postProcessOption;
+            this.extractor.postProcessOption = game?.textractor.postProcessOption;
         }
         return false;
     }
 
     private setupOcrExtractor() {
         let openGuide = true;
-        const game = store.get('games').find(i => i.uuid === this.uuid);
-        if (game?.ocr?.rect) {
-            (this.extractor as OcrExtractor).rect = game.ocr.rect;
-            openGuide = false;
-        }
-        if (game?.ocr?.preprocess) {
-            (this.extractor as OcrExtractor).preprocessOption = game.ocr.preprocess;
-            openGuide = false;
+        if (this.extractorTypeIs('ocr')) {
+            const game = store.get('games').find(i => i.uuid === this.uuid);
+            if (game?.ocr?.rect) {
+                this.extractor.rect = game.ocr.rect;
+                openGuide = false;
+            }
+            if (game?.ocr?.preprocess) {
+                this.extractor.preprocessOption = game.ocr.preprocess;
+                openGuide = false;
+            }
         }
         return openGuide;
     }
@@ -161,8 +172,8 @@ export class General {
     }
 
     public setTextractorPostProcess(option: PostProcessOption) {
-        if (this.type === 'textractor') {
-            (this.extractor as Textractor).postProcessOption = option;
+        if (this.extractorTypeIs('textractor')) {
+            this.extractor.postProcessOption = option;
             const games = store.get('games');
             const game = games.find(i => i.uuid === this.uuid);
             if (game) {
@@ -176,11 +187,11 @@ export class General {
     }
 
     public setOcrRect(rect: sharp.Region) {
-        if (this.type === 'ocr') {
+        if (this.extractorTypeIs('ocr')) {
             for (const i in rect) {
                 rect[i as keyof sharp.Region] = Math.round(rect[i as keyof sharp.Region]);
             }
-            (this.extractor as OcrExtractor).rect = rect;
+            this.extractor.rect = rect;
             const games = store.get('games');
             const game = games.find(i => i.uuid === this.uuid);
             if (game) {
@@ -194,8 +205,8 @@ export class General {
     }
 
     public setOcrPreprocess(option: PreprocessOption) {
-        if (this.type === 'ocr') {
-            (this.extractor as OcrExtractor).preprocessOption = option;
+        if (this.extractorTypeIs('ocr')) {
+            this.extractor.preprocessOption = option;
             const games = store.get('games');
             const game = games.find(i => i.uuid === this.uuid);
             if (game) {
@@ -280,4 +291,12 @@ export class General {
     static getAllInstances(): readonly General[] {
         return General.instances;
     }
+}
+
+interface OcrGeneral extends General {
+    extractor: OcrExtractor;
+}
+
+interface TextractorGeneral extends General {
+    extractor: Textractor;
 }

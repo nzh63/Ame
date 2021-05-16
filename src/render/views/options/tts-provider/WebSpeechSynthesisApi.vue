@@ -8,7 +8,6 @@
 </template>
 
 <script lang="ts">
-import type { JSONSchema } from '@main/schema';
 import { defineComponent, ref } from 'vue';
 import { getTtsProviderOptionsMeta, getTtsProviderOptions, setTtsProviderOptions } from '@render/remote';
 import Options from '@render/views/Options.vue';
@@ -31,12 +30,14 @@ export default defineComponent({
                 voices = speechSynthesis.getVoices().map(i => i.voiceURI);
                 getMeta.value = async (id) => {
                     const meta = await getTtsProviderOptionsMeta(id);
-                    const voice = meta.jsonSchema.properties?.voice as JSONSchema;
-                    if (voice?.properties?.originalVoiceURI && voice?.properties?.originalVoiceURI !== true) {
-                        voice.properties.originalVoiceURI.enum = [null, ...voices];
-                    }
-                    if (voice?.properties?.translateVoiceURI && voice?.properties?.translateVoiceURI !== true) {
-                        voice.properties.translateVoiceURI.enum = [null, ...voices];
+                    const voice = meta.jsonSchema.properties?.voice;
+                    if (typeof voice === 'object') {
+                        if (voice?.properties?.originalVoiceURI && voice?.properties?.originalVoiceURI !== true) {
+                            voice.properties.originalVoiceURI.enum = [null, ...voices];
+                        }
+                        if (voice?.properties?.translateVoiceURI && voice?.properties?.translateVoiceURI !== true) {
+                            voice.properties.translateVoiceURI.enum = [null, ...voices];
+                        }
                     }
                     return meta;
                 };

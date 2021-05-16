@@ -85,7 +85,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, toRaw } from 'vue';
+import { defineComponent, PropType, toRaw } from 'vue';
 import { message } from 'ant-design-vue';
 import { DeleteOutlined, PlayCircleOutlined, RollbackOutlined, SaveFilled, SettingOutlined } from '@ant-design/icons-vue';
 import InputWithOpenFile from '@render/component/InputWithOpenFile.vue';
@@ -116,7 +116,7 @@ export default defineComponent({
             default: ''
         },
         type: {
-            type: String,
+            type: String as PropType<Ame.Extractor.ExtractorType>,
             default: 'textractor'
         },
         hookCode: {
@@ -161,7 +161,7 @@ export default defineComponent({
         async play() {
             this.starting = true;
             try {
-                const { pids } = await startGame(toRaw(this.$props) as Ame.GameSetting);
+                const { pids } = await startGame(toRaw(this.$props));
                 startExtract(this.uuid, pids, this.hookCode, this.type);
             } catch (e) {
                 message.error(`启动失败：${e.message ?? e}`);

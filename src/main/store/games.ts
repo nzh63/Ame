@@ -1,6 +1,6 @@
 import type { JSONSchema } from '@main/schema';
 
-export const gamesStoreJSONSchema = {
+export const gamesStoreJSONSchema: JSONSchema = {
     type: 'array',
     items: {
         type: 'object',
@@ -49,4 +49,4 @@ export const gamesStoreJSONSchema = {
         }
     },
     default: []
-} as JSONSchema;
+};

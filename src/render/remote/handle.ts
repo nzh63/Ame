@@ -5,13 +5,13 @@ export function handleError<T>(ret: Promise<Ret<T>>): Promise<T>;
 export function handleError<T>(ret: Ret<T> | Promise<Ret<T>>): T | Promise<T> {
     if (ret instanceof Promise) {
         return ret.then(r => {
-            if ((r as { err: any }).err) { throw (r as { err: any }).err; } else return (r as { value: T }).value;
+            if ('err' in r) { throw r.err; } else return r.value;
         });
     } else {
-        if ((ret as { err: any }).err !== undefined) {
-            throw (ret as { err: any }).err;
+        if ('err' in ret) {
+            throw ret.err;
         } else {
-            return (ret as { value: T }).value;
+            return ret.value;
         }
     }
 }
