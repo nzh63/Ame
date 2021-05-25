@@ -49,6 +49,13 @@ export function createMainWindow() {
     });
 }
 
+function quit() {
+    General.getAllInstances().forEach(i => i.destroy());
+    app.quit();
+}
+
+process.on('SIGINT', quit);
+
 app.on('ready', () => {
     logger('app ready');
     tray = new Tray(join(__assets, '/icon.png'));
@@ -56,10 +63,7 @@ app.on('ready', () => {
         { label: '打开主界面', click: createMainWindow },
         {
             label: '退出',
-            click: () => {
-                General.getAllInstances().forEach(i => i.destroy());
-                app.quit();
-            }
+            click: quit
         }
     ]);
     tray.setContextMenu(contextMenu);

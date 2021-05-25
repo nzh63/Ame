@@ -13,7 +13,13 @@ import {
     setOcrProviderOptions,
     getOcrExtractorOptions,
     getOcrExtractorOptionsMeta,
-    setOcrExtractorOptions
+    setOcrExtractorOptions,
+    getSegmentProviderOptionsMeta,
+    getSegmentProviderOptions,
+    setSegmentProviderOptions,
+    getSegmentManagerOptionsMeta,
+    getSegmentManagerOptions,
+    setSegmentManagerOptions
 } from '@render/remote';
 import { createRouter, createWebHashHistory } from 'vue-router';
 
@@ -84,6 +90,26 @@ export default createRouter({
                 getMeta: getOcrExtractorOptionsMeta,
                 getOptions: getOcrExtractorOptions,
                 setOptions: setOcrExtractorOptions
+            })
+        },
+        {
+            path: '/options/segment-manager',
+            component: () => import('@render/views/Options.vue'),
+            props: route => ({
+                providerId: '<none>',
+                getMeta: getSegmentManagerOptionsMeta,
+                getOptions: getSegmentManagerOptions,
+                setOptions: setSegmentManagerOptions
+            })
+        },
+        {
+            path: '/options/segment-provider/:providerId',
+            component: () => import('@render/views/Options.vue'),
+            props: route => ({
+                providerId: route.params.providerId,
+                getMeta: getSegmentProviderOptionsMeta,
+                getOptions: getSegmentProviderOptions,
+                setOptions: setSegmentProviderOptions
             })
         },
         {

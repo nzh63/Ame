@@ -24,7 +24,6 @@ export default defineComponent({
 
         let voices: string[] = [];
         function check() {
-            console.log(speechSynthesis.getVoices());
             if (speechSynthesis.getVoices().length && speechSynthesis.getVoices().every(i => i.voiceURI)) {
                 speechSynthesis.onvoiceschanged = null;
                 voices = speechSynthesis.getVoices().map(i => i.voiceURI);

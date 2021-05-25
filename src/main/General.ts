@@ -4,7 +4,7 @@ import { Hook } from '@main/hook';
 import { TranslatorWindow } from '@main/window/TranslatorWindow';
 import { OcrGuideWindow } from '@main/window/OcrGuideWindow';
 import { createMainWindow, mainWindow } from '@main/index';
-import { TranslateManager, TtsManager } from '@main/manager';
+import { TranslateManager, TtsManager, SegmentManager } from '@main/manager';
 import { BaseExtractor, OcrExtractor, Textractor, PreprocessOption, PostProcessOption } from '@main/extractor';
 import store from '@main/store';
 import logger from '@logger/general';
@@ -31,6 +31,7 @@ export class General {
         public type: Ame.Extractor.ExtractorType,
         public translateManager: TranslateManager,
         public ttsManager: TtsManager,
+        public segmentManager: SegmentManager,
         private hook: Hook
     ) {
         logger('start game for pids %O', this.gamePids);
@@ -89,7 +90,8 @@ export class General {
         hookCode = '',
         type: Ame.Extractor.ExtractorType = 'textractor',
         translateManager: TranslateManager = new TranslateManager(),
-        ttsManager: TtsManager = new TtsManager()
+        ttsManager: TtsManager = new TtsManager(),
+        segmentManager: SegmentManager = new SegmentManager()
     ) {
         return new General(
             uuid,
@@ -98,6 +100,7 @@ export class General {
             type,
             translateManager,
             ttsManager,
+            segmentManager,
             await Hook.create(gamePids)
         );
     }

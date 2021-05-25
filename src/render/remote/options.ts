@@ -61,3 +61,26 @@ export function getOcrExtractorOptions() {
 export function setOcrExtractorOptions(_: string, value: unknown) {
     return store.set('ocrExtractor', value);
 }
+
+export function getSegmentManagerOptionsMeta() {
+    return handleError(electron.ipcRenderer.invoke('get-segment-manager-options-meta'));
+}
+export function getSegmentManagerOptions() {
+    return store.get('segmentManager');
+}
+export function setSegmentManagerOptions(_: string, value: unknown) {
+    return store.set('segmentManager', value);
+}
+
+export function getSegmentProvidersIDs() {
+    return handleError(electron.ipcRenderer.invoke('get-segment-providers-ids'));
+}
+export function getSegmentProviderOptionsMeta(providerId: string) {
+    return handleError(electron.ipcRenderer.invoke('get-segment-provider-options-meta', providerId));
+}
+export function getSegmentProviderOptions(providerId: string) {
+    return store.get(`segmentProviders.${providerId}`);
+}
+export function setSegmentProviderOptions(providerId: string, value: unknown) {
+    return store.set(`segmentProviders.${providerId}`, value);
+}

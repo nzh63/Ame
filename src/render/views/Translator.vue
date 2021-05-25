@@ -5,7 +5,7 @@
             title="原文"
             @click.right="onRightClick(originalText, 'original')"
         >
-            {{ originalText }}
+            <original-text :text="originalText" />
         </div>
         <div
             class="line"
@@ -31,8 +31,12 @@
 import { watchOriginal, unwatchOriginal, watchTranslate, unwatchTranslate, resizeWindow, ttsSpeak, onTtsReply, offTtsReply, showContextMenu } from '@render/remote';
 import { onBeforeRouteLeave } from 'vue-router';
 import { defineComponent, ref, inject, onUnmounted, Ref, nextTick, watch } from 'vue';
+import OriginalText from '@render/component/OriginalText';
 
 export default defineComponent({
+    components: {
+        OriginalText
+    },
     setup() {
         const hookCode = inject<Ref<string>>('hookCode') ?? ref('');
         const running = inject<Ref<boolean>>('running') ?? ref(true);
