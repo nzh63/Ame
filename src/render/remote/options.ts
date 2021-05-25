@@ -84,3 +84,26 @@ export function getSegmentProviderOptions(providerId: string) {
 export function setSegmentProviderOptions(providerId: string, value: unknown) {
     return store.set(`segmentProviders.${providerId}`, value);
 }
+
+export function getDictManagerOptionsMeta() {
+    return handleError(electron.ipcRenderer.invoke('get-dict-manager-options-meta'));
+}
+export function getDictManagerOptions() {
+    return store.get('dictManager');
+}
+export function setDictManagerOptions(_: string, value: unknown) {
+    return store.set('dictManager', value);
+}
+
+export function getDictProvidersIDs() {
+    return handleError(electron.ipcRenderer.invoke('get-dict-providers-ids'));
+}
+export function getDictProviderOptionsMeta(providerId: string) {
+    return handleError(electron.ipcRenderer.invoke('get-dict-provider-options-meta', providerId));
+}
+export function getDictProviderOptions(providerId: string) {
+    return store.get(`dictProviders.${providerId}`);
+}
+export function setDictProviderOptions(providerId: string, value: unknown) {
+    return store.set(`dictProviders.${providerId}`, value);
+}

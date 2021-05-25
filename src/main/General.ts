@@ -4,7 +4,7 @@ import { Hook } from '@main/hook';
 import { TranslatorWindow } from '@main/window/TranslatorWindow';
 import { OcrGuideWindow } from '@main/window/OcrGuideWindow';
 import { createMainWindow, mainWindow } from '@main/index';
-import { TranslateManager, TtsManager, SegmentManager } from '@main/manager';
+import { TranslateManager, TtsManager, SegmentManager, DictManager } from '@main/manager';
 import { BaseExtractor, OcrExtractor, Textractor, PreprocessOption, PostProcessOption } from '@main/extractor';
 import store from '@main/store';
 import logger from '@logger/general';
@@ -32,6 +32,7 @@ export class General {
         public translateManager: TranslateManager,
         public ttsManager: TtsManager,
         public segmentManager: SegmentManager,
+        public dictManager: DictManager,
         private hook: Hook
     ) {
         logger('start game for pids %O', this.gamePids);
@@ -91,7 +92,8 @@ export class General {
         type: Ame.Extractor.ExtractorType = 'textractor',
         translateManager: TranslateManager = new TranslateManager(),
         ttsManager: TtsManager = new TtsManager(),
-        segmentManager: SegmentManager = new SegmentManager()
+        segmentManager: SegmentManager = new SegmentManager(),
+        dictManager: DictManager = new DictManager()
     ) {
         return new General(
             uuid,
@@ -101,6 +103,7 @@ export class General {
             translateManager,
             ttsManager,
             segmentManager,
+            dictManager,
             await Hook.create(gamePids)
         );
     }
@@ -289,6 +292,8 @@ export class General {
         this.extractor.destroy();
         this.translateManager.destroy();
         this.ttsManager.destroy();
+        this.segmentManager.destroy();
+        this.dictManager.destroy();
     }
 
     static getAllInstances(): readonly General[] {

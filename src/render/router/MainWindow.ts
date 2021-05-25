@@ -19,7 +19,13 @@ import {
     setSegmentProviderOptions,
     getSegmentManagerOptionsMeta,
     getSegmentManagerOptions,
-    setSegmentManagerOptions
+    setSegmentManagerOptions,
+    getDictManagerOptions,
+    getDictManagerOptionsMeta,
+    getDictProviderOptions,
+    getDictProviderOptionsMeta,
+    setDictManagerOptions,
+    setDictProviderOptions
 } from '@render/remote';
 import { createRouter, createWebHashHistory } from 'vue-router';
 
@@ -110,6 +116,26 @@ export default createRouter({
                 getMeta: getSegmentProviderOptionsMeta,
                 getOptions: getSegmentProviderOptions,
                 setOptions: setSegmentProviderOptions
+            })
+        },
+        {
+            path: '/options/dict-manager',
+            component: () => import('@render/views/Options.vue'),
+            props: route => ({
+                providerId: '<none>',
+                getMeta: getDictManagerOptionsMeta,
+                getOptions: getDictManagerOptions,
+                setOptions: setDictManagerOptions
+            })
+        },
+        {
+            path: '/options/dict-provider/:providerId',
+            component: () => import('@render/views/Options.vue'),
+            props: route => ({
+                providerId: route.params.providerId,
+                getMeta: getDictProviderOptionsMeta,
+                getOptions: getDictProviderOptions,
+                setOptions: setDictProviderOptions
             })
         },
         {

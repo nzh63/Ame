@@ -11,6 +11,9 @@ import { ocrExtractorStoreJSONSchema } from '@main/store/ocrExtractor';
 import { ocrExtractorOptionsDescription } from '@main/extractor/OcrExtractor/options';
 import { segmentManagerStoreJSONSchema } from '@main/store/segmentManager';
 import { segmentManagerOptionsDescription } from '@main/manager/SegmentManager/options';
+import { dictManagerStoreJSONSchema } from '@main/store/dictManager';
+import { dictManagerOptionsDescription } from '@main/manager/DictManager/options';
+import { AvailableDictConfigs, availableDictConfigs } from '@main/providers/dict';
 
 ipcMain.handle('get-translate-providers-ids', handleError((event: IpcMainInvokeEvent) => {
     return availableTranslateConfigs.map(i => i.id);
@@ -84,5 +87,26 @@ ipcMain.handle('get-segment-provider-options-meta', handleError((event: IpcMainI
         description: availableSegmentConfigs.find(i => i.id === providerId)?.description,
         jsonSchema: toJSONSchema(availableSegmentConfigs.find(i => i.id === providerId)?.optionsSchema ?? {}),
         optionsDescription: availableSegmentConfigs.find(i => i.id === providerId)?.optionsDescription
+    };
+}));
+
+ipcMain.handle('get-dict-manager-options-meta', handleError((event: IpcMainInvokeEvent) => {
+    return {
+        id: null,
+        description: null,
+        jsonSchema: dictManagerStoreJSONSchema,
+        optionsDescription: dictManagerOptionsDescription
+    };
+}));
+
+ipcMain.handle('get-dict-providers-ids', handleError((event: IpcMainInvokeEvent) => {
+    return availableDictConfigs.map(i => i.id);
+}));
+ipcMain.handle('get-dict-provider-options-meta', handleError((event: IpcMainInvokeEvent, providerId: AvailableDictConfigs[number]['id']) => {
+    return {
+        id: providerId,
+        description: availableDictConfigs.find(i => i.id === providerId)?.description,
+        jsonSchema: toJSONSchema(availableDictConfigs.find(i => i.id === providerId)?.optionsSchema ?? {}),
+        optionsDescription: availableDictConfigs.find(i => i.id === providerId)?.optionsDescription
     };
 }));

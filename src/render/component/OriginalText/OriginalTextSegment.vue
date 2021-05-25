@@ -2,7 +2,12 @@
     <span>
         <span v-if="!segmented" @mouseenter="segment">{{ text }}</span>
         <span v-else>
-            <span v-for="(s, index) of splitText" class="word" :key="index">
+            <span
+                v-for="(s, index) of splitText"
+                class="word"
+                :key="index"
+                @click="query(s)"
+            >
                 {{ s }}
             </span>
         </span>
@@ -11,7 +16,7 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
-import { segment as segmentText } from '@render/remote';
+import { dictQuery, segment as segmentText } from '@render/remote';
 
 export default defineComponent({
     props: {
@@ -24,6 +29,7 @@ export default defineComponent({
         const splitText = ref<string[]>([]);
         const segmented = ref(false);
         let segmenting = false;
+
         const segment = async () => {
             if (segmenting || segmented.value) return;
             segmenting = true;
@@ -34,10 +40,16 @@ export default defineComponent({
             }
             segmenting = false;
         };
+
+        const query = (word: string) => {
+            dictQuery(word);
+        };
+
         return {
             splitText,
             segmented,
-            segment
+            segment,
+            query
         };
     }
 });
@@ -46,5 +58,6 @@ export default defineComponent({
 <style scoped>
 .word:hover {
     background: rgba(255, 255, 255, 0.2);
+    cursor: pointer;
 }
 </style>

@@ -9,3 +9,4 @@ export * from './tts';
 export * from './textractor';
 export * from './ocr';
 export * from './segment';
+export * from './dict';

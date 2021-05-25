@@ -28,4 +28,14 @@ declare namespace Ame {
         export type OriginalText = { key: Ame.Extractor.Key, text: string };
         export type TranslateResult = { key: Ame.Extractor.Key, originalText: string, translateText: string, providerId: string };
     }
+
+    namespace Provider {
+        export type type = 'translate' | 'tts' | 'ocr' | 'segment' | 'dict';
+        export interface meta {
+            id: string;
+            description: string;
+            jsonSchema: import('@main/schema').JSONSchema;
+            optionsDescription: any;
+        }
+    }
 }

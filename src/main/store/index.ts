@@ -8,6 +8,8 @@ import { SegmentProvidersStore, segmentProvidersStoreJSONSchema } from './segmen
 import { TtsManagerStore, ttsManagerStoreJSONSchema } from './ttsManager';
 import { SegmentManagerStore, segmentManagerStoreJSONSchema } from './segmentManager';
 import { OcrExtractorStore, ocrExtractorStoreJSONSchema } from './ocrExtractor';
+import { DictProvidersStore, dictProvidersStoreJSONSchema } from './dictProviders';
+import { DictManagerStore, dictManagerStoreJSONSchema } from './dictManager';
 
 const store = new Store<{
     games: Ame.GameSetting[];
@@ -16,8 +18,10 @@ const store = new Store<{
     ttsProviders: TtsProvidersStore;
     ocrProviders: OcrProvidersStore;
     segmentProviders: SegmentProvidersStore;
+    dictProviders: DictProvidersStore;
     ttsManager: TtsManagerStore;
     segmentManager: SegmentManagerStore;
+    dictManager: DictManagerStore;
     ocrExtractor: OcrExtractorStore;
 }>({
     schema: {
@@ -27,8 +31,10 @@ const store = new Store<{
         ttsProviders: ttsProvidersStoreJSONSchema,
         ocrProviders: ocrProvidersStoreJSONSchema,
         segmentProviders: segmentProvidersStoreJSONSchema,
+        dictProviders: dictProvidersStoreJSONSchema,
         ttsManager: ttsManagerStoreJSONSchema,
         segmentManager: segmentManagerStoreJSONSchema,
+        dictManager: dictManagerStoreJSONSchema,
         ocrExtractor: ocrExtractorStoreJSONSchema
     },
     clearInvalidConfig: true

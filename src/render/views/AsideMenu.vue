@@ -82,6 +82,22 @@
                     {{ id }}
                 </a-menu-item>
             </a-sub-menu>
+            <a-sub-menu key="/options/dict-provider">
+                <template v-slot:title>
+                    <span>
+                        <span>词典设置</span>
+                    </span>
+                </template>
+                <a-menu-item key="/options/dict-manager">
+                    通用设置
+                </a-menu-item>
+                <a-menu-item
+                    v-for="id in dictProvidersIDs"
+                    :key="`/options/dict-provider/${id}`"
+                >
+                    {{ id }}
+                </a-menu-item>
+            </a-sub-menu>
         </a-menu>
     </div>
 </template>
@@ -90,7 +106,7 @@
 import type Item from 'ant-design-vue/lib/menu/MenuItem';
 import { useRouter } from 'vue-router';
 import { computed, defineComponent, ref } from 'vue';
-import { getTranslateProvidersIDs, getTtsProvidersIDs, getOcrProvidersIDs, getSegmentProvidersIDs } from '@render/remote';
+import { getTranslateProvidersIDs, getTtsProvidersIDs, getOcrProvidersIDs, getSegmentProvidersIDs, getDictProvidersIDs } from '@render/remote';
 
 export default defineComponent({
     setup() {
@@ -122,13 +138,19 @@ export default defineComponent({
             segmentProvidersIDs.value = value;
         });
 
+        const dictProvidersIDs = ref<string[]>([]);
+        getDictProvidersIDs().then(value => {
+            dictProvidersIDs.value = value;
+        });
+
         return {
             onClick,
             selectedKeys,
             translateProvidersIDs,
             ttsProvidersIDs,
             ocrProvidersIDs,
-            segmentProvidersIDs
+            segmentProvidersIDs,
+            dictProvidersIDs
         };
     }
 });
