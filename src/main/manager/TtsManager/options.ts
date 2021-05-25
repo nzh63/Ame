@@ -3,8 +3,8 @@ import { availableTtsConfigs } from '@main/providers/tts';
 
 export const ttsManagerOptionsSchema = {
     defaultProvider: {
-        type: [null, String] as const,
-        enum: [null, ...availableTtsConfigs.map(i => i.id)]
+        type: String,
+        enum: [...availableTtsConfigs.map(i => i.id)]
     }
 };
 
@@ -15,5 +15,5 @@ export const ttsManagerOptionsDescription: SchemaDescription<typeof ttsManagerOp
 };
 
 export const ttsManagerOptionsDefaultValue: TtsManagerOptions = {
-    defaultProvider: null
+    defaultProvider: availableTtsConfigs[0].id
 };

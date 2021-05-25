@@ -15,18 +15,11 @@ export class TtsManager extends BaseManager<TtsProvider> {
     }
 
     public async speak(text: string, type: 'original' | 'translate'): Promise<void> {
-        if (this.options.defaultProvider) {
-            const defaultProvider = this.providers.find(i => i.$id === this.options.defaultProvider);
-            if (defaultProvider && defaultProvider.isReady()) {
-                return await defaultProvider.speak(text, type);
-            }
+        const defaultProvider = this.providers.find(i => i.$id === this.options.defaultProvider);
+        if (defaultProvider && defaultProvider.isReady()) {
+            return await defaultProvider.speak(text, type);
+        } else {
+            logger('warning: defaultProvider not ready');
         }
-        const enabledProviders = this.providers.filter(i => i.isReady());
-        if (!enabledProviders.length) {
-            logger('no enabled provider found, skip');
-            return;
-        }
-        const randomProvider = enabledProviders[Math.floor(Math.random() * enabledProviders.length)];
-        if (randomProvider) return await randomProvider.speak(text, type);
     }
 }

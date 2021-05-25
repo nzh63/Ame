@@ -67,7 +67,6 @@ export default defineTtsProvider({
             speechSynthesis.speak(utter);
         })()`;
         logger('execCode: %s', execCode);
-        logger('options: %O', this);
         this.browserWindow.webContents.executeJavaScript(execCode, true);
     },
     destroy() {

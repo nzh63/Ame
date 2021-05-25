@@ -23,7 +23,7 @@ export default defineConfig(({ mode } = { command: 'build', mode: 'production' }
             path.join(__dirname, '../src/render/TranslatorWindow.html'),
             path.join(__dirname, '../src/render/OcrGuide.html')
         ],
-        include: ['vue', 'ant-design-vue', 'vue-router', '@ant-design/icons-vue', 'debug']
+        include: ['vue', 'ant-design-vue', 'vue-router', '@ant-design/icons-vue', 'debug', 'uuid']
     },
     mode,
     root: path.join(__dirname, '../src/render'),
