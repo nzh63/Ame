@@ -1,100 +1,85 @@
 <template>
-    <div class="translator" ref="topDiv">
-        <div
-            class="line"
-            title="原文"
-            @click.right="onRightClick(originalText, 'original')"
-        >
-            <original-text :text="originalText" />
-        </div>
-        <div
-            class="line"
-            v-for="i in translate"
-            :key="i.id"
-            :title="i.id"
-            @click.right="
-                onRightClick(
-                    i.err ? i.err?.message ?? i.err : i.text,
-                    'translate'
-                )
+    <div>
+        <text-display
+            class="text-display"
+            v-for="(text, index) of texts"
+            :key="text.original"
+            v-bind="text"
+            :ref="
+                (el) => {
+                    if (index === 0) currentTextElement = el;
+                }
             "
-        >
-            <span v-if="i.err" class="error">
-                {{ i.id }}发生错误：{{ i.err?.message ?? i.err }}
-            </span>
-            <span v-else>{{ i.text }}</span>
-        </div>
+            @tts-speak="onTts"
+        />
     </div>
 </template>
 
 <script lang="ts">
 import { watchOriginal, unwatchOriginal, watchTranslate, unwatchTranslate, resizeWindow, ttsSpeak, onTtsReply, offTtsReply, showContextMenu } from '@render/remote';
 import { onBeforeRouteLeave } from 'vue-router';
-import { defineComponent, ref, inject, onUnmounted, Ref, nextTick, watch } from 'vue';
-import OriginalText from '@render/component/OriginalText';
+import { defineComponent, ref, inject, onUnmounted, Ref, nextTick, watch, reactive, onBeforeUpdate } from 'vue';
+import TextDisplay from '@render/component/TextDisplay';
+
+type Translate = { id: string, text: string, err?: any }[];
 
 export default defineComponent({
     components: {
-        OriginalText
+        TextDisplay
     },
     setup() {
         const hookCode = inject<Ref<string>>('hookCode') ?? ref('');
         const running = inject<Ref<boolean>>('running') ?? ref(true);
 
-        const originalText = ref('');
-        const translate = ref<{ id: string, text: string, err?: any }[]>([]);
-        const watchO = () => {
+        const MAX_LENGTH = 10;
+
+        const texts = reactive<{ original: string, translate: Translate }[]>([]);
+        const watchChange = () => {
             if (hookCode.value && running.value) {
                 watchOriginal(hookCode.value, ({ key, text }) => {
-                    originalText.value = text;
-                    translate.value = [];
+                    texts.unshift({ original: text, translate: [] });
+                    while (texts.length > MAX_LENGTH) texts.pop();
                     updateWindowHeight();
                 });
+                watchTranslate(
+                    hookCode.value,
+                    (result) => {
+                        const text = texts.find(i => i.original === result.originalText);
+                        if (result.key === hookCode.value && text) {
+                            text.translate.push({ id: result.providerId, text: result.translateText });
+                            updateWindowHeight();
+                        }
+                    },
+                    (err, result) => {
+                        const text = texts.find(i => i.original === result.originalText);
+                        if (result.key === hookCode.value && text) {
+                            text.translate.push({ err, id: result.providerId, text: result.translateText });
+                            updateWindowHeight();
+                        }
+                    }
+                );
             }
         };
-        watchO();
-        onUnmounted(() => {
-            if (hookCode.value) unwatchOriginal(hookCode.value);
-        });
-
-        const watchT = () => {
-            if (hookCode.value && running.value) {
-                watchTranslate(hookCode.value, (result) => {
-                    if (result.key === hookCode.value && result.originalText === originalText.value) {
-                        translate.value.push({ id: result.providerId, text: result.translateText });
-                        updateWindowHeight();
-                    }
-                }, (err, result) => {
-                    if (result.key === hookCode.value && result.originalText === originalText.value) {
-                        translate.value.push({ err, id: result.providerId, text: result.translateText });
-                        updateWindowHeight();
-                    }
-                });
+        const unwatchChange = () => {
+            if (hookCode.value) {
+                unwatchOriginal(hookCode.value);
+                unwatchTranslate(hookCode.value);
             }
         };
-        watchT();
-        onUnmounted(() => {
-            if (hookCode.value) unwatchTranslate(hookCode.value);
-        });
+        watchChange();
+        onUnmounted(unwatchChange);
 
-        watch(running, r => {
-            if (r) {
-                watchO();
-                watchT();
-            } else {
-                if (hookCode.value) {
-                    unwatchOriginal(hookCode.value);
-                    unwatchTranslate(hookCode.value);
-                }
-            }
-        });
+        watch(running, r => r ? watchChange() : unwatchChange());
 
-        const topDiv = ref<any>(null);
+        const currentTextElement = ref<any>(null);
+        onBeforeUpdate(() => {
+            currentTextElement.value = null;
+        });
         const updateWindowHeight = () => {
             nextTick(() => {
-                if (topDiv) {
+                if (currentTextElement.value) {
                     const titleBarHeight = 24;
-                    const height: number = titleBarHeight + topDiv.value.offsetHeight;
+                    const height: number = titleBarHeight + currentTextElement.value.$el.offsetHeight;
                     resizeWindow(height);
                 }
             });
@@ -102,50 +87,40 @@ export default defineComponent({
 
         onBeforeRouteLeave(() => {
             const titleBarHeight = 24;
-            const height: number = titleBarHeight + topDiv.value.offsetHeight;
+            const height: number = titleBarHeight + (currentTextElement.value?.$el.offsetHeight ?? 0);
             if (height < 300) {
                 resizeWindow(300);
             }
         });
 
-        const ttsString = ref('');
-        const ttsType = ref<'original' | 'translate'>('original');
+        let ttsString = '';
+        let ttsType: 'original' | 'translate' = 'original';
         const ttsCallback = () => {
-            ttsSpeak(ttsString.value, ttsType.value);
+            ttsSpeak(ttsString, ttsType);
         };
         onTtsReply(ttsCallback);
         onUnmounted(() => {
             offTtsReply(ttsCallback);
         });
 
-        const onRightClick = (s: string, t: 'original' | 'translate') => {
-            ttsString.value = s;
-            ttsType.value = t;
+        const onTts = (s: string, t: 'original' | 'translate') => {
+            ttsString = s;
+            ttsType = t;
             showContextMenu();
         };
 
         return {
             hookCode,
-            originalText,
-            translate,
-            topDiv,
-            onRightClick
+            texts,
+            currentTextElement,
+            onTts
         };
     }
 });
 </script>
 
 <style scoped>
-.translator .line {
-    line-height: 1.2;
-    font-weight: 500;
-    font-size: 16px;
-}
-.translator .line:not(:last-child) {
-    margin-bottom: 0.3em;
-}
-.error {
-    color: #ff4d4f;
-    font-weight: 750;
+.text-display:not(:first-of-type) {
+    margin-top: 1em;
 }
 </style>

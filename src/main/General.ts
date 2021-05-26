@@ -9,9 +9,7 @@ import { BaseExtractor, OcrExtractor, Textractor, PreprocessOption, PostProcessO
 import store from '@main/store';
 import logger from '@logger/general';
 
-export type OriginalWatchCallback = (arg: Ame.Translator.OriginalText) => void;
-export type TranslateWatchCallback = (arg: Ame.Translator.TranslateResult) => void;
-export type TranslateWatchErrorCallback = (err: any, arg: Ame.Translator.TranslateResult) => void;
+type WatchCallback = (arg: Ame.Translator.OriginalText) => void;
 
 export class General {
     private static instances: General[] = [];
@@ -21,8 +19,8 @@ export class General {
     private translatorWindow: TranslatorWindow;
     private ocrGuideWindow?: OcrGuideWindow;
 
-    private originalWatchList: { [key in Ame.Extractor.Key]: OriginalWatchCallback } = {};
-    private translateWatchList: { [key in Ame.Extractor.Key]: OriginalWatchCallback } = {};
+    private originalWatchList: { [key in Ame.Extractor.Key]: WatchCallback } = {};
+    private translateWatchList: { [key in Ame.Extractor.Key]: WatchCallback } = {};
 
     private constructor(
         public uuid: string,
@@ -231,7 +229,7 @@ export class General {
             logger(`${key} has been watched, the old callback will be remove.`);
             this.unwatchOriginal(key);
         }
-        const callback: OriginalWatchCallback = (value) => {
+        const callback: WatchCallback = (value) => {
             logger('original-watch-list-update %O', value);
             this.translatorWindow.webContents.send('original-watch-list-update', value);
             if (key !== 'any') this.translatorWindow.showInactive();
@@ -253,7 +251,7 @@ export class General {
             logger(`${key} has been watched, the old callback will be remove.`);
             this.unwatchTranslate(key);
         }
-        const callback: OriginalWatchCallback = ({ key, text }) => {
+        const callback: WatchCallback = ({ key, text }) => {
             this.translateManager.translate(key, text, (err, result) => {
                 if (!err) this.translatorWindow.webContents.send('translate-watch-list-update', result);
                 else this.translatorWindow.webContents.send('translate-watch-list-update-error', err, result);

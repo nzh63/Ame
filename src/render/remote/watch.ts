@@ -1,15 +1,17 @@
 import type { IpcRendererEvent } from 'electron';
-import type { OriginalWatchCallback, TranslateWatchCallback, TranslateWatchErrorCallback } from '@main/General';
 import { handleError } from '@render/remote/handle';
 import logger from '@logger/remote/watch';
 
 const electron = require('electron');
 
-type OriginalCallback = (event: IpcRendererEvent, arg: Ame.Translator.OriginalText) => void;
-type TranslateCallback = (event: IpcRendererEvent, arg: Ame.Translator.TranslateResult) => void;
-type TranslateErrorCallback = (event: IpcRendererEvent, err: any, arg: Ame.Translator.TranslateResult) => void;
-const originalWatchList: { [key in Ame.Extractor.Key]: OriginalCallback } = {};
-const translateWatchList: { [key in Ame.Extractor.Key]: [TranslateCallback, TranslateErrorCallback] } = {};
+type OriginalWatchCallback = (arg: Ame.Translator.OriginalText) => void;
+type TranslateWatchCallback = (arg: Ame.Translator.TranslateResult) => void;
+type TranslateWatchErrorCallback = (err: any, arg: Ame.Translator.TranslateResult) => void;
+
+type Event<T extends (...args: never[]) => void> = (event: IpcRendererEvent, ...args: Parameters<T>) => void;
+
+const originalWatchList: { [key in Ame.Extractor.Key]: Event<OriginalWatchCallback> } = {};
+const translateWatchList: { [key in Ame.Extractor.Key]: [Event<TranslateWatchCallback>, Event<TranslateWatchErrorCallback>] } = {};
 
 export function watchOriginal(key: Ame.Extractor.Key, callback: OriginalWatchCallback) {
     logger('watch original at %s', key);
@@ -17,7 +19,7 @@ export function watchOriginal(key: Ame.Extractor.Key, callback: OriginalWatchCal
         logger(`${key} has been watched, the old callback will be remove.`);
         unwatchOriginal(key);
     }
-    const callbackWrapper: OriginalCallback = (event, value) => {
+    const callbackWrapper: Event<OriginalWatchCallback> = (event, value) => {
         if (key === 'any' || key === value.key) {
             logger('original watch value update %O', value);
             callback(value);
@@ -41,13 +43,13 @@ export function watchTranslate(key: Ame.Extractor.Key, callback: TranslateWatchC
         logger(`${key} has been watched, the old callback will be remove.`);
         unwatchTranslate(key);
     }
-    const callbackWrapper: TranslateCallback = (event, value) => {
+    const callbackWrapper: Event<TranslateWatchCallback> = (event, value) => {
         if (key === 'any' || key === value.key) {
             logger('translate watch value update %O', value);
             callback(value);
         }
     };
-    const errorCallbackWrapper: TranslateErrorCallback = (event, err, value) => {
+    const errorCallbackWrapper: Event<TranslateWatchErrorCallback> = (event, err, value) => {
         if (key === 'any' || key === value.key) {
             logger('translate watch error %O %O', err, value);
             errCallback?.(err, value);
