@@ -3,8 +3,9 @@
         <text-display
             class="text-display"
             v-for="(text, index) of texts"
-            :key="text.original"
-            v-bind="text"
+            :key="text.id"
+            :original="text.original"
+            :translate="text.translate"
             :ref="
                 (el) => {
                     if (index === 0) currentTextElement = el;
@@ -30,14 +31,18 @@ export default defineComponent({
     setup() {
         const hookCode = inject<Ref<string>>('hookCode') ?? ref('');
         const running = inject<Ref<boolean>>('running') ?? ref(true);
+        const scrollToTop = inject<() => void>('scrollToTop');
 
         const MAX_LENGTH = 10;
 
-        const texts = reactive<{ original: string, translate: Translate }[]>([]);
+        const texts = reactive<{ original: string, translate: Translate, id: number }[]>([]);
+        let id = 0;
         const watchChange = () => {
             if (hookCode.value && running.value) {
                 watchOriginal(hookCode.value, ({ key, text }) => {
-                    texts.unshift({ original: text, translate: [] });
+                    texts.unshift({ original: text, translate: [], id });
+                    id++;
+                    id %= MAX_LENGTH + 1;
                     while (texts.length > MAX_LENGTH) texts.pop();
                     updateWindowHeight();
                 });
@@ -76,6 +81,7 @@ export default defineComponent({
             currentTextElement.value = null;
         });
         const updateWindowHeight = () => {
+            scrollToTop?.();
             nextTick(() => {
                 if (currentTextElement.value) {
                     const titleBarHeight = 24;

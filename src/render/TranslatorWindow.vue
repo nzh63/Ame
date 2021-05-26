@@ -1,7 +1,7 @@
 <template>
     <a-layout id="top-layout" @mouseenter="mouseenter" @mouseleave="mouseleave">
         <translator-title-bar :hideTitleBar="hideTitleBar" />
-        <a-layout-content id="main-content">
+        <a-layout-content id="main-content" ref="content">
             <router-view></router-view>
         </a-layout-content>
     </a-layout>
@@ -32,15 +32,22 @@ export default defineComponent({
         const hookCode = ref('');
         provide('setHookCode', (h: string) => { hookCode.value = h; });
         provide('hookCode', hookCode);
+
         const running = ref(false);
         provide('setRunning', (r: boolean) => { running.value = r; });
         provide('running', running);
+
+        const content = ref<any>(null);
+        provide('scrollToTop', () => {
+            if (content.value) content.value.$el.scrollTop &&= 0;
+        });
 
         return {
             hideTitleBar,
             hideTimeout,
             mouseenter,
-            mouseleave
+            mouseleave,
+            content
         };
     }
 });
