@@ -33,7 +33,7 @@ export class TranslatorWindow extends WindowWithGeneral {
     }]);
 
     constructor(
-        public general: General,
+        general: General,
         public gamePids: number[],
         autoShow = true
     ) {

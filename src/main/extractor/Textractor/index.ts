@@ -14,17 +14,14 @@ export declare interface Textractor extends BaseExtractor {
     on(event: 'update:any', listener: (t: Ame.Translator.OriginalText) => void): this;
     on<T extends Ame.Extractor.Key>(event: `update:${T}`, listener: (t: Ame.Translator.OriginalText) => void): this;
     on(event: 'textractor-cli-exit', listener: (code: number | null) => void): this;
-    on(event: string | symbol, listener: (...args: any[]) => void): this;
 
     once(event: 'update:any', listener: (t: Ame.Translator.OriginalText) => void): this;
     once<T extends Ame.Extractor.Key>(event: `update:${T}`, listener: (t: Ame.Translator.OriginalText) => void): this;
     once(event: 'textractor-cli-exit', listener: (code: number | null) => void): this;
-    once(event: string | symbol, listener: (...args: any[]) => void): this;
 
     off(event: 'update:any', listener: (t: Ame.Translator.OriginalText) => void): this;
     off<T extends Ame.Extractor.Key>(event: `update:${T}`, listener: (t: Ame.Translator.OriginalText) => void): this;
     off(event: 'textractor-cli-exit', listener: (code: number | null) => void): this;
-    off(event: string | symbol, listener: (...args: any[]) => void): this;
 }
 
 export class Textractor extends BaseExtractor {

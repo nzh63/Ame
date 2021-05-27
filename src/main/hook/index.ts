@@ -16,7 +16,6 @@ export declare interface Hook extends NodeJS.EventEmitter {
     on(event: 'mouse-left-down', listener: () => void): this;
     on(event: 'mouse-left-up', listener: () => void): this;
     on(event: 'mouse-wheel', listener: () => void): this;
-    on(event: string | symbol, listener: (...args: any[]) => void): this;
 
     once(event: 'window-move', listener: (arg: { diffLeft: number, diffTop: number }) => void): this;
     once(event: 'window-minimize', listener: () => void): this;
@@ -28,7 +27,6 @@ export declare interface Hook extends NodeJS.EventEmitter {
     once(event: 'mouse-left-down', listener: () => void): this;
     once(event: 'mouse-left-up', listener: () => void): this;
     once(event: 'mouse-wheel', listener: () => void): this;
-    once(event: string | symbol, listener: (...args: any[]) => void): this;
 
     off(event: 'window-move', listener: (arg: { diffLeft: number, diffTop: number }) => void): this;
     off(event: 'window-minimize', listener: () => void): this;
@@ -40,7 +38,6 @@ export declare interface Hook extends NodeJS.EventEmitter {
     off(event: 'mouse-left-down', listener: () => void): this;
     off(event: 'mouse-left-up', listener: () => void): this;
     off(event: 'mouse-wheel', listener: () => void): this;
-    off(event: string | symbol, listener: (...args: any[]) => void): this;
 }
 
 export class Hook extends EventEmitter {

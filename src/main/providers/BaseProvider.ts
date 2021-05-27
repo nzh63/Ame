@@ -41,9 +41,9 @@ export class BaseProvider<ID extends string = string, S extends Schema = any, D 
         for (const i in this.$methods) {
             this.$methods[i] = this.$methods[i].bind(this) as M[Extract<keyof M, string>];
         }
-        this.bindData(this.$options);
-        this.bindData(this.$data);
-        this.bindData(this.$methods);
+        this.#bindData(this.$options);
+        this.#bindData(this.$data);
+        this.#bindData(this.$methods);
         logger({ id: this.$id, options: this.$options });
         try {
             const initRet = $config.init?.call(this);
@@ -56,7 +56,7 @@ export class BaseProvider<ID extends string = string, S extends Schema = any, D 
         }
     }
 
-    private bindData(data: any) {
+    #bindData(data: any) {
         if (data !== null && typeof data === 'object') {
             for (const i in data) {
                 if (!(i in this)) {

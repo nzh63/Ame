@@ -20,7 +20,7 @@ export class OcrGuideWindow extends WindowWithGeneral {
         : `file://${__dirname}/../render/OcrGuide.html`;
 
     constructor(
-        public general: General
+        general: General
     ) {
         super(general, OcrGuideWindow.windowOption);
         this.loadURL(OcrGuideWindow.url);

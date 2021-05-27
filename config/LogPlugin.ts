@@ -77,7 +77,7 @@ export default function replace(options: Options = { logFunction: {} }) {
         try {
             walk(ts.createSourceFile(id, code, ts.ScriptTarget.ESNext, true), (node) => {
                 if (node.kind === ts.SyntaxKind.CallExpression) {
-                    if ((node as ts.CallExpression).expression.getText() === 'logger') {
+                    if (Object.keys(options.logFunction).includes((node as ts.CallExpression).expression.getText())) {
                         magicString.overwrite(node.getStart(), node.getEnd(), '(void 0)');
                         return true;
                     }
