@@ -243,6 +243,7 @@ export class General {
         logger('unwatch original at %s', key);
         if (!this.originalWatchList[key]) return;
         this.extractor.off(`update:${key}`, this.originalWatchList[key]);
+        delete this.originalWatchList[key];
     }
 
     public watchTranslate(key: Ame.Extractor.Key) {
@@ -266,6 +267,7 @@ export class General {
         logger('unwatch translate at %s', key);
         if (!this.translateWatchList[key]) return;
         this.extractor.off(`update:${key}`, this.translateWatchList[key]);
+        delete this.translateWatchList[key];
     }
 
     public get text(): Readonly<Ame.Extractor.Result> {
