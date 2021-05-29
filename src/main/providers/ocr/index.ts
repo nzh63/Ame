@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import type { Schema } from '@main/schema';
 import type { OcrProviderMethods, OcrProviderConfig } from '@main/providers/OcrProvider';
-import type { BaseProviderOptions } from '@main/providers/BaseProvider';
+import type { BaseProviderOptions, Methods } from '@main/providers/BaseProvider';
 import tesseract from './tesseract';
 import tencentcloud from './tencentcloud';
 import baiduAi from './baiduAi';
@@ -11,7 +11,7 @@ export function defineOcrProvider<
     ID extends string,
     S extends Schema,
     D,
-    M extends { readonly [name: string]:() => any } = {}
+    M extends Methods = {}
 >(
     arg: BaseProviderOptions<ID, S, D>,
     methods: OcrProviderMethods<ID, S, D, M>

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import type { Schema } from '@main/schema';
 import type { DictProviderMethods, DictProviderConfig } from '@main/providers/DictProvider';
-import type { BaseProviderOptions } from '@main/providers/BaseProvider';
+import type { BaseProviderOptions, Methods } from '@main/providers/BaseProvider';
 import querystring from 'querystring';
 import util from 'util';
 import { shell } from 'electron';
@@ -13,7 +13,7 @@ export function defineDictProvider<
     ID extends string,
     S extends Schema,
     D,
-    M extends { readonly [name: string]:() => any } = {}
+    M extends Methods = {}
 >(
     arg: BaseProviderOptions<ID, S, D>,
     methods: DictProviderMethods<ID, S, D, M>

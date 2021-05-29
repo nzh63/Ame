@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import type { Schema } from '@main/schema';
 import type { TranslateProviderConfig, TranslateProviderMethods } from '@main/providers/TranslateProvider';
-import type { BaseProviderOptions } from '@main/providers/BaseProvider';
+import type { BaseProviderOptions, Methods } from '@main/providers/BaseProvider';
 import echo from './echo';
 import tencentcloud from './tencentcloud';
 import baiduAi from './baiduAi';
@@ -16,7 +16,7 @@ export function defineTranslateProvider<
     ID extends string,
     S extends Schema,
     D,
-    M extends { readonly [name: string]:() => any } = {}
+    M extends Methods = {}
 >(
     arg: BaseProviderOptions<ID, S, D>,
     methods: TranslateProviderMethods<ID, S, D, M>

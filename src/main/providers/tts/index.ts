@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import type { Schema } from '@main/schema';
 import type { TtsProviderMethods, TtsProviderConfig } from '@main/providers/TtsProvider';
-import type { BaseProviderOptions } from '@main/providers/BaseProvider';
+import type { BaseProviderOptions, Methods } from '@main/providers/BaseProvider';
 import WebSpeechSynthesisApi from './WebSpeechSynthesisApi';
 
 // eslint-disable-next-line @typescript-eslint/ban-types
@@ -9,7 +9,7 @@ export function defineTtsProvider<
     ID extends string,
     S extends Schema,
     D,
-    M extends { readonly [name: string]:() => any } = {}
+    M extends Methods = {}
 >(
     arg: BaseProviderOptions<ID, S, D>,
     methods: TtsProviderMethods<ID, S, D, M>
