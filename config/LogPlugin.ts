@@ -43,7 +43,7 @@ export default function replace(options: Options = { logFunction: {} }) {
         let result = false;
         let match: RegExpExecArray;
 
-        const fileName = path.basename(id);
+        const fileName = path.relative(path.join(__dirname, '..'), id);
         let codeSplit: string[] | null = null;
 
         while ((match = pattern.exec(code))) {
