@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/ban-types */
+import type { Schema } from '@main/schema';
+import type { DictProviderMethods, DictProviderConfig } from '@main/providers/DictProvider';
+import type { BaseProviderOptions } from '@main/providers/BaseProvider';
 import querystring from 'querystring';
 import util from 'util';
 import { shell } from 'electron';
-import type { Schema } from '@main/schema';
-import type { DictProviderOptions, DictProviderMethods, DictProviderConfig } from '@main/providers/DictProvider';
 import youdao from './youdao';
 import hujiang from './hujiang';
 
@@ -14,7 +15,7 @@ export function defineDictProvider<
     D,
     M extends { readonly [name: string]:() => any } = {}
 >(
-    arg: DictProviderOptions<ID, S, D>,
+    arg: BaseProviderOptions<ID, S, D>,
     methods: DictProviderMethods<ID, S, D, M>
 ): DictProviderConfig<ID, S, D, M> {
     return { ...arg, ...methods, providersStoreKey: 'dictProviders' };

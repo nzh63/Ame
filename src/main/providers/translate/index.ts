@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import type { Schema } from '@main/schema';
-import type { TranslateProviderConfig, TranslateProviderMethods, TranslateProviderOptions } from '@main/providers/TranslateProvider';
+import type { TranslateProviderConfig, TranslateProviderMethods } from '@main/providers/TranslateProvider';
+import type { BaseProviderOptions } from '@main/providers/BaseProvider';
 import echo from './echo';
 import tencentcloud from './tencentcloud';
 import baiduAi from './baiduAi';
@@ -17,7 +18,7 @@ export function defineTranslateProvider<
     D,
     M extends { readonly [name: string]:() => any } = {}
 >(
-    arg: TranslateProviderOptions<ID, S, D>,
+    arg: BaseProviderOptions<ID, S, D>,
     methods: TranslateProviderMethods<ID, S, D, M>
 ): TranslateProviderConfig<ID, S, D, M> {
     return { ...arg, ...methods, providersStoreKey: 'translateProviders' };

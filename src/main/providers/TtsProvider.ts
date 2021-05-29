@@ -1,27 +1,15 @@
-import type { Schema, SchemaDescription, SchemaType } from '@main/schema';
-import { BaseProvider, ProviderThisType } from './BaseProvider';
+import type { Schema } from '@main/schema';
+import { BaseProvider, BaseProviderMethods, BaseProviderOptions, Methods } from './BaseProvider';
 import logger from '@logger/providers/ttsProvider';
 
-export type TtsProviderOptions<ID extends string, S extends Schema, D> = {
-    id: ID;
-    optionsSchema: S;
-    defaultOptions: SchemaType<S>;
-    optionsDescription?: SchemaDescription<S>;
-    description?: string;
-    data(): D;
-};
-export type TtsProviderMethods<ID extends string, S extends Schema, D, M extends { readonly [name: string]: () => unknown }> = {
-    init?(): void | Promise<void>;
-    isReady(): boolean;
+export type TtsProviderMethods<ID extends string, S extends Schema, D, M extends Methods> = {
     speak(text: string, type: 'original' | 'translate'): Promise<void> | void;
-    destroy?(): void;
-    methods?: M & ProviderThisType<TtsProvider<ID, S, D, M>>;
-} & ProviderThisType<TtsProvider<ID, S, D, M>>;
+} & BaseProviderMethods<ID, S, D, M, TtsProvider<ID, S, D, M>>;
 
-export type TtsProviderConfig<ID extends string, S extends Schema, D, M extends { readonly [name: string]: () => unknown }> = TtsProviderOptions<ID, S, D> & TtsProviderMethods<ID, S, D, M> & { providersStoreKey: 'ttsProviders' };
+export type TtsProviderConfig<ID extends string, S extends Schema, D, M extends Methods> = BaseProviderOptions<ID, S, D> & TtsProviderMethods<ID, S, D, M> & { providersStoreKey: 'ttsProviders' };
 
 // eslint-disable-next-line @typescript-eslint/ban-types
-export class TtsProvider<ID extends string = string, S extends Schema = any, D = unknown, M extends { readonly [name: string]: () => unknown } = {}> extends BaseProvider<ID, S, D, M, TtsProviderConfig<ID, S, D, M>> {
+export class TtsProvider<ID extends string = string, S extends Schema = any, D = unknown, M extends Methods = {}> extends BaseProvider<ID, S, D, M, TtsProviderConfig<ID, S, D, M>> {
     public async speak(text: string, type: 'original' | 'translate'): Promise<void> {
         logger(`${this.$id} speak ${text} ${type}`);
         try {

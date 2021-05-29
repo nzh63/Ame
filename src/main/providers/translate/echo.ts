@@ -6,8 +6,5 @@ export default defineTranslateProvider({
     defaultOptions: null,
     data() { return null; }
 }, {
-    init() { },
-    isReady() { return import.meta.env.DEV; },
-    translate(t) { return t; },
-    destroy() { }
+    translate(t) { return t; }
 });

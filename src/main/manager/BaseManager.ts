@@ -2,12 +2,12 @@ import { BaseProvider } from '@main/providers';
 import store from '@main/store';
 import logger from '@logger/manager';
 
-export class BaseManager<P extends BaseProvider, C extends BaseProvider['$config'] = P['$config']> {
+export class BaseManager<P extends BaseProvider> {
     public providers: P[] = [];
 
     constructor(
-        private availableConfigs: readonly C[],
-        private Class: new (arg: C) => P
+        private availableConfigs: readonly P['$config'][],
+        private Class: new (arg: P['$config']) => P
     ) {
         this.setupProviders();
         store.onDidChange(availableConfigs[0].providersStoreKey as any, () => this.refreshProviders());
