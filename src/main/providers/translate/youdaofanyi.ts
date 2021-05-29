@@ -39,7 +39,7 @@ export default defineTranslateProvider({
                     '(async function() {' +
                     "    document.querySelector('.select-text').click();" +
                     '    await new Promise(resolve => setTimeout(resolve, 0));' +
-                    `    let node = Array.from(document.querySelectorAll('#languageSelect li a')).find(i => /${this.fromLanguage}.*${this.toLanguage}/.test(i.innerText));` +
+                    `    let node = Array.from(document.querySelectorAll('#languageSelect li a')).find(i => new RegExp(${JSON.stringify(this.fromLanguage)} + '.*' + ${JSON.stringify(this.toLanguage)}).test(i.innerText));` +
                     '    node?.click();' +
                     '})();'
             }]
