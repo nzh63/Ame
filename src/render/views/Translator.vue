@@ -29,7 +29,7 @@ export default defineComponent({
         TextDisplay
     },
     setup() {
-        const hookCode = inject<Ref<string>>('hookCode') ?? ref('');
+        const hookCodes = inject<Ref<string[]>>('hookCodes') ?? ref([]);
         const running = inject<Ref<boolean>>('running') ?? ref(true);
         const scrollToTop = inject<() => void>('scrollToTop');
 
@@ -38,37 +38,39 @@ export default defineComponent({
         const texts = reactive<{ original: string, translate: Translate, id: number }[]>([]);
         let id = 0;
         const watchChange = () => {
-            if (hookCode.value && running.value) {
-                watchOriginal(hookCode.value, ({ key, text }) => {
-                    texts.unshift({ original: text, translate: [], id });
-                    id++;
-                    id %= MAX_LENGTH + 1;
-                    while (texts.length > MAX_LENGTH) texts.pop();
-                    updateWindowHeight();
-                });
-                watchTranslate(
-                    hookCode.value,
-                    (result) => {
-                        const text = texts.find(i => i.original === result.originalText);
-                        if (result.key === hookCode.value && text) {
-                            text.translate.push({ id: result.providerId, text: result.translateText });
-                            updateWindowHeight();
+            if (hookCodes.value && running.value) {
+                for (const hookCode of hookCodes.value) {
+                    watchOriginal(hookCode, ({ key, text }) => {
+                        texts.unshift({ original: text, translate: [], id });
+                        id++;
+                        id %= MAX_LENGTH + 1;
+                        while (texts.length > MAX_LENGTH) texts.pop();
+                        updateWindowHeight();
+                    });
+                    watchTranslate(
+                        hookCode,
+                        (result) => {
+                            const text = texts.find(i => i.original === result.originalText);
+                            if (result.key === hookCode && text) {
+                                text.translate.push({ id: result.providerId, text: result.translateText });
+                                updateWindowHeight();
+                            }
+                        },
+                        (err, result) => {
+                            const text = texts.find(i => i.original === result.originalText);
+                            if (result.key === hookCode && text) {
+                                text.translate.push({ err, id: result.providerId, text: result.translateText });
+                                updateWindowHeight();
+                            }
                         }
-                    },
-                    (err, result) => {
-                        const text = texts.find(i => i.original === result.originalText);
-                        if (result.key === hookCode.value && text) {
-                            text.translate.push({ err, id: result.providerId, text: result.translateText });
-                            updateWindowHeight();
-                        }
-                    }
-                );
+                    );
+                }
             }
         };
         const unwatchChange = () => {
-            if (hookCode.value) {
-                unwatchOriginal(hookCode.value);
-                unwatchTranslate(hookCode.value);
+            for (const hookCode of hookCodes.value) {
+                unwatchOriginal(hookCode);
+                unwatchTranslate(hookCode);
             }
         };
         watchChange();
@@ -116,7 +118,7 @@ export default defineComponent({
         };
 
         return {
-            hookCode,
+            hookCodes,
             texts,
             currentTextElement,
             onTts

@@ -1,35 +1,64 @@
 <template>
-    <a-list item-layout="horizontal" :data-source="Object.keys(texts)">
-        <a-list-item v-for="(text, key) of texts" :key="key">
-            <a-list-item-meta>
-                <template #title>{{ text }}</template>
-                <template #description>{{ key }}</template>
-            </a-list-item-meta>
-            <template #actions>
-                <a-button
-                    type="primary"
-                    shape="round"
-                    @click="setHookCode(key)"
-                >
-                    <template #icon>
-                        <check-outlined />
-                    </template>
-                    使用
+    <div>
+        <a-affix :offset-top="0">
+            <a-space>
+                <a-button shape="circle" @click="clear">
+                    <template #icon><delete-outlined /></template>
                 </a-button>
-            </template>
-        </a-list-item>
-    </a-list>
+                <a-radio-group name="mode" v-model:value="multiselect">
+                    <a-radio :value="false">单选模式</a-radio>
+                    <a-radio :value="true">多选模式</a-radio>
+                </a-radio-group>
+            </a-space>
+        </a-affix>
+        <a-list item-layout="horizontal" :data-source="Object.keys(texts)">
+            <a-list-item v-for="(text, key) of texts" :key="key">
+                <a-list-item-meta>
+                    <template #title>
+                        <span class="break-all">{{ text }}</span>
+                    </template>
+                    <template #description>{{ key }}</template>
+                </a-list-item-meta>
+                <template #actions>
+                    <a-button
+                        v-if="hookCodes.includes(key)"
+                        class="sucess"
+                        type="primary"
+                        shape="round"
+                    >
+                        <template #icon>
+                            <check-outlined />
+                        </template>
+                        使用中
+                    </a-button>
+                    <a-button
+                        v-else
+                        type="primary"
+                        shape="round"
+                        @click="setHookCode(key)"
+                    >
+                        <template #icon>
+                            <select-outlined />
+                        </template>
+                        使用
+                    </a-button>
+                </template>
+            </a-list-item>
+        </a-list>
+    </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, inject, onUnmounted, ref } from 'vue';
-import { CheckOutlined } from '@ant-design/icons-vue';
+import { defineComponent, inject, onUnmounted, Ref, ref } from 'vue';
+import { CheckOutlined, DeleteOutlined, SelectOutlined } from '@ant-design/icons-vue';
 import { watchOriginal, unwatchOriginal, getAllExtractText } from '@render/remote';
 import { useRouter } from 'vue-router';
 
 export default defineComponent({
     components: {
-        CheckOutlined
+        CheckOutlined,
+        DeleteOutlined,
+        SelectOutlined
     },
     setup() {
         const texts = ref<{ [key: string]: string }>({});
@@ -41,22 +70,45 @@ export default defineComponent({
             unwatchOriginal('any');
         });
 
-        const setHookCodeInject = inject<(h: string) => void>('setHookCode');
+        const hookCodes = inject<Ref<string[]>>('hookCodes') ?? ref([]);
+        const setHookCodeInject = inject<(h: string[]) => void>('setHookCodes');
         const router = useRouter();
         const setRunning = inject<(r: boolean) => void>('setRunning');
+
+        const multiselect = ref(hookCodes.value.length > 1);
+
         const setHookCode = (h: string | number) => {
-            setHookCodeInject?.('' + h);
+            if (multiselect.value) setHookCodeInject?.([...hookCodes.value, '' + h]);
+            else setHookCodeInject?.(['' + h]);
             setRunning?.(true);
-            router.push('/translator');
+            if (!multiselect.value) router.push('/translator');
+        };
+
+        const clear = () => {
+            if (hookCodes.value.length) {
+                hookCodes.value = [];
+            } else {
+                texts.value = {};
+            }
         };
 
         return {
+            hookCodes,
             texts,
-            setHookCode
+            setHookCode,
+            multiselect,
+            clear
         };
     }
 });
 </script>
 
 <style scoped>
+.sucess {
+    background: #52c41a;
+    border-color: #52c41a;
+}
+.break-all {
+    word-break: break-all;
+}
 </style>

@@ -29,9 +29,9 @@ export default defineComponent({
             hideTimeout.value = setTimeout(() => { hideTitleBar.value = true; }, 1000);
         };
 
-        const hookCode = ref('');
-        provide('setHookCode', (h: string) => { hookCode.value = h; });
-        provide('hookCode', hookCode);
+        const hookCodes = ref<string[]>([]);
+        provide('setHookCodes', (h: string[]) => { hookCodes.value = h; });
+        provide('hookCodes', hookCodes);
 
         const running = ref(false);
         provide('setRunning', (r: boolean) => { running.value = r; });
