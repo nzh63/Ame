@@ -3,6 +3,7 @@ import type { Schema } from '@main/schema';
 import type { SegmentProviderMethods, SegmentProviderConfig } from '@main/providers/SegmentProvider';
 import type { BaseProviderOptions, Methods } from '@main/providers/BaseProvider';
 import intlSegmenter from './intl-segmenter';
+import mecab from './mecab';
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export function defineSegmentProvider<
@@ -17,5 +18,5 @@ export function defineSegmentProvider<
     return { ...arg, ...methods, providersStoreKey: 'segmentProviders' };
 }
 
-export const availableSegmentConfigs = [intlSegmenter] as const;
+export const availableSegmentConfigs = [intlSegmenter, mecab] as const;
 export type AvailableSegmentConfigs = typeof availableSegmentConfigs;
