@@ -61,7 +61,7 @@ body,
     margin: 24px 16px;
     padding: 24px;
     background: #fff;
-    minheight: 280px;
+    min-height: 280px;
 }
 .aside {
     overflow: hidden;

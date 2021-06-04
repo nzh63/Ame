@@ -182,7 +182,9 @@ export default defineComponent({
             this.current++;
         },
         async done() {
-            await store.set('games', [...await store.get('games', []), { ...toRaw(this.formState), uuid: uuidv4() }]);
+            const newGame: any = { ...toRaw(this.formState) };
+            delete newGame.localeChanger;
+            await store.set('games', [...await store.get('games', []), { ...newGame, uuid: uuidv4() }]);
         },
         updateExecShell() {
             this.formState.execShell = (this.localeChangers.find(i => i.name === this.formState.localeChanger)?.execShell ?? "&'%GAME'").replace('%GAME%', this.formState.path);
