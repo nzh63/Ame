@@ -22,7 +22,7 @@ describe('process', function() {
         const processes = Object.keys(Array.from({ length: 5 }))
             .map(i => spawn('powershell', ['/C', 'sleep', '0.00' + i]));
         processes.forEach(i => expect(i.exitCode).to.be.null);
-        await waitProcessForExit(processes.map(i => i.pid));
+        await waitProcessForExit(processes.map(i => i.pid).filter(i => i) as number[]);
         await new Promise(resolve => setImmediate(resolve));
         await new Promise(resolve => setImmediate(resolve));
         processes.forEach(i => expect(i.exitCode).to.equal(0));
