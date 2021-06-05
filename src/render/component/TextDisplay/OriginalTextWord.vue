@@ -21,13 +21,17 @@
         </template>
       </div>
     </template>
-    <span class="word">
+    <span
+      class="word"
+      v-bind="$attrs"
+    >
       {{ word.word }}
     </span>
   </a-tooltip>
   <span
     v-else
     class="word"
+    v-bind="$attrs"
   >
     {{ word.word }}
   </span>
@@ -38,6 +42,7 @@ import type { SegmentWord } from '@main/manager/SegmentManager';
 import { computed, defineComponent, PropType } from 'vue';
 
 export default defineComponent({
+    inheritAttrs: false,
     props: {
         word: {
             type: Object as PropType<SegmentWord>,

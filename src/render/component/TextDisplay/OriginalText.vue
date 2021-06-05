@@ -13,7 +13,7 @@
       :key="index"
       :word="s"
       :get-popup-container="() => $el"
-      @click="query(s)"
+      @click="query(s.word)"
     />
   </span>
 </template>
