@@ -126,6 +126,7 @@ export default defineComponent({
     }
 });
 </script>
+
 <style scoped>
 .drag-area {
     min-width: 100%;
@@ -134,6 +135,7 @@ export default defineComponent({
 .tip {
     position: sticky;
     height: 0;
+    margin: 0;
     top: 50%;
     z-index: 999;
     text-align: center;
@@ -146,7 +148,8 @@ export default defineComponent({
     pointer-events: none;
 }
 .draging {
-    border: rgba(0, 0, 0, 0.85) dashed;
+    border: rgba(0, 0, 0, 0.85) dashed 2.5px;
+    margin: -2.5px;
 }
 .dash-board {
     display: flex;
