@@ -51,8 +51,18 @@ export default defineSegmentProvider({
         return output
             .split('\n')
             .flatMap(i => {
-                const ret = /^(.+)\t/.exec(i)?.[1];
-                return ret ? [ret] : [];
+                const [, word, desc] = /^(.+)\t(.*)/.exec(i) ?? [] as undefined[];
+                if (word === undefined) return [];
+                let extraInfo: string | undefined;
+                if (desc) {
+                    let [, type, conjugation, original] = /(.+?,.+?,.+?,.+?),(.+?,.+?),(.+?),/.exec(desc) ?? [] as undefined[];
+                    if (type) type = type.split(',').filter(i => i !== '*').join('/');
+                    if (conjugation) conjugation = conjugation.split(',').filter(i => i !== '*').join('/');
+                    if (original === word || original === '*') original = undefined;
+                    else if (original) original = '原形: ' + original;
+                    extraInfo = [type, conjugation, original].filter(i => i).join('\n');
+                }
+                return [{ word, extraInfo }];
             });
     }
 });

@@ -1,22 +1,26 @@
 <template>
     <span v-if="!segmented" @mouseenter="segment">{{ text }}</span>
-    <span v-else>
-        <span
+    <span v-else class="original-text-line" title>
+        <original-text-word
             v-for="(s, index) of splitText"
-            class="word"
             :key="index"
+            :word="s"
+            :get-popup-container="() => $el"
             @click="query(s)"
-        >
-            {{ s }}
-        </span>
+        />
     </span>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch } from 'vue';
+import type { SegmentWord } from '@main/manager/SegmentManager';
+import { defineComponent, getCurrentInstance, ref, watch } from 'vue';
 import { dictQuery, segment as segmentText } from '@render/remote';
+import OriginalTextWord from './OriginalTextWord.vue';
 
 export default defineComponent({
+    components: {
+        OriginalTextWord
+    },
     props: {
         text: {
             type: String,
@@ -24,7 +28,7 @@ export default defineComponent({
         }
     },
     setup(props) {
-        const splitText = ref<string[]>([]);
+        const splitText = ref<SegmentWord[]>([]);
         const segmented = ref(false);
         let segmenting = false;
 
@@ -49,19 +53,21 @@ export default defineComponent({
             dictQuery(word);
         };
 
+        const internalInstance = getCurrentInstance();
+
         return {
             splitText,
             segmented,
             segment,
-            query
+            query,
+            internalInstance
         };
     }
 });
 </script>
 
 <style scoped>
-.word:hover {
-    background: rgba(255, 255, 255, 0.2);
-    cursor: pointer;
+.original-text-line {
+    position: relative;
 }
 </style>
