@@ -1,19 +1,19 @@
 <template>
-    <div>
-        <text-display
-            class="text-display"
-            v-for="(text, index) of texts"
-            :key="text.id"
-            :original="text.original"
-            :translate="text.translate"
-            :ref="
-                (el) => {
-                    if (index === 0) currentTextElement = el;
-                }
-            "
-            @tts-speak="onTts"
-        />
-    </div>
+  <div>
+    <text-display
+      v-for="(text, index) of texts"
+      :key="text.id"
+      :ref="
+        (el) => {
+          if (index === 0) currentTextElement = el;
+        }
+      "
+      class="text-display"
+      :original="text.original"
+      :translate="text.translate"
+      @tts-speak="onTts"
+    />
+  </div>
 </template>
 
 <script lang="ts">

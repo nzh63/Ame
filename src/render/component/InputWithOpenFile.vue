@@ -1,11 +1,19 @@
 <template>
-    <a-input :value="value" @update:value="update" :placeholder="placeholder">
-        <template #suffix>
-            <a-tooltip title="打开...">
-                <more-outlined class="open" :rotate="90" @click="open" />
-            </a-tooltip>
-        </template>
-    </a-input>
+  <a-input
+    :value="value"
+    :placeholder="placeholder"
+    @update:value="update"
+  >
+    <template #suffix>
+      <a-tooltip title="打开...">
+        <more-outlined
+          class="open"
+          :rotate="90"
+          @click="open"
+        />
+      </a-tooltip>
+    </template>
+  </a-input>
 </template>
 
 <script lang="ts">
@@ -23,13 +31,15 @@ export default defineComponent({
             default: ''
         },
         placeholder: {
-            type: String
+            type: String,
+            default: ''
         },
         pathTransform: {
             type: Function,
             default: (path: string) => path
         }
     },
+    emits: ['update:value'],
     data() {
         return {
             showEdit: false,

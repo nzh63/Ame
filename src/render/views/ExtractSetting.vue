@@ -1,27 +1,44 @@
 <template>
-    <div>
-        <a-form :label-col="{ span: 3 }" :wrapper-col="{ span: 21 }">
-            <a-form-item label="提取方法">
-                <a-select :value="type" @change="changeType">
-                    <a-select-option value="textractor">
-                        Textractor
-                    </a-select-option>
-                    <a-select-option value="ocr">OCR</a-select-option>
-                </a-select>
-            </a-form-item>
-            <a-form-item v-if="type === 'textractor'" label="详细设置">
-                <textractor-setting />
-            </a-form-item>
-            <a-form-item v-if="type === 'ocr'" label="">
-                <a-button type="primary" @click="openOcrGuideWindow">
-                    <template #icon>
-                        <reload-outlined />
-                    </template>
-                    再次启动Ocr引导界面
-                </a-button>
-            </a-form-item>
-        </a-form>
-    </div>
+  <div>
+    <a-form
+      :label-col="{ span: 3 }"
+      :wrapper-col="{ span: 21 }"
+    >
+      <a-form-item label="提取方法">
+        <a-select
+          :value="type"
+          @change="changeType"
+        >
+          <a-select-option value="textractor">
+            Textractor
+          </a-select-option>
+          <a-select-option value="ocr">
+            OCR
+          </a-select-option>
+        </a-select>
+      </a-form-item>
+      <a-form-item
+        v-if="type === 'textractor'"
+        label="详细设置"
+      >
+        <textractor-setting />
+      </a-form-item>
+      <a-form-item
+        v-if="type === 'ocr'"
+        label=""
+      >
+        <a-button
+          type="primary"
+          @click="openOcrGuideWindow"
+        >
+          <template #icon>
+            <reload-outlined />
+          </template>
+          再次启动Ocr引导界面
+        </a-button>
+      </a-form-item>
+    </a-form>
+  </div>
 </template>
 
 <script lang="ts">

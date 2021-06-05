@@ -3,6 +3,12 @@ import { Spin } from 'ant-design-vue';
 import { LoadingOutlined } from '@ant-design/icons-vue';
 
 export default defineComponent({
+    props: {
+        spinning: {
+            type: Boolean,
+            default: true
+        }
+    },
     render() {
         return h(Spin, {
             spinning: this.spinning,
@@ -12,11 +18,5 @@ export default defineComponent({
                 return this.$slots.default?.();
             }
         });
-    },
-    props: {
-        spinning: {
-            type: Boolean,
-            default: true
-        }
     }
 });

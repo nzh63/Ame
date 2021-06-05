@@ -26,7 +26,7 @@ module.exports = {
         'vue/no-v-model-argument': 'off'
     },
     extends: [
-        'plugin:vue/vue3-essential',
+        'plugin:vue/vue3-recommended',
         '@vue/standard',
         '@vue/typescript/recommended'
     ]

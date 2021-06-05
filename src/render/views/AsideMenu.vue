@@ -1,105 +1,111 @@
 <template>
-    <div>
-        <div class="logo">
-            <img src="@assets/icon.svg" />
-            <div class="text">
-                <div class="title">Ame</div>
-                <div class="description">Visual Novel Translator</div>
-            </div>
+  <div>
+    <div class="logo">
+      <img src="@assets/icon.svg">
+      <div class="text">
+        <div class="title">
+          Ame
         </div>
-        <a-menu
-            theme="dark"
-            mode="inline"
-            :default-selected-keys="['/dashboard']"
-            :selectedKeys="selectedKeys"
-            @click="onClick"
-        >
-            <a-menu-item key="/dashboard">
-                <span>主页</span>
-            </a-menu-item>
-            <a-menu-item key="/add-game">
-                <span>添加游戏</span>
-            </a-menu-item>
-            <a-menu-item key="/options/locale-changers">
-                <span>区域转换器设置</span>
-            </a-menu-item>
-            <a-sub-menu key="/options/translate-provider">
-                <template v-slot:title>
-                    <span>
-                        <span>翻译器设置</span>
-                    </span>
-                </template>
-                <a-menu-item
-                    v-for="id in translateProvidersIDs"
-                    :key="`/options/translate-provider/${id}`"
-                >
-                    {{ id }}
-                </a-menu-item>
-            </a-sub-menu>
-            <a-sub-menu key="/options/tts-provider">
-                <template v-slot:title>
-                    <span>
-                        <span>TTS设置</span>
-                    </span>
-                </template>
-                <a-menu-item key="/options/tts-manager"> 通用设置 </a-menu-item>
-                <a-menu-item
-                    v-for="id in ttsProvidersIDs"
-                    :key="`/options/tts-provider/${id}`"
-                >
-                    {{ id }}
-                </a-menu-item>
-            </a-sub-menu>
-            <a-sub-menu key="/options/ocr-provider">
-                <template v-slot:title>
-                    <span>
-                        <span>OCR设置</span>
-                    </span>
-                </template>
-                <a-menu-item key="/options/ocr-extractor">
-                    通用设置
-                </a-menu-item>
-                <a-menu-item
-                    v-for="id in ocrProvidersIDs"
-                    :key="`/options/ocr-provider/${id}`"
-                >
-                    {{ id }}
-                </a-menu-item>
-            </a-sub-menu>
-            <a-sub-menu key="/options/segment-provider">
-                <template v-slot:title>
-                    <span>
-                        <span>分词设置</span>
-                    </span>
-                </template>
-                <a-menu-item key="/options/segment-manager">
-                    通用设置
-                </a-menu-item>
-                <a-menu-item
-                    v-for="id in segmentProvidersIDs"
-                    :key="`/options/segment-provider/${id}`"
-                >
-                    {{ id }}
-                </a-menu-item>
-            </a-sub-menu>
-            <a-sub-menu key="/options/dict-provider">
-                <template v-slot:title>
-                    <span>
-                        <span>词典设置</span>
-                    </span>
-                </template>
-                <a-menu-item key="/options/dict-manager">
-                    通用设置
-                </a-menu-item>
-                <a-menu-item
-                    v-for="id in dictProvidersIDs"
-                    :key="`/options/dict-provider/${id}`"
-                >
-                    {{ id }}
-                </a-menu-item>
-            </a-sub-menu>
-        </a-menu>
+        <div class="description">
+          Visual Novel Translator
+        </div>
+      </div>
     </div>
+    <a-menu
+      theme="dark"
+      mode="inline"
+      :default-selected-keys="['/dashboard']"
+      :selected-keys="selectedKeys"
+      @click="onClick"
+    >
+      <a-menu-item key="/dashboard">
+        <span>主页</span>
+      </a-menu-item>
+      <a-menu-item key="/add-game">
+        <span>添加游戏</span>
+      </a-menu-item>
+      <a-menu-item key="/options/locale-changers">
+        <span>区域转换器设置</span>
+      </a-menu-item>
+      <a-sub-menu key="/options/translate-provider">
+        <template #title>
+          <span>
+            <span>翻译器设置</span>
+          </span>
+        </template>
+        <a-menu-item
+          v-for="id in translateProvidersIDs"
+          :key="`/options/translate-provider/${id}`"
+        >
+          {{ id }}
+        </a-menu-item>
+      </a-sub-menu>
+      <a-sub-menu key="/options/tts-provider">
+        <template #title>
+          <span>
+            <span>TTS设置</span>
+          </span>
+        </template>
+        <a-menu-item key="/options/tts-manager">
+          通用设置
+        </a-menu-item>
+        <a-menu-item
+          v-for="id in ttsProvidersIDs"
+          :key="`/options/tts-provider/${id}`"
+        >
+          {{ id }}
+        </a-menu-item>
+      </a-sub-menu>
+      <a-sub-menu key="/options/ocr-provider">
+        <template #title>
+          <span>
+            <span>OCR设置</span>
+          </span>
+        </template>
+        <a-menu-item key="/options/ocr-extractor">
+          通用设置
+        </a-menu-item>
+        <a-menu-item
+          v-for="id in ocrProvidersIDs"
+          :key="`/options/ocr-provider/${id}`"
+        >
+          {{ id }}
+        </a-menu-item>
+      </a-sub-menu>
+      <a-sub-menu key="/options/segment-provider">
+        <template #title>
+          <span>
+            <span>分词设置</span>
+          </span>
+        </template>
+        <a-menu-item key="/options/segment-manager">
+          通用设置
+        </a-menu-item>
+        <a-menu-item
+          v-for="id in segmentProvidersIDs"
+          :key="`/options/segment-provider/${id}`"
+        >
+          {{ id }}
+        </a-menu-item>
+      </a-sub-menu>
+      <a-sub-menu key="/options/dict-provider">
+        <template #title>
+          <span>
+            <span>词典设置</span>
+          </span>
+        </template>
+        <a-menu-item key="/options/dict-manager">
+          通用设置
+        </a-menu-item>
+        <a-menu-item
+          v-for="id in dictProvidersIDs"
+          :key="`/options/dict-provider/${id}`"
+        >
+          {{ id }}
+        </a-menu-item>
+      </a-sub-menu>
+    </a-menu>
+  </div>
 </template>
 
 <script lang="ts">

@@ -1,138 +1,174 @@
 <template>
-    <div>
-        <a-steps :current="current">
-            <a-step v-for="item in steps" :key="item" :title="item" />
-        </a-steps>
-        <div v-if="current === 0" class="steps-content">
-            <div class="screen-wrapper">
-                <a-typography-title :level="4">
-                    滑动滑块调整识别区域
-                    <a-button
-                        shape="round"
-                        type="primary"
-                        @click="reload(true)"
-                    >
-                        <template #icon>
-                            <reload-outlined />
-                        </template>
-                        重新加载截图
-                    </a-button>
-                </a-typography-title>
-                <div>
-                    <div class="left"></div>
-                    <div class="center">
-                        <a-slider
-                            range
-                            :tipFormatter="null"
-                            :max="size[0]"
-                            v-model:value="width"
-                        />
-                    </div>
-                    <div class="right"></div>
-                </div>
-                <div>
-                    <div class="left">
-                        <a-slider
-                            range
-                            vertical
-                            :tipFormatter="null"
-                            :max="size[1]"
-                            v-model:value="height"
-                        />
-                    </div>
-                    <div class="center" style="position: relative">
-                        <div
-                            :style="{
-                                position: 'absolute',
-                                left: (width[0] / size[0]) * 100 + '%',
-                                bottom: (height[0] / size[1]) * 100 + '%',
-                                width:
-                                    ((width[1] - width[0]) / size[0]) * 100 +
-                                    '%',
-                                height:
-                                    ((height[1] - height[0]) / size[1]) * 100 +
-                                    '%',
-                                border: 'red 1px solid',
-                            }"
-                        ></div>
-                        <img v-if="screen" :src="screen" style="width: 100%" />
-                    </div>
-                    <div class="right">
-                        <a-slider
-                            range
-                            vertical
-                            :tipFormatter="null"
-                            :max="size[1]"
-                            v-model:value="height"
-                        />
-                    </div>
-                </div>
-                <div>
-                    <div class="left"></div>
-                    <div class="center">
-                        <a-slider
-                            range
-                            :tipFormatter="null"
-                            :max="size[0]"
-                            v-model:value="width"
-                        />
-                    </div>
-                    <div class="right"></div>
-                </div>
-            </div>
-            <a-space>
-                <a-button type="primary" @click="next">下一步</a-button>
-            </a-space>
+  <div>
+    <a-steps :current="current">
+      <a-step
+        v-for="item in steps"
+        :key="item"
+        :title="item"
+      />
+    </a-steps>
+    <div
+      v-if="current === 0"
+      class="steps-content"
+    >
+      <div class="screen-wrapper">
+        <a-typography-title :level="4">
+          滑动滑块调整识别区域
+          <a-button
+            shape="round"
+            type="primary"
+            @click="reload(true)"
+          >
+            <template #icon>
+              <reload-outlined />
+            </template>
+            重新加载截图
+          </a-button>
+        </a-typography-title>
+        <div>
+          <div class="left" />
+          <div class="center">
+            <a-slider
+              v-model:value="width"
+              range
+              :tip-formatter="null"
+              :max="size[0]"
+            />
+          </div>
+          <div class="right" />
         </div>
-        <div v-if="current === 1" class="steps-content">
-            <a-typography-title :level="4">
-                预处理
-                <a-button shape="round" type="primary" @click="reload(true)">
-                    <template #icon>
-                        <reload-outlined />
-                    </template>
-                    重新加载截图
-                </a-button>
-            </a-typography-title>
-            <a-form
-                layout="horizontal"
-                :label-col="{ span: 4 }"
-                :wrapper-col="{ span: 20 }"
+        <div>
+          <div class="left">
+            <a-slider
+              v-model:value="height"
+              range
+              vertical
+              :tip-formatter="null"
+              :max="size[1]"
+            />
+          </div>
+          <div
+            class="center"
+            style="position: relative"
+          >
+            <div
+              :style="{
+                position: 'absolute',
+                left: (width[0] / size[0]) * 100 + '%',
+                bottom: (height[0] / size[1]) * 100 + '%',
+                width:
+                  ((width[1] - width[0]) / size[0]) * 100 +
+                  '%',
+                height:
+                  ((height[1] - height[0]) / size[1]) * 100 +
+                  '%',
+                border: 'red 1px solid',
+              }"
+            />
+            <img
+              v-if="screen"
+              :src="screen"
+              style="width: 100%"
             >
-                <a-form-item label="颜色">
-                    <a-radio-group
-                        :options="[
-                            { label: '彩色', value: 'colorful' },
-                            { label: '灰度', value: 'grey' },
-                            { label: '仅R通道', value: 'red' },
-                            { label: '仅G通道', value: 'green' },
-                            { label: '仅B通道', value: 'blue' },
-                        ]"
-                        v-model:value="color"
-                    />
-                </a-form-item>
-                <a-form-item>
-                    <template #label>
-                        <a-checkbox v-model:checked="thresholdEnable">
-                            二值化
-                        </a-checkbox>
-                    </template>
-                    <a-slider :max="255" v-model:value="threshold" />
-                </a-form-item>
-                <a-form-item label="预览">
-                    <img
-                        v-if="preprocess"
-                        :src="preprocess"
-                        style="width: 100%"
-                    />
-                </a-form-item>
-            </a-form>
-            <a-space>
-                <a-button type="primary" @click="next">完成</a-button>
-                <a-button @click="prev">上一步</a-button>
-            </a-space>
+          </div>
+          <div class="right">
+            <a-slider
+              v-model:value="height"
+              range
+              vertical
+              :tip-formatter="null"
+              :max="size[1]"
+            />
+          </div>
         </div>
+        <div>
+          <div class="left" />
+          <div class="center">
+            <a-slider
+              v-model:value="width"
+              range
+              :tip-formatter="null"
+              :max="size[0]"
+            />
+          </div>
+          <div class="right" />
+        </div>
+      </div>
+      <a-space>
+        <a-button
+          type="primary"
+          @click="next"
+        >
+          下一步
+        </a-button>
+      </a-space>
     </div>
+    <div
+      v-if="current === 1"
+      class="steps-content"
+    >
+      <a-typography-title :level="4">
+        预处理
+        <a-button
+          shape="round"
+          type="primary"
+          @click="reload(true)"
+        >
+          <template #icon>
+            <reload-outlined />
+          </template>
+          重新加载截图
+        </a-button>
+      </a-typography-title>
+      <a-form
+        layout="horizontal"
+        :label-col="{ span: 4 }"
+        :wrapper-col="{ span: 20 }"
+      >
+        <a-form-item label="颜色">
+          <a-radio-group
+            v-model:value="color"
+            :options="[
+              { label: '彩色', value: 'colorful' },
+              { label: '灰度', value: 'grey' },
+              { label: '仅R通道', value: 'red' },
+              { label: '仅G通道', value: 'green' },
+              { label: '仅B通道', value: 'blue' },
+            ]"
+          />
+        </a-form-item>
+        <a-form-item>
+          <template #label>
+            <a-checkbox v-model:checked="thresholdEnable">
+              二值化
+            </a-checkbox>
+          </template>
+          <a-slider
+            v-model:value="threshold"
+            :max="255"
+          />
+        </a-form-item>
+        <a-form-item label="预览">
+          <img
+            v-if="preprocess"
+            :src="preprocess"
+            style="width: 100%"
+          >
+        </a-form-item>
+      </a-form>
+      <a-space>
+        <a-button
+          type="primary"
+          @click="next"
+        >
+          完成
+        </a-button>
+        <a-button @click="prev">
+          上一步
+        </a-button>
+      </a-space>
+    </div>
+  </div>
 </template>
 
 <script lang="ts">

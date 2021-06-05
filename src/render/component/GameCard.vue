@@ -1,87 +1,123 @@
 <template>
-    <a-card class="game-card" hoverable>
-        <transition name="slide" mode="out-in">
-            <a-card-meta v-if="!showEdit" :title="name" :description="path" />
-            <a-form
-                v-else
-                layout="horizontal"
-                :model="formState"
-                :label-col="{ span: 6 }"
-                :wrapper-col="{ span: 18 }"
-            >
-                <a-form-item label="标题">
-                    <a-input
-                        v-model:value="formState.name"
-                        placeholder="标题"
-                    />
-                </a-form-item>
-                <a-form-item label="路径">
-                    <input-with-open-file
-                        v-model:value="formState.path"
-                        placeholder="路径"
-                    />
-                </a-form-item>
-                <a-form-item label="提取方法">
-                    <a-select v-model:value="formState.type">
-                        <a-select-option value="textractor">
-                            Textractor
-                        </a-select-option>
-                        <a-select-option value="ocr">OCR</a-select-option>
-                    </a-select>
-                </a-form-item>
-                <a-form-item label="HookCode">
-                    <a-input
-                        :disabled="formState.type !== 'textractor'"
-                        v-model:value="formState.hookCode"
-                        placeholder=""
-                    />
-                </a-form-item>
-                <a-form-item label="启动参数">
-                    <a-input
-                        v-model:value="formState.execShell"
-                        placeholder=""
-                    />
-                </a-form-item>
-            </a-form>
-        </transition>
-        <template class="ant-card-actions" #actions>
-            <a-button type="link" v-if="!showEdit" key="setting" @click="edit">
-                <setting-outlined />
-            </a-button>
-            <a-button v-else type="primary" shape="circle" @click="save">
-                <save-filled />
-            </a-button>
-            <spin v-if="!showEdit" :spinning="starting">
-                <a-button
-                    type="link"
-                    @click="play"
-                    key="play"
-                    :disabled="starting"
-                >
-                    <play-circle-outlined />
-                </a-button>
-            </spin>
-            <a-button type="link" v-else key="return" @click="showEdit = false">
-                <spin :spinning="starting">
-                    <a-button type="link">
-                        <rollback-outlined />
-                    </a-button>
-                </spin>
-            </a-button>
-            <a-button type="link" key="delete">
-                <a-popconfirm
-                    title="确认删除？"
-                    ok-text="是"
-                    cancel-text="否"
-                    @confirm="$emit('del', id)"
-                >
-                    <a-button type="link">
-                        <delete-outlined />
-                    </a-button>
-                </a-popconfirm>
-            </a-button>
-        </template>
-    </a-card>
+  <a-card
+    class="game-card"
+    hoverable
+  >
+    <transition
+      name="slide"
+      mode="out-in"
+    >
+      <a-card-meta
+        v-if="!showEdit"
+        :title="name"
+        :description="path"
+      />
+      <a-form
+        v-else
+        layout="horizontal"
+        :model="formState"
+        :label-col="{ span: 6 }"
+        :wrapper-col="{ span: 18 }"
+      >
+        <a-form-item label="标题">
+          <a-input
+            v-model:value="formState.name"
+            placeholder="标题"
+          />
+        </a-form-item>
+        <a-form-item label="路径">
+          <input-with-open-file
+            v-model:value="formState.path"
+            placeholder="路径"
+          />
+        </a-form-item>
+        <a-form-item label="提取方法">
+          <a-select v-model:value="formState.type">
+            <a-select-option value="textractor">
+              Textractor
+            </a-select-option>
+            <a-select-option value="ocr">
+              OCR
+            </a-select-option>
+          </a-select>
+        </a-form-item>
+        <a-form-item label="HookCode">
+          <a-input
+            v-model:value="formState.hookCode"
+            :disabled="formState.type !== 'textractor'"
+            placeholder=""
+          />
+        </a-form-item>
+        <a-form-item label="启动参数">
+          <a-input
+            v-model:value="formState.execShell"
+            placeholder=""
+          />
+        </a-form-item>
+      </a-form>
+    </transition>
+    <template
+      #actions
+      class="ant-card-actions"
+    >
+      <a-button
+        v-if="!showEdit"
+        key="setting"
+        type="link"
+        @click="edit"
+      >
+        <setting-outlined />
+      </a-button>
+      <a-button
+        v-else
+        type="primary"
+        shape="circle"
+        @click="save"
+      >
+        <save-filled />
+      </a-button>
+      <spin
+        v-if="!showEdit"
+        :spinning="starting"
+      >
+        <a-button
+          key="play"
+          type="link"
+          :disabled="starting"
+          @click="play"
+        >
+          <play-circle-outlined />
+        </a-button>
+      </spin>
+      <a-button
+        v-else
+        key="return"
+        type="link"
+        @click="showEdit = false"
+      >
+        <spin :spinning="starting">
+          <a-button type="link">
+            <rollback-outlined />
+          </a-button>
+        </spin>
+      </a-button>
+      <a-button
+        key="delete"
+        type="link"
+      >
+        <a-popconfirm
+          title="确认删除？"
+          ok-text="是"
+          cancel-text="否"
+          @confirm="$emit('del', id)"
+        >
+          <a-button type="link">
+            <delete-outlined />
+          </a-button>
+        </a-popconfirm>
+      </a-button>
+    </template>
+  </a-card>
 </template>
 
 <script lang="ts">
@@ -132,6 +168,7 @@ export default defineComponent({
             required: true
         }
     },
+    emits: ['del', 'save'],
     data() {
         return {
             showEdit: false,

@@ -1,10 +1,17 @@
 <template>
-    <a-layout id="top-layout" @mouseenter="mouseenter" @mouseleave="mouseleave">
-        <translator-title-bar :hideTitleBar="hideTitleBar" />
-        <a-layout-content id="main-content" ref="content">
-            <router-view></router-view>
-        </a-layout-content>
-    </a-layout>
+  <a-layout
+    id="top-layout"
+    @mouseenter="mouseenter"
+    @mouseleave="mouseleave"
+  >
+    <translator-title-bar :hide-title-bar="hideTitleBar" />
+    <a-layout-content
+      id="main-content"
+      ref="content"
+    >
+      <router-view />
+    </a-layout-content>
+  </a-layout>
 </template>
 
 <script lang="ts">

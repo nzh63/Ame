@@ -1,10 +1,10 @@
 <template>
-    <options
-        :providerId="providerId"
-        :getMeta="getMeta"
-        :getOptions="getOptions"
-        :setOptions="setOptions"
-    />
+  <options
+    :provider-id="providerId"
+    :get-meta="getMeta"
+    :get-options="getOptions"
+    :set-options="setOptions"
+  />
 </template>
 
 <script lang="ts">

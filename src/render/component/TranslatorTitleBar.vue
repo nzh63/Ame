@@ -1,59 +1,75 @@
 <template>
-    <div class="title-bar" :class="{ hidden: hideTitleBar }">
-        <a-radio-group
-            :value="$router.currentRoute.value.path"
-            size="small"
-            @change="navigation"
-        >
-            <a-radio-button value="/translator">翻译</a-radio-button>
-            <a-radio-button value="/hook-select">文本选择</a-radio-button>
-            <a-radio-button value="/extract-setting">提取设置</a-radio-button>
-        </a-radio-group>
-        <span class="drag"></span>
-        <a-radio-group value="null" size="small">
-            <a-radio-button value="a" @click="minimizeWindow">
-                <line-outlined />
-            </a-radio-button>
-            <a-radio-button
-                value="b"
-                v-if="running"
-                @click="
-                    setRunning(false);
-                    running = false;
-                "
-                ><pause-outlined />
-            </a-radio-button>
-            <a-radio-button
-                value="b"
-                v-else
-                @click="
-                    setRunning(true);
-                    running = true;
-                "
-            >
-                <caret-right-outlined />
-            </a-radio-button>
-            <a-radio-button
-                value="c"
-                v-if="alwaysOnTop"
-                @click="
-                    setWindowAlwaysOnTop(false);
-                    alwaysOnTop = false;
-                "
-            >
-                <unlock-outlined />
-            </a-radio-button>
-            <a-radio-button
-                v-else
-                @click="
-                    setWindowAlwaysOnTop(true);
-                    alwaysOnTop = true;
-                "
-            >
-                <lock-outlined />
-            </a-radio-button>
-        </a-radio-group>
-    </div>
+  <div
+    class="title-bar"
+    :class="{ hidden: hideTitleBar }"
+  >
+    <a-radio-group
+      :value="$router.currentRoute.value.path"
+      size="small"
+      @change="navigation"
+    >
+      <a-radio-button value="/translator">
+        翻译
+      </a-radio-button>
+      <a-radio-button value="/hook-select">
+        文本选择
+      </a-radio-button>
+      <a-radio-button value="/extract-setting">
+        提取设置
+      </a-radio-button>
+    </a-radio-group>
+    <span class="drag" />
+    <a-radio-group
+      value="null"
+      size="small"
+    >
+      <a-radio-button
+        value="a"
+        @click="minimizeWindow"
+      >
+        <line-outlined />
+      </a-radio-button>
+      <a-radio-button
+        v-if="running"
+        value="b"
+        @click="
+          setRunning(false);
+          running = false;
+        "
+      >
+        <pause-outlined />
+      </a-radio-button>
+      <a-radio-button
+        v-else
+        value="b"
+        @click="
+          setRunning(true);
+          running = true;
+        "
+      >
+        <caret-right-outlined />
+      </a-radio-button>
+      <a-radio-button
+        v-if="alwaysOnTop"
+        value="c"
+        @click="
+          setWindowAlwaysOnTop(false);
+          alwaysOnTop = false;
+        "
+      >
+        <unlock-outlined />
+      </a-radio-button>
+      <a-radio-button
+        v-else
+        @click="
+          setWindowAlwaysOnTop(true);
+          alwaysOnTop = true;
+        "
+      >
+        <lock-outlined />
+      </a-radio-button>
+    </a-radio-group>
+  </div>
 </template>
 
 <script lang="ts">

@@ -1,18 +1,18 @@
 <template>
-    <a-layout id="top-layout">
-        <a-layout-sider
-            v-model="collapsed"
-            :trigger="null"
-            :width="225"
-            collapsible
-            class="aside"
-        >
-            <aside-menu />
-        </a-layout-sider>
-        <a-layout-content id="main-content">
-            <router-view></router-view>
-        </a-layout-content>
-    </a-layout>
+  <a-layout id="top-layout">
+    <a-layout-sider
+      v-model="collapsed"
+      :trigger="null"
+      :width="225"
+      collapsible
+      class="aside"
+    >
+      <aside-menu />
+    </a-layout-sider>
+    <a-layout-content id="main-content">
+      <router-view />
+    </a-layout-content>
+  </a-layout>
 </template>
 
 <script lang="ts">

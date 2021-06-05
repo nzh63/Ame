@@ -1,14 +1,21 @@
 <template>
-    <span v-if="!segmented" @mouseenter="segment">{{ text }}</span>
-    <span v-else class="original-text-line" title>
-        <original-text-word
-            v-for="(s, index) of splitText"
-            :key="index"
-            :word="s"
-            :get-popup-container="() => $el"
-            @click="query(s)"
-        />
-    </span>
+  <span
+    v-if="!segmented"
+    @mouseenter="segment"
+  >{{ text }}</span>
+  <span
+    v-else
+    class="original-text-line"
+    title
+  >
+    <original-text-word
+      v-for="(s, index) of splitText"
+      :key="index"
+      :word="s"
+      :get-popup-container="() => $el"
+      @click="query(s)"
+    />
+  </span>
 </template>
 
 <script lang="ts">

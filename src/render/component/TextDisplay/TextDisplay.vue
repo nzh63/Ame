@@ -1,30 +1,36 @@
 <template>
-    <div class="translator" ref="topDiv">
-        <div
-            class="line"
-            title="原文"
-            @click.right="onRightClick(original, 'original')"
-        >
-            <original-text :text="original" />
-        </div>
-        <div
-            class="line"
-            v-for="i in translate"
-            :key="i.id"
-            :title="i.id"
-            @click.right="
-                onRightClick(
-                    i.err ? i.err?.message ?? i.err : i.text,
-                    'translate'
-                )
-            "
-        >
-            <span v-if="i.err" class="error">
-                {{ i.id }}发生错误：{{ i.err?.message ?? i.err }}
-            </span>
-            <span v-else>{{ i.text }}</span>
-        </div>
+  <div
+    ref="topDiv"
+    class="translator"
+  >
+    <div
+      class="line"
+      title="原文"
+      @click.right="onRightClick(original, 'original')"
+    >
+      <original-text :text="original" />
     </div>
+    <div
+      v-for="i in translate"
+      :key="i.id"
+      class="line"
+      :title="i.id"
+      @click.right="
+        onRightClick(
+          i.err ? i.err?.message ?? i.err : i.text,
+          'translate'
+        )
+      "
+    >
+      <span
+        v-if="i.err"
+        class="error"
+      >
+        {{ i.id }}发生错误：{{ i.err?.message ?? i.err }}
+      </span>
+      <span v-else>{{ i.text }}</span>
+    </div>
+  </div>
 </template>
 
 <script lang="ts">

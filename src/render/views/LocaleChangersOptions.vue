@@ -1,57 +1,77 @@
 <template>
-    <a-layout class="option-layout">
-        <a-layout-content class="option-content">
-            <a-skeleton v-if="updating" />
-            <a-form v-else layout="vertical">
-                <a-form-item v-for="i in options" :key="i.name">
-                    <template #label>
-                        <a-input
-                            v-if="i.editingName"
-                            v-bind:value="i.name"
-                            @change="hasUnsavedChange = true"
-                            @blur="i.editingName = false"
-                        />
-                        <a-space v-else>
-                            <span>{{ i.name }}</span>
-                            <edit-outlined @click="i.editingName = true" />
-                            <a-popconfirm
-                                title="确认删除？"
-                                ok-text="是"
-                                cancel-text="否"
-                                @confirm="del(i)"
-                            >
-                                <delete-outlined />
-                            </a-popconfirm>
-                        </a-space>
-                    </template>
-                    <input-with-open-file
-                        :value="i.execShell"
-                        :path-transform="pathTransform"
-                        :placeholder="i.placeholder"
-                        @update:value="
-                            (v) => {
-                                hasUnsavedChange = true;
-                                if (v) {
-                                    i.execShell = v;
-                                } else {
-                                    i.execShell = '';
-                                }
-                            }
-                        "
-                    />
-                </a-form-item>
-            </a-form>
-            <a-button type="dashed" class="add" @click="add">
-                <plus-outlined /> 新建</a-button
-            >
-        </a-layout-content>
-        <a-layout-footer v-if="options.length !== 0" class="option-footer">
-            <a-space>
-                <a-button type="primary" @click="save">保存并应用</a-button>
-                <a-button @click="$router.push('/')">放弃</a-button>
+  <a-layout class="option-layout">
+    <a-layout-content class="option-content">
+      <a-skeleton v-if="updating" />
+      <a-form
+        v-else
+        layout="vertical"
+      >
+        <a-form-item
+          v-for="i in options"
+          :key="i.name"
+        >
+          <template #label>
+            <a-input
+              v-if="i.editingName"
+              :value="i.name"
+              @change="hasUnsavedChange = true"
+              @blur="i.editingName = false"
+            />
+            <a-space v-else>
+              <span>{{ i.name }}</span>
+              <edit-outlined @click="i.editingName = true" />
+              <a-popconfirm
+                title="确认删除？"
+                ok-text="是"
+                cancel-text="否"
+                @confirm="del(i)"
+              >
+                <delete-outlined />
+              </a-popconfirm>
             </a-space>
-        </a-layout-footer>
-    </a-layout>
+          </template>
+          <input-with-open-file
+            :value="i.execShell"
+            :path-transform="pathTransform"
+            :placeholder="i.placeholder"
+            @update:value="
+              (v) => {
+                hasUnsavedChange = true;
+                if (v) {
+                  i.execShell = v;
+                } else {
+                  i.execShell = '';
+                }
+              }
+            "
+          />
+        </a-form-item>
+      </a-form>
+      <a-button
+        type="dashed"
+        class="add"
+        @click="add"
+      >
+        <plus-outlined /> 新建
+      </a-button>
+    </a-layout-content>
+    <a-layout-footer
+      v-if="options.length !== 0"
+      class="option-footer"
+    >
+      <a-space>
+        <a-button
+          type="primary"
+          @click="save"
+        >
+          保存并应用
+        </a-button>
+        <a-button @click="$router.push('/')">
+          放弃
+        </a-button>
+      </a-space>
+    </a-layout-footer>
+  </a-layout>
 </template>
 
 <script lang="ts">

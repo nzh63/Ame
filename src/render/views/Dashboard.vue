@@ -1,41 +1,59 @@
 <template>
-    <div
-        class="drag-area"
-        :class="{ draging }"
-        ref="dragArea"
-        @drop="drop"
-        @dragenter="dragenter"
-        @dragleave="dragleave"
-        @dragover.prevent
+  <div
+    ref="dragArea"
+    class="drag-area"
+    :class="{ draging }"
+    @drop="drop"
+    @dragenter="dragenter"
+    @dragleave="dragleave"
+    @dragover.prevent
+  >
+    <a-typography-title
+      v-if="draging"
+      class="tip"
     >
-        <a-typography-title v-if="draging" class="tip">
-            松开以添加
-        </a-typography-title>
-        <div class="dash-board">
-            <game-card
-                class="game-card"
-                v-for="(game, index) of games"
-                :key="game.uuid"
-                :id="index"
-                :uuid="game.uuid"
-                :name="game.name"
-                :path="game.path"
-                :type="game.type"
-                :hookCode="game.hookCode"
-                :execShell="game.execShell"
-                @save="save"
-                @del="del"
-            />
-            <a-button class="pid" type="dashed" @click="visible = true">
-                通过PID启动
-            </a-button>
-            <div class="placeholder" v-for="i in 10" :key="i"></div>
-            <a-modal v-model:visible="visible" title="通过PID启动" @ok="start">
-                请输入PID
-                <a-input-number v-model:value="pid" :min="0" />
-            </a-modal>
-        </div>
+      松开以添加
+    </a-typography-title>
+    <div class="dash-board">
+      <game-card
+        v-for="(game, index) of games"
+        :id="index"
+        :key="game.uuid"
+        class="game-card"
+        :uuid="game.uuid"
+        :name="game.name"
+        :path="game.path"
+        :type="game.type"
+        :hook-code="game.hookCode"
+        :exec-shell="game.execShell"
+        @save="save"
+        @del="del"
+      />
+      <a-button
+        class="pid"
+        type="dashed"
+        @click="visible = true"
+      >
+        通过PID启动
+      </a-button>
+      <div
+        v-for="i in 10"
+        :key="i"
+        class="placeholder"
+      />
+      <a-modal
+        v-model:visible="visible"
+        title="通过PID启动"
+        @ok="start"
+      >
+        请输入PID
+        <a-input-number
+          v-model:value="pid"
+          :min="0"
+        />
+      </a-modal>
     </div>
+  </div>
 </template>
 
 <script lang="ts">
@@ -58,6 +76,9 @@ export default defineComponent({
             dragArea: null as null | HTMLElement,
             draging: false
         };
+    },
+    mounted() {
+        this.reloadGames();
     },
     methods: {
         async save(id: number, value: Ame.GameSetting) {
@@ -102,9 +123,6 @@ export default defineComponent({
             await store.set('games', [...await store.get('games', []), ...newGames]);
             await this.reloadGames();
         }
-    },
-    mounted() {
-        this.reloadGames();
     }
 });
 </script>

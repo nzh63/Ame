@@ -1,82 +1,108 @@
 <template>
-    <a-layout class="option-layout">
-        <a-layout-content class="option-content">
-            <a-typography-title :level="4" v-if="id" class="title">
-                {{ id }}
-            </a-typography-title>
-            <div v-if="description" class="description">
-                <a-typography-text type="secondary">
-                    {{ description }}
-                </a-typography-text>
-            </div>
-            <a-form v-if="optionsEditList.length !== 0" layout="vertical">
-                <a-form-item v-for="i in optionsEditList" :key="i.key">
-                    <template #label>
-                        {{ i.readableName }}
-                        <a-typography-text
-                            type="secondary"
-                            v-if="i.readableName !== i.key.join('.')"
-                        >
-                            {{ i.key.join(".") }}
-                        </a-typography-text>
-                    </template>
-                    <a-select
-                        v-if="
-                            i.enum !== undefined && i.enumSelectId !== undefined
-                        "
-                        v-model:value="i.enumSelectId"
-                        ref="select"
-                        @change="onUpdateEnum(i.enumSelectId, i.key, i)"
-                    >
-                        <a-select-option
-                            v-for="(value, index) in i.enum"
-                            :key="index"
-                            :value="index"
-                            :title="stringify(value)"
-                        >
-                            {{ stringify(value) }}
-                        </a-select-option>
-                    </a-select>
-                    <a-input
-                        v-else
-                        v-model:value="i.optionsValueString"
-                        @pressEnter="onUpdate(i.optionsValueString, i.key, i)"
-                        @blur="onUpdate(i.optionsValueString, i.key, i)"
-                    >
-                        <template #suffix>
-                            <a-space>
-                                <a-badge
-                                    v-for="i in i.typeInfo"
-                                    :key="i"
-                                    :count="i"
-                                    :number-style="{
-                                        backgroundColor: 'rgba(0,0,0,0.45)',
-                                    }"
-                                />
-                            </a-space>
-                        </template>
-                    </a-input>
-                    <template v-if="i.help" #help>
-                        <span class="warning-message">{{ i.help }}</span>
-                    </template>
-                    <template v-if="i.description" #extra>
-                        {{ i.description }}
-                    </template>
-                </a-form-item>
-            </a-form>
-            <a-skeleton v-else-if="updating" />
-            <a-empty v-else />
-        </a-layout-content>
-        <a-layout-footer
-            v-if="optionsEditList.length !== 0"
-            class="option-footer"
+  <a-layout class="option-layout">
+    <a-layout-content class="option-content">
+      <a-typography-title
+        v-if="id"
+        :level="4"
+        class="title"
+      >
+        {{ id }}
+      </a-typography-title>
+      <div
+        v-if="description"
+        class="description"
+      >
+        <a-typography-text type="secondary">
+          {{ description }}
+        </a-typography-text>
+      </div>
+      <a-form
+        v-if="optionsEditList.length !== 0"
+        layout="vertical"
+      >
+        <a-form-item
+          v-for="i in optionsEditList"
+          :key="i.key"
         >
-            <a-space>
-                <a-button type="primary" @click="save">保存并应用</a-button>
-                <a-button @click="$router.push('/')">放弃</a-button>
-            </a-space>
-        </a-layout-footer>
-    </a-layout>
+          <template #label>
+            {{ i.readableName }}
+            <a-typography-text
+              v-if="i.readableName !== i.key.join('.')"
+              type="secondary"
+            >
+              {{ i.key.join(".") }}
+            </a-typography-text>
+          </template>
+          <a-select
+            v-if="
+              i.enum !== undefined && i.enumSelectId !== undefined
+            "
+            ref="select"
+            v-model:value="i.enumSelectId"
+            @change="onUpdateEnum(i.enumSelectId, i.key, i)"
+          >
+            <a-select-option
+              v-for="(value, index) in i.enum"
+              :key="index"
+              :value="index"
+              :title="stringify(value)"
+            >
+              {{ stringify(value) }}
+            </a-select-option>
+          </a-select>
+          <a-input
+            v-else
+            v-model:value="i.optionsValueString"
+            @pressEnter="onUpdate(i.optionsValueString, i.key, i)"
+            @blur="onUpdate(i.optionsValueString, i.key, i)"
+          >
+            <template #suffix>
+              <a-space>
+                <a-badge
+                  v-for="j in i.typeInfo"
+                  :key="j"
+                  :count="j"
+                  :number-style="{
+                    backgroundColor: 'rgba(0,0,0,0.45)',
+                  }"
+                />
+              </a-space>
+            </template>
+          </a-input>
+          <template
+            v-if="i.help"
+            #help
+          >
+            <span class="warning-message">{{ i.help }}</span>
+          </template>
+          <template
+            v-if="i.description"
+            #extra
+          >
+            {{ i.description }}
+          </template>
+        </a-form-item>
+      </a-form>
+      <a-skeleton v-else-if="updating" />
+      <a-empty v-else />
+    </a-layout-content>
+    <a-layout-footer
+      v-if="optionsEditList.length !== 0"
+      class="option-footer"
+    >
+      <a-space>
+        <a-button
+          type="primary"
+          @click="save"
+        >
+          保存并应用
+        </a-button>
+        <a-button @click="$router.push('/')">
+          放弃
+        </a-button>
+      </a-space>
+    </a-layout-footer>
+  </a-layout>
 </template>
 
 <script lang="ts">

@@ -1,30 +1,36 @@
 <template>
-    <a-tooltip
-        v-if="word.extraInfo"
-        placement="bottomRight"
-        arrow-point-at-center
-        overlay-class-name="ant-tooltip-placement-bottomRight"
-        :get-popup-container="getPopupContainer"
-        :align="{
-            targetOffset: [0, 8],
-            overflow: { adjustX: true, adjustY: false },
-        }"
-    >
-        <template #title>
-            <div class="extra-info">
-                <template v-for="(line, index) of extraInfoSpilt" :key="index">
-                    <br v-if="index !== 0" />
-                    {{ line }}
-                </template>
-            </div>
+  <a-tooltip
+    v-if="word.extraInfo"
+    placement="bottomRight"
+    arrow-point-at-center
+    overlay-class-name="ant-tooltip-placement-bottomRight"
+    :get-popup-container="getPopupContainer"
+    :align="{
+      targetOffset: [0, 8],
+      overflow: { adjustX: true, adjustY: false },
+    }"
+  >
+    <template #title>
+      <div class="extra-info">
+        <template
+          v-for="(line, index) of extraInfoSpilt"
+          :key="index"
+        >
+          <br v-if="index !== 0">
+          {{ line }}
         </template>
-        <span class="word">
-            {{ word.word }}
-        </span>
-    </a-tooltip>
-    <span v-else class="word">
-        {{ word.word }}
+      </div>
+    </template>
+    <span class="word">
+      {{ word.word }}
     </span>
+  </a-tooltip>
+  <span
+    v-else
+    class="word"
+  >
+    {{ word.word }}
+  </span>
 </template>
 
 <script lang="ts">
@@ -39,7 +45,7 @@ export default defineComponent({
         },
         getPopupContainer: {
             type: Function as PropType<() => HTMLElement>,
-            deefault: () => document.body
+            default: () => document.body
         }
     },
     setup(prop) {
