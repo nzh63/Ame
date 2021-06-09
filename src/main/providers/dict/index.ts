@@ -18,7 +18,7 @@ export function defineDictProvider<
     arg: BaseProviderOptions<ID, S, D>,
     methods: DictProviderMethods<ID, S, D, M>
 ): DictProviderConfig<ID, S, D, M> {
-    return { ...arg, ...methods, providersStoreKey: 'dictProviders' };
+    return { ...arg, ...methods };
 }
 
 export function defineExternalDictProvider<ID extends string>(id: ID, url: string) {

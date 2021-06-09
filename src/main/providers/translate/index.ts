@@ -21,7 +21,7 @@ export function defineTranslateProvider<
     arg: BaseProviderOptions<ID, S, D>,
     methods: TranslateProviderMethods<ID, S, D, M>
 ): TranslateProviderConfig<ID, S, D, M> {
-    return { ...arg, ...methods, providersStoreKey: 'translateProviders' };
+    return { ...arg, ...methods };
 }
 
 export const availableTranslateConfigs = [...(import.meta.env.DEV ? [echo] : []), tencentcloud, baiduAi, qqfanyi, youdaofanyi, baidufanyi, googleTranslate, JBeijing, DrEye] as const;

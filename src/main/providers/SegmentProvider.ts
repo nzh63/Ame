@@ -1,5 +1,4 @@
 import type { Schema } from '@main/schema';
-import type { SegmentWord } from '@main/manager/SegmentManager';
 import { BaseProvider, BaseProviderMethods, BaseProviderOptions, Methods } from './BaseProvider';
 import logger from '@logger/providers/SegmentProvider';
 
@@ -7,10 +6,16 @@ export type SegmentProviderMethods<ID extends string, S extends Schema, D, M ext
     segment(text: string): Promise<(string | SegmentWord)[]> | (string | SegmentWord)[];
 } & BaseProviderMethods<ID, S, D, M, SegmentProvider<ID, S, D, M>>;
 
-export type SegmentProviderConfig<ID extends string, S extends Schema, D, M extends Methods> = BaseProviderOptions<ID, S, D> & SegmentProviderMethods<ID, S, D, M> & { providersStoreKey: 'segmentProviders' };
+export type SegmentProviderConfig<ID extends string, S extends Schema, D, M extends Methods> = BaseProviderOptions<ID, S, D> & SegmentProviderMethods<ID, S, D, M>;
+
+export interface SegmentWord {
+    word: string;
+    extraInfo?: string;
+}
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export class SegmentProvider<ID extends string = string, S extends Schema = any, D = unknown, M extends Methods = {}> extends BaseProvider<ID, S, D, M, SegmentProviderConfig<ID, S, D, M>> {
+    public static override readonly providersStoreKey = 'segmentProviders';
     public async segment(text: string): Promise<(string | SegmentWord)[]> {
         logger(`${this.$id} segment: %o`, text);
         try {

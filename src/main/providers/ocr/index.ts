@@ -16,7 +16,7 @@ export function defineOcrProvider<
     arg: BaseProviderOptions<ID, S, D>,
     methods: OcrProviderMethods<ID, S, D, M>
 ): OcrProviderConfig<ID, S, D, M> {
-    return { ...arg, ...methods, providersStoreKey: 'ocrProviders' };
+    return { ...arg, ...methods };
 }
 
 export const availableOcrConfigs = [tesseract, tencentcloud, baiduAi] as const;

@@ -14,7 +14,7 @@ export function defineTtsProvider<
     arg: BaseProviderOptions<ID, S, D>,
     methods: TtsProviderMethods<ID, S, D, M>
 ): TtsProviderConfig<ID, S, D, M> {
-    return { ...arg, ...methods, providersStoreKey: 'ttsProviders' };
+    return { ...arg, ...methods };
 }
 
 export const availableTtsConfigs = [WebSpeechSynthesisApi] as const;

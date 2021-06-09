@@ -19,9 +19,7 @@ export type BaseProviderMethods<ID extends string, S extends Schema, D, M extend
     destroy?(): void;
     methods?: M & ProviderThisType<P>;
 } & ProviderThisType<P>;
-export type BaseProviderConfig<ID extends string = string, S extends Schema = any, D = unknown, M extends Methods = {}> = {
-    providersStoreKey: string;
-} & BaseProviderOptions<ID, S, D> & BaseProviderMethods<ID, S, D, M, BaseProvider<ID, S, D, M>>;
+export type BaseProviderConfig<ID extends string = string, S extends Schema = any, D = unknown, M extends Methods = {}> = BaseProviderOptions<ID, S, D> & BaseProviderMethods<ID, S, D, M, BaseProvider<ID, S, D, M>>;
 
 export type ProviderThisType<P extends BaseProvider> = ThisType<
     P &
@@ -30,6 +28,7 @@ export type ProviderThisType<P extends BaseProvider> = ThisType<
     Omit<P['$methods'], keyof P | keyof P['$options'] | keyof P['$data']>
 >;
 export class BaseProvider<ID extends string = string, S extends Schema = any, D = unknown, M extends Methods = {}, C extends BaseProviderConfig<ID, S, D, M> = BaseProviderConfig<ID, S, D, M>> {
+    public static readonly providersStoreKey: string;
     public readonly $id: ID;
     public readonly $optionsSchema: S;
     public readonly $options: SchemaType<S>;
@@ -39,7 +38,7 @@ export class BaseProvider<ID extends string = string, S extends Schema = any, D 
     #destroyed = false;
     constructor(
         public readonly $config: C,
-        getStoreOptions = () => store.get<string, SchemaType<S>>(`${$config.providersStoreKey}.${$config.id}`)
+        getStoreOptions: () => SchemaType<S> = () => store.get<string, SchemaType<S>>(`${(this.constructor as typeof BaseProvider).providersStoreKey}.${$config.id}`)
     ) {
         this.$id = $config.id;
         this.$optionsSchema = $config.optionsSchema;

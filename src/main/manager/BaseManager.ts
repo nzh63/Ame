@@ -7,10 +7,10 @@ export class BaseManager<P extends BaseProvider> {
 
     constructor(
         private availableConfigs: readonly P['$config'][],
-        private Class: new (arg: P['$config']) => P
+        private Class: { new(arg: P['$config']): P; readonly providersStoreKey: string; }
     ) {
         this.setupProviders();
-        store.onDidChange(availableConfigs[0].providersStoreKey as any, () => this.refreshProviders());
+        store.onDidChange(Class.providersStoreKey as any, () => this.refreshProviders());
     }
 
     private setupProviders() {

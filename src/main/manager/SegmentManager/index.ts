@@ -1,14 +1,10 @@
+import type { SegmentWord } from '@main/providers/SegmentProvider';
 import { availableSegmentConfigs } from '@main/providers/segment';
 import { SegmentProvider } from '@main/providers';
 import { SegmentManagerOptions } from '@main/manager/SegmentManager/options';
 import { BaseManager } from '@main/manager/BaseManager';
 import store from '@main/store';
 import logger from '@logger/manager/segment';
-
-export interface SegmentWord {
-    word: string;
-    extraInfo?: string
-}
 
 export class SegmentManager extends BaseManager<SegmentProvider> {
     protected options: SegmentManagerOptions;

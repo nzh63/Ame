@@ -12,7 +12,6 @@ describe('BaseProvider', function() {
 
     before(async function() {
         const config: BaseProviderConfig<'test', typeof optionsSchema, ReturnType<typeof data>, { check(bar?: string, foo?: string): boolean }> = {
-            providersStoreKey: 'test',
             id: 'test',
             optionsSchema,
             defaultOptions: { foo: 'defaultValue' },

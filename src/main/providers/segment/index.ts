@@ -15,7 +15,7 @@ export function defineSegmentProvider<
     arg: BaseProviderOptions<ID, S, D>,
     methods: SegmentProviderMethods<ID, S, D, M>
 ): SegmentProviderConfig<ID, S, D, M> {
-    return { ...arg, ...methods, providersStoreKey: 'segmentProviders' };
+    return { ...arg, ...methods };
 }
 
 export const availableSegmentConfigs = [intlSegmenter, mecab] as const;

@@ -6,10 +6,11 @@ export type TranslateProviderMethods<ID extends string, S extends Schema, D, M e
     translate(text: string): Promise<string> | string;
 } & BaseProviderMethods<ID, S, D, M, TranslateProvider<ID, S, D, M>>;
 
-export type TranslateProviderConfig<ID extends string, S extends Schema, D, M extends Methods> = BaseProviderOptions<ID, S, D> & TranslateProviderMethods<ID, S, D, M> & { providersStoreKey: 'translateProviders' };
+export type TranslateProviderConfig<ID extends string, S extends Schema, D, M extends Methods> = BaseProviderOptions<ID, S, D> & TranslateProviderMethods<ID, S, D, M>;
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export class TranslateProvider<ID extends string = string, S extends Schema = any, D = unknown, M extends Methods = {}> extends BaseProvider<ID, S, D, M, TranslateProviderConfig<ID, S, D, M>> {
+    public static override readonly providersStoreKey = 'translateProviders';
     public async translate(text: string): Promise<string> {
         try {
             return await this.$config.translate.call(this, text);
