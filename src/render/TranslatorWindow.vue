@@ -8,6 +8,7 @@
     <a-layout-content
       id="main-content"
       ref="content"
+      :class="{'overflow-hidden': hideTitleBar}"
     >
       <router-view />
     </a-layout-content>
@@ -77,6 +78,9 @@ body,
     height: 100%;
     overflow: overlay;
     background: rgba(0, 0, 0, 0.6);
+}
+.overflow-hidden {
+    overflow: hidden !important;
 }
 ::-webkit-scrollbar {
     width: 2px;
