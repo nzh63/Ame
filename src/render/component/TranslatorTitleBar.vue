@@ -32,39 +32,27 @@
       <a-radio-button
         v-if="running"
         value="b"
-        @click="
-          setRunning(false);
-          running = false;
-        "
+        @click="setRunning(false)"
       >
         <pause-outlined />
       </a-radio-button>
       <a-radio-button
         v-else
         value="b"
-        @click="
-          setRunning(true);
-          running = true;
-        "
+        @click="setRunning(true)"
       >
         <caret-right-outlined />
       </a-radio-button>
       <a-radio-button
         v-if="alwaysOnTop"
         value="c"
-        @click="
-          setWindowAlwaysOnTop(false);
-          alwaysOnTop = false;
-        "
+        @click="setWindowAlwaysOnTop(false)"
       >
         <unlock-outlined />
       </a-radio-button>
       <a-radio-button
         v-else
-        @click="
-          setWindowAlwaysOnTop(true);
-          alwaysOnTop = true;
-        "
+        @click="setWindowAlwaysOnTop(true)"
       >
         <lock-outlined />
       </a-radio-button>
@@ -73,12 +61,12 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, inject, Ref } from 'vue';
+import { defineComponent, ref, inject, Ref, nextTick } from 'vue';
 import { LineOutlined, PauseOutlined, CaretRightOutlined, LockOutlined, UnlockOutlined } from '@ant-design/icons-vue';
 import type { RadioChangeEvent } from 'ant-design-vue/lib/radio/interface';
 import { useRouter } from 'vue-router';
 
-import { minimizeWindow, setWindowAlwaysOnTop } from '@render/remote';
+import * as remote from '@render/remote';
 
 export default defineComponent({
     components: {
@@ -90,7 +78,8 @@ export default defineComponent({
             required: true
         }
     },
-    setup() {
+    emits: ['update:hideTitleBar'],
+    setup(prop, context) {
         const alwaysOnTop = ref(false);
 
         const router = useRouter();
@@ -100,6 +89,17 @@ export default defineComponent({
 
         const running = inject<Ref<boolean>>('running') ?? ref(true);
         const setRunning = inject<(r: boolean) => void>('setRunning') ?? (() => { });
+
+        const setWindowAlwaysOnTop = (flag: boolean) => {
+            alwaysOnTop.value = flag;
+            return remote.setWindowAlwaysOnTop(flag);
+        };
+
+        const minimizeWindow = async () => {
+            context.emit('update:hideTitleBar', true);
+            await nextTick();
+            return remote.minimizeWindow();
+        };
 
         return {
             alwaysOnTop,

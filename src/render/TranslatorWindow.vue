@@ -1,10 +1,10 @@
 <template>
   <a-layout
     id="top-layout"
-    @mouseenter="mouseenter"
+    @mouseover="mouseover"
     @mouseleave="mouseleave"
   >
-    <translator-title-bar :hide-title-bar="hideTitleBar" />
+    <translator-title-bar v-model:hide-title-bar="hideTitleBar" />
     <a-layout-content
       id="main-content"
       ref="content"
@@ -25,15 +25,15 @@ export default defineComponent({
     },
     setup() {
         const hideTitleBar = ref(true);
-        const hideTimeout = ref<ReturnType<typeof setTimeout> | null>(null);
-        const mouseenter = () => {
+        let hideTimeout: ReturnType<typeof setTimeout> | null = null;
+        const mouseover = () => {
             hideTitleBar.value = false;
-            if (hideTimeout.value) clearTimeout(hideTimeout.value);
-            hideTimeout.value = null;
+            if (hideTimeout) clearTimeout(hideTimeout);
+            hideTimeout = null;
         };
         const mouseleave = () => {
-            if (hideTimeout.value) clearTimeout(hideTimeout.value);
-            hideTimeout.value = setTimeout(() => { hideTitleBar.value = true; }, 1000);
+            if (hideTimeout) clearTimeout(hideTimeout);
+            hideTimeout = setTimeout(() => { hideTitleBar.value = true; }, 1000);
         };
 
         const hookCodes = ref<string[]>([]);
@@ -51,8 +51,7 @@ export default defineComponent({
 
         return {
             hideTitleBar,
-            hideTimeout,
-            mouseenter,
+            mouseover,
             mouseleave,
             content
         };
