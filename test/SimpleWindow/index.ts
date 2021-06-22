@@ -37,10 +37,13 @@ export class SimpleWindow extends EventEmitter {
 
     public async run(jsCode: string) {
         this.server.send(jsCode, this.childPort, '127.0.0.1');
-        await new Promise<void>(resolve => {
+        return new Promise<void>((resolve, reject) => {
             const callback = (msg: Buffer) => {
                 if (msg.toString('utf-8') === 'ack') {
                     resolve();
+                    this.server.off('message', callback);
+                } else if (msg.toString('utf-8').startsWith('err')) {
+                    reject(JSON.parse(msg.toString('utf-8').substr(3)));
                     this.server.off('message', callback);
                 }
             };

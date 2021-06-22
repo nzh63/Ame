@@ -15,7 +15,7 @@ export function buildTest<C extends OcrProviderConfig<string, any, unknown, any>
     let window: SimpleWindow;
 
     suite.beforeAll(async function() {
-        this.timeout(10000);
+        this.timeout(20000);
         window = new SimpleWindow();
         await window.whenReady();
         const width = 400;

@@ -57,7 +57,7 @@ void callKeyboardJsCallback(napi_env env, napi_value js_cb, void *context, void 
 err:
     delete data;
 }
-LRESULT globalKeyboardHookCallback(int nCode, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK globalKeyboardHookCallback(int nCode, WPARAM wParam, LPARAM lParam) {
     if (nCode >= 0) {
         auto *kb = (KBDLLHOOKSTRUCT *)lParam;
         for (const auto tsfn : keyboardCallbacks) {
@@ -102,7 +102,7 @@ err:
     delete data;
     return;
 }
-LRESULT globalMouseHookCallback(int nCode, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK globalMouseHookCallback(int nCode, WPARAM wParam, LPARAM lParam) {
     if (nCode >= 0) {
         if (wParam == WM_LBUTTONDOWN || wParam == WM_LBUTTONUP || wParam == WM_MOUSEWHEEL) {
             for (const auto tsfn : mouseCallbacks) {

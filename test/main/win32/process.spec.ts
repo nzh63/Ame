@@ -19,6 +19,7 @@ describe('process', function() {
 
     it('waitProcessForExit', async function() {
         this.retries(5);
+        this.timeout(5000);
         const processes = Object.keys(Array.from({ length: 5 }))
             .map(i => spawn('powershell', ['/C', 'sleep', '0.00' + i]));
         processes.forEach(i => expect(i.exitCode).to.be.null);

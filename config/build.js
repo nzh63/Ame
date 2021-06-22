@@ -11,9 +11,11 @@ const electron = require('electron');
 const yauzl = require('yauzl');
 const got = require('got');
 const glob = require('glob');
+const yargs = require('yargs');
 
 const vite = require('vite');
 const rollup = require('rollup');
+const { build: electronBuilder } = require('electron-builder');
 
 function extract(zipPath, files, dst) {
     return new Promise((resolve, reject) => {
@@ -124,12 +126,12 @@ async function downloadDependencies() {
     await downloadLanguageData();
 }
 
-async function buildNative() {
+async function buildNative(arch = 'x64') {
     const files = [
-        'dist/addons/ScreenCapturer.node',
-        'dist/addons/WindowEventHook.node',
-        'dist/addons/WindowsHook.node',
-        'dist/addons/Process.node',
+        `dist/addons/${arch}/ScreenCapturer.node`,
+        `dist/addons/${arch}/WindowEventHook.node`,
+        `dist/addons/${arch}/WindowsHook.node`,
+        `dist/addons/${arch}/Process.node`,
         'static/native/bin/JBeijingCli.exe',
         'static/native/bin/DrEyeCli.exe'
     ];
@@ -138,7 +140,7 @@ async function buildNative() {
     console.log('build native module...');
 
     await gypBuild('native/cli', 'static/native/bin', '--arch=ia32');
-    await gypBuild('native/addons', 'dist/addons');
+    await gypBuild('native/addons', `dist/addons/${arch}`, `--arch=${arch}`);
 
     async function gypBuild(dir, output, configureOptions = []) {
         if (typeof configureOptions === 'string') configureOptions = [configureOptions];
@@ -151,7 +153,7 @@ async function buildNative() {
         await fsPromise.mkdir(path.join(__dirname, '..', output), { recursive: true });
         await execFile('yarn', ['node-gyp', '-C', path.join(__dirname, '..', dir), 'configure', ...configureOptions], { shell: true });
         await execFile('yarn', ['node-gyp', '-C', path.join(__dirname, '..', dir), 'build', '-j', 'max'], { shell: true });
-        await fsPromise.rmdir(path.join(__dirname, '..', dir, 'build'), { recursive: true });
+        // await fsPromise.rmdir(path.join(__dirname, '..', dir, 'build'), { recursive: true });
     }
 }
 
@@ -295,11 +297,30 @@ function buildLicense() {
     }
 }
 
-async function buildAll(mode = 'production') {
+async function buildJs(mode = 'production') {
     await buildMain(mode);
     await buildWorkers(mode);
     await buildRender(mode);
     if (mode === 'production') buildLicense();
+}
+
+async function removeSharpVendor(cliArgs) {
+    const platform = require('sharp/lib/platform');
+    process.env.npm_config_arch = cliArgs.arch;
+    const platformJson = await util.promisify(glob)(path.join(__dirname, '../node_modules/sharp/vendor/*/platform.json'));
+    if (platformJson[0] && platform() !== require(platformJson[0])) {
+        await fsPromise.rmdir(path.join(__dirname, '../node_modules/sharp/vendor'), { recursive: true, force: true });
+    }
+}
+
+async function buildNsis(cliArgs = {}) {
+    await removeSharpVendor(cliArgs);
+    await buildJs('production');
+    const args = cliArgs;
+    args[cliArgs.arch] = true;
+    delete args.arch;
+    delete args.mode;
+    await electronBuilder(args);
 }
 
 function dev(mode = 'development') {
@@ -320,41 +341,28 @@ function clean() {
 }
 
 (async function() {
-    let mode;
-    if (process.argv.includes('--dev')) {
-        mode = 'development';
-    } else if (process.argv.includes('--prod')) {
-        mode = 'production';
-    }
-    if (process.argv[2] === 'download:dep') {
-        await downloadDependencies();
-    } else if (process.argv[2] === 'build:native') {
-        await buildNative(process.env.GENERATOR || undefined);
-    } else if (process.argv[2] === 'clean') {
-        await clean();
-    } else {
-        await downloadDependencies();
-        await buildNative(process.env.GENERATOR || undefined);
-
-        if (process.argv[2] === 'build:js') {
-            await buildAll(mode);
-        } else if (process.argv[2] === 'build:main') {
-            await buildMain(mode);
-        } else if (process.argv[2] === 'build:workers') {
-            await buildWorkers(mode);
-        } else if (process.argv[2] === 'build:render') {
-            await buildRender(mode);
-        } else if (process.argv[2] === 'build:test') {
-            await Promise.all([
-                buildTest('development'),
-                buildWorkers('development')
-            ]);
-        } else if (process.argv[2] === 'dev') {
-            dev(mode);
-        } else {
-            buildAll(mode);
-        }
-    }
+    await yargs
+        .command('clean', '', {}, clean)
+        .command('download-dependencies', '', {}, downloadDependencies)
+        .command('build', '', function(args) {
+            return args
+                .option('mode', { choices: ['development', 'production', undefined] })
+                .option('arch', { choices: ['x64', 'ia32'], default: process.env.npm_config_arch || 'x64' })
+                .middleware(async (args) => {
+                    process.env.npm_config_arch = args.arch;
+                    await downloadDependencies();
+                    await buildNative(args.arch);
+                })
+                .command('js', '', {}, (args) => buildJs(args.mode))
+                .command('main', '', {}, (args) => buildMain(args.mode))
+                .command('render', '', {}, (args) => buildRender(args.mode))
+                .command('workers', '', {}, (args) => buildWorkers(args.mode))
+                .command('native', '', {}, (args) => buildNative(args.arch))
+                .command('test', '', {}, () => Promise.all([buildTest('development'), buildWorkers('development')]))
+                .command(['$0', 'all'], '', {}, (args) => buildNsis(args));
+        })
+        .command('dev', '', {}, dev)
+        .parse();
 })().catch(e => {
     console.error(e);
     process.exit(1);

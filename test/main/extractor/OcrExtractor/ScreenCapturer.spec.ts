@@ -7,7 +7,7 @@ describe('ScreenCapturer', function() {
     let window: SimpleWindow;
 
     before(async function() {
-        this.timeout(5000);
+        this.timeout(10000);
         window = new SimpleWindow();
         await window.whenReady();
     });

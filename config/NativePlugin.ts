@@ -13,7 +13,8 @@ export default function native() {
         },
         async load(id) {
             if (id.startsWith('@addons/')) {
-                let file = id.replace(/^@addons\//, path.join(__dirname, '../dist/addons/'));
+                const arch = process.env.npm_config_arch || process.arch;
+                let file = id.replace(/^@addons\//, path.join(__dirname, `../dist/addons/${arch}/`));
                 if (!file.endsWith('.node')) file += '.node';
                 const ref = this.emitFile({
                     type: 'asset',

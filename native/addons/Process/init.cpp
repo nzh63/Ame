@@ -38,7 +38,7 @@ struct WaitData {
     napi_async_work work = nullptr;
 };
 
-void waitCallback(void *_data, BOOLEAN isTimedOut) {
+void CALLBACK waitCallback(void *_data, BOOLEAN isTimedOut) {
     auto *data = (WaitData *)_data;
     if (!isTimedOut) {
         data->handles.pop_back();

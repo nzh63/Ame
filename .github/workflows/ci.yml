@@ -16,15 +16,18 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [12.x, 14.x]
+        arch: [x64, ia32]
+
+    env:
+        npm_config_arch: ${{ matrix.arch }}
 
     steps:
     - uses: actions/checkout@v2
 
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Use Node.js 14.x
       uses: actions/setup-node@v2
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version: 14.x
 
     - name: Get yarn cache directory path
       id: yarn-cache-dir-path
@@ -34,9 +37,9 @@ jobs:
       id: yarn-cache
       with:
         path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-        key: ${{ runner.os }}-${{ matrix.node-version }}-yarn-${{ hashFiles('**/yarn.lock') }}
+        key: ${{ runner.os }}-${{ matrix.arch }}-yarn-${{ hashFiles('**/yarn.lock') }}
         restore-keys: |
-          ${{ runner.os }}-${{ matrix.node-version }}-yarn-
+          ${{ runner.os }}-${{ matrix.arch }}-yarn-
 
     - run: yarn install --frozen-lockfile
 
@@ -46,15 +49,13 @@ jobs:
 
     - run: yarn download:dep
 
-    - run: yarn build:native
-
     - run: yarn test
 
-    - run: yarn build --publish never
+    - run: yarn build --arch=${{ matrix.arch }} --publish=onTag
       env:
-        BUILD_NUMBER: ${{ github.sha }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     - uses: actions/upload-artifact@v2
-      if: ${{ matrix.node-version == '14.x' }}
       with:
         name: build-artifact
         path: build/*.exe

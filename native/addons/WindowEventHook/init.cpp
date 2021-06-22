@@ -26,8 +26,8 @@ err:
     return;
 }
 
-void windowsMinimizeCallback(HWINEVENTHOOK hWinEventHook, DWORD event, HWND hwnd, LONG idObject, LONG idChild,
-                             DWORD idEventThread, DWORD dwmsEventTime) {
+void CALLBACK windowsMinimizeCallback(HWINEVENTHOOK hWinEventHook, DWORD event, HWND hwnd, LONG idObject, LONG idChild,
+                                      DWORD idEventThread, DWORD dwmsEventTime) {
     auto it = callbacks.find(hWinEventHook);
     if (it != callbacks.end()) {
         auto &tsfn = it->second;
@@ -55,8 +55,8 @@ err:
     delete diff;
 }
 
-void windowsMoveCallback(HWINEVENTHOOK hWinEventHook, DWORD event, HWND hwnd, LONG idObject, LONG idChild,
-                         DWORD idEventThread, DWORD dwmsEventTime) {
+void CALLBACK windowsMoveCallback(HWINEVENTHOOK hWinEventHook, DWORD event, HWND hwnd, LONG idObject, LONG idChild,
+                                  DWORD idEventThread, DWORD dwmsEventTime) {
     auto it = callbacks.find(hWinEventHook);
     if (it != callbacks.end()) {
         if (event == EVENT_SYSTEM_MOVESIZESTART) {

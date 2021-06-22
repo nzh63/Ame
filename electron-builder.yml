@@ -40,4 +40,4 @@ extraResources:
 icon: ./assets/icon.png
 nsis:
   deleteAppDataOnUninstall: true
-  artifactName: ${productName}-${os}-${arch}-${buildVersion}.${ext}
+  artifactName: ${productName}-${os}-${env.npm_config_arch}-${buildVersion}.${ext}
