@@ -11,7 +11,6 @@ const electron = require('electron');
 const yauzl = require('yauzl');
 const got = require('got');
 const glob = require('glob');
-const yargs = require('yargs');
 
 const vite = require('vite');
 const rollup = require('rollup');
@@ -324,7 +323,9 @@ async function buildNsis(cliArgs = {}) {
 }
 
 function dev(mode = 'development') {
-    devMainAndWorkers(mode)
+    downloadDependencies()
+        .then(() => buildNative(process.arch))
+        .then(devMainAndWorkers(mode))
         .then(() => devRender(mode))
         .catch(err => {
             console.error(err);
@@ -341,9 +342,11 @@ function clean() {
 }
 
 (async function() {
+    const yargs = require('yargs');
     await yargs
-        .command('clean', '', {}, clean)
-        .command('download-dependencies', '', {}, downloadDependencies)
+        .command('clean', '', {}, () => clean())
+        .command('download-dependencies', '', {}, () => downloadDependencies())
+        .command('dev', '', {}, () => dev())
         .command('build', '', function(args) {
             return args
                 .option('mode', { choices: ['development', 'production', undefined] })
@@ -361,7 +364,6 @@ function clean() {
                 .command('test', '', {}, () => Promise.all([buildTest('development'), buildWorkers('development')]))
                 .command(['$0', 'all'], '', {}, (args) => buildNsis(args));
         })
-        .command('dev', '', {}, dev)
         .parse();
 })().catch(e => {
     console.error(e);
