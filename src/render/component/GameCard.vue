@@ -101,21 +101,16 @@
           </a-button>
         </spin>
       </a-button>
-      <a-button
-        key="delete"
-        type="link"
+      <a-popconfirm
+        title="确认删除？"
+        ok-text="是"
+        cancel-text="否"
+        @confirm="$emit('del', id)"
       >
-        <a-popconfirm
-          title="确认删除？"
-          ok-text="是"
-          cancel-text="否"
-          @confirm="$emit('del', id)"
-        >
-          <a-button type="link">
-            <delete-outlined />
-          </a-button>
-        </a-popconfirm>
-      </a-button>
+        <a-button type="link">
+          <delete-outlined />
+        </a-button>
+      </a-popconfirm>
     </template>
   </a-card>
 </template>
@@ -218,12 +213,16 @@ export default defineComponent({
 :deep(.ant-btn-link) {
     color: inherit;
     font-size: large;
+    line-height: 100%;
 }
 :deep(.ant-card-body) {
     flex-grow: 1;
 }
 :deep(.ant-card-meta-description) {
     word-break: break-all;
+}
+:deep(.ant-btn-link span[role="img"]) {
+    line-height: 0;
 }
 .open:hover {
     color: #40a9ff;
