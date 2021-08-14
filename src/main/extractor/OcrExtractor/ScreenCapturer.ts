@@ -1,4 +1,3 @@
-import type { DModel as M } from 'win32-def';
 import sharp from 'sharp';
 import { findWindow, capture, CaptureResult, HWND } from '@addons/ScreenCapturer';
 
@@ -7,7 +6,7 @@ export class ScreenCapturer {
     private hwnd?: HWND;
     constructor(
         public gamePids: number[],
-        hwnd?: M.HWND
+        hwnd?: HWND
     ) {
         if (hwnd) this.hwnd = BigInt(hwnd);
         else this.findWindow();

@@ -708,11 +708,6 @@
   resolved "https://registry.nlark.com/@vue/shared/download/@vue/shared-3.2.2.tgz?cache=0&sync_timestamp=1628696782917&other_urls=https%3A%2F%2Fregistry.nlark.com%2F%40vue%2Fshared%2Fdownload%2F%40vue%2Fshared-3.2.2.tgz#6104185ebd57af5a14ac51c1f491b2205fc24054"
   integrity sha1-YQQYXr1Xr1oUrFHB9JGyIF/CQFQ=
 
-"@waiting/shared-types@3":
-  version "3.5.1"
-  resolved "https://registry.nlark.com/@waiting/shared-types/download/@waiting/shared-types-3.5.1.tgz#7c9b0c38ddeb5ab0fe11731a67aa974a482bc651"
-  integrity sha1-fJsMON3rWrD+EXMaZ6qXSkgrxlE=
-
 abbrev@1:
   version "1.1.1"
   resolved "https://registry.nlark.com/abbrev/download/abbrev-1.1.1.tgz#f8f2c887ad10bf67f634f005b6987fed3179aac8"
@@ -5555,13 +5550,6 @@ widest-line@^3.1.0:
   integrity sha1-gpIzO79my0X/DeFgOxNreuFJbso=
   dependencies:
     string-width "^4.0.0"
-
-win32-def@^9.4.0:
-  version "9.4.0"
-  resolved "https://registry.nlark.com/win32-def/download/win32-def-9.4.0.tgz#b745b369ff31a905b6c470c010f7b3ffc4dd9ed8"
-  integrity sha1-t0Wzaf8xqQW2xHDAEPez/8Tdntg=
-  dependencies:
-    "@waiting/shared-types" "3"
 
 word-wrap@^1.2.3:
   version "1.2.3"
