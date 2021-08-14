@@ -152,7 +152,7 @@ async function buildNative(arch = 'x64') {
         await fsPromise.mkdir(path.join(__dirname, '..', output), { recursive: true });
         await execFile('yarn', ['node-gyp', '-C', path.join(__dirname, '..', dir), 'configure', ...configureOptions], { shell: true });
         await execFile('yarn', ['node-gyp', '-C', path.join(__dirname, '..', dir), 'build', '-j', 'max'], { shell: true });
-        // await fsPromise.rmdir(path.join(__dirname, '..', dir, 'build'), { recursive: true });
+        await fsPromise.rmdir(path.join(__dirname, '..', dir, 'build'), { recursive: true });
     }
 }
 
@@ -325,7 +325,7 @@ async function buildNsis(cliArgs = {}) {
 function dev(mode = 'development') {
     downloadDependencies()
         .then(() => buildNative(process.arch))
-        .then(devMainAndWorkers(mode))
+        .then(() => devMainAndWorkers(mode))
         .then(() => devRender(mode))
         .catch(err => {
             console.error(err);
