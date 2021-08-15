@@ -22,6 +22,10 @@ jobs:
       fail-fast: false
       matrix:
         language: [ 'javascript', 'cpp' ]
+        arch: [x64, ia32]
+
+    env:
+        npm_config_arch: ${{ matrix.arch }}
 
     steps:
     - name: Checkout repository
@@ -29,28 +33,24 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Use Node.js 14.x
+      uses: actions/setup-node@v2
+      with:
+        node-version: 14.x
+
+    - run: yarn install --frozen-lockfile
+
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v1
       with:
         languages: ${{ matrix.language }}
 
+    - name: Configure Project
+      if: ${{ matrix.language == 'cpp' }}
+      run: yarn build:native --arch=${{ matrix.arch }} --configure-only
+
     - name: Autobuild
       uses: github/codeql-action/autobuild@v1
-      if: ${{ matrix.language == 'javascript' }}
-
-    - name: Setup
-      if: ${{ matrix.language == 'cpp' }}
-      run: |
-        yarn global add node-gyp
-        yarn global bin | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-
-    - name: Build
-      if: ${{ matrix.language == 'cpp' }}
-      run: |
-        node-gyp -C native/cli configure --arch=ia32
-        node-gyp -C native/cli build -j max
-        node-gyp -C native/addons configure
-        node-gyp -C native/addons build -j max
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
