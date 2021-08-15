@@ -125,7 +125,7 @@ async function downloadDependencies() {
     await downloadLanguageData();
 }
 
-async function buildNative(arch = 'x64') {
+async function buildNative(arch = 'x64', configureOnly = false) {
     const files = [
         `dist/addons/${arch}/ScreenCapturer.node`,
         `dist/addons/${arch}/WindowEventHook.node`,
@@ -151,6 +151,7 @@ async function buildNative(arch = 'x64') {
         };
         await fsPromise.mkdir(path.join(__dirname, '..', output), { recursive: true });
         await execFile('yarn', ['node-gyp', '-C', path.join(__dirname, '..', dir), 'configure', ...configureOptions], { shell: true });
+        if (configureOnly) return;
         await execFile('yarn', ['node-gyp', '-C', path.join(__dirname, '..', dir), 'build', '-j', 'max'], { shell: true });
         await fsPromise.rmdir(path.join(__dirname, '..', dir, 'build'), { recursive: true });
     }
@@ -181,7 +182,8 @@ async function build(type, mode = 'production') {
     await bundle.close();
 }
 
-async function buildMain(mode = 'production') {
+async function buildMain(mode = 'production', arch = 'x64') {
+    await buildNative(arch);
     await build('main', mode);
 }
 
@@ -313,7 +315,9 @@ async function removeSharpVendor(cliArgs) {
 }
 
 async function buildNsis(cliArgs = {}) {
+    await downloadDependencies();
     await removeSharpVendor(cliArgs);
+    await buildNative(cliArgs.arch);
     await buildJs('production');
     const args = cliArgs;
     args[cliArgs.arch] = true;
@@ -344,25 +348,27 @@ function clean() {
 (async function() {
     const yargs = require('yargs');
     await yargs
-        .command('clean', '', {}, () => clean())
-        .command('download-dependencies', '', {}, () => downloadDependencies())
-        .command('dev', '', {}, () => dev())
-        .command('build', '', function(args) {
+        .command('clean', '清理生成的文件', {}, () => clean())
+        .command('download-dependencies', '下载依赖', {}, () => downloadDependencies())
+        .command('dev', '以开发模式启动', {}, () => dev())
+        .command('build', '构建', function(args) {
             return args
                 .option('mode', { choices: ['development', 'production', undefined] })
                 .option('arch', { choices: ['x64', 'ia32'], default: process.env.npm_config_arch || 'x64' })
                 .middleware(async (args) => {
                     process.env.npm_config_arch = args.arch;
+                })
+                .command('js', '构建js文件', {}, (args) => buildJs(args.mode))
+                .command('main', '构建主进程', {}, (args) => buildMain(args.mode, args.arch))
+                .command('render', '构建渲染进程', {}, (args) => buildRender(args.mode))
+                .command('workers', '构建workers', {}, (args) => buildWorkers(args.mode))
+                .command('native', '构建原生模块', { 'configure-only': { type: 'boolean', default: false } }, (args) => buildNative(args.arch, args['configure-only']))
+                .command('test', '构建测试', {}, async () => {
                     await downloadDependencies();
                     await buildNative(args.arch);
+                    await Promise.all([buildTest('development'), buildWorkers('development')]);
                 })
-                .command('js', '', {}, (args) => buildJs(args.mode))
-                .command('main', '', {}, (args) => buildMain(args.mode))
-                .command('render', '', {}, (args) => buildRender(args.mode))
-                .command('workers', '', {}, (args) => buildWorkers(args.mode))
-                .command('native', '', {}, (args) => buildNative(args.arch))
-                .command('test', '', {}, () => Promise.all([buildTest('development'), buildWorkers('development')]))
-                .command(['$0', 'all'], '', {}, (args) => buildNsis(args));
+                .command(['$0', 'all'], '构建全部', {}, (args) => buildNsis(args));
         })
         .parse();
 })().catch(e => {
