@@ -21,19 +21,19 @@ function extract(zipPath, files, dst) {
         yauzl.open(zipPath, { lazyEntries: true }, (err, zipFile) => {
             if (err) return reject(err);
             zipFile.readEntry();
-            zipFile.on('entry', function(entry) {
+            zipFile.on('entry', function (entry) {
                 if (entry.fileName.endsWith('/')) {
                     zipFile.readEntry();
                 } else {
                     if (files.includes(entry.fileName)) {
                         files.splice(files.findIndex(i => i === entry.fileName), 1);
-                        zipFile.openReadStream(entry, function(err, readStream) {
+                        zipFile.openReadStream(entry, function (err, readStream) {
                             if (err) return reject(err);
                             const dstPath = dst(entry);
                             fs.mkdirSync(path.dirname(dstPath), { recursive: true });
                             const out = fs.createWriteStream(dstPath, { flags: 'w+' });
                             readStream.pipe(out);
-                            readStream.on('end', function() {
+                            readStream.on('end', function () {
                                 out.end();
                                 if (files.length) zipFile.readEntry();
                                 else { zipFile.close(); resolve(); }
@@ -138,21 +138,21 @@ async function buildNative(arch = 'x64', configureOnly = false) {
 
     console.log('build native module...');
 
-    await gypBuild('native/cli', 'static/native/bin', '--arch=ia32');
-    await gypBuild('native/addons', `dist/addons/${arch}`, `--arch=${arch}`);
+    await gypBuild('native/cli', 'static/native/bin', 'ia32');
+    await gypBuild('native/addons', `dist/addons/${arch}`, arch);
 
-    async function gypBuild(dir, output, configureOptions = []) {
+    async function gypBuild(dir, output, arch, configureOptions = []) {
         if (typeof configureOptions === 'string') configureOptions = [configureOptions];
         const execFile = async (...args) => {
             const ret = await util.promisify(child_process.execFile)(...args);
-            console.log(ret.stderr);
             console.log(ret.stdout);
+            console.log(ret.stderr);
             return ret;
         };
         await fsPromise.mkdir(path.join(__dirname, '..', output), { recursive: true });
-        await execFile('yarn', ['node-gyp', '-C', path.join(__dirname, '..', dir), 'configure', ...configureOptions], { shell: true });
+        await execFile('yarn', ['node-gyp', '-C', path.join(__dirname, '..', dir), 'configure', `--arch=${arch}`, ...configureOptions], { shell: true, env: { ...process.env, npm_config_arch: arch } });
         if (configureOnly) return;
-        await execFile('yarn', ['node-gyp', '-C', path.join(__dirname, '..', dir), 'build', '-j', 'max'], { shell: true });
+        await execFile('yarn', ['node-gyp', '-C', path.join(__dirname, '..', dir), 'build', '-j', 'max'], { shell: true, env: { ...process.env, npm_config_arch: arch } });
         await fsPromise.rmdir(path.join(__dirname, '..', dir, 'build'), { recursive: true });
     }
 }
@@ -345,13 +345,13 @@ function clean() {
     );
 }
 
-(async function() {
+(async function () {
     const yargs = require('yargs');
     await yargs
         .command('clean', '清理生成的文件', {}, () => clean())
         .command('download-dependencies', '下载依赖', {}, () => downloadDependencies())
         .command('dev', '以开发模式启动', {}, () => dev())
-        .command('build', '构建', function(args) {
+        .command('build', '构建', function (args) {
             return args
                 .option('mode', { choices: ['development', 'production', undefined] })
                 .option('arch', { choices: ['x64', 'ia32'], default: process.env.npm_config_arch || 'x64' })
@@ -363,7 +363,7 @@ function clean() {
                 .command('render', '构建渲染进程', {}, (args) => buildRender(args.mode))
                 .command('workers', '构建workers', {}, (args) => buildWorkers(args.mode))
                 .command('native', '构建原生模块', { 'configure-only': { type: 'boolean', default: false } }, (args) => buildNative(args.arch, args['configure-only']))
-                .command('test', '构建测试', {}, async () => {
+                .command('test', '构建测试', {}, async (args) => {
                     await downloadDependencies();
                     await buildNative(args.arch);
                     await Promise.all([buildTest('development'), buildWorkers('development')]);
