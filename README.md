@@ -1,5 +1,7 @@
 # Ame - Visual Novel Translator
-[![Build](https://github.com/nzh63/Ame/actions/workflows/ci.yml/badge.svg)](https://github.com/nzh63/Ame/actions/workflows/ci.yml)
+[![Build](https://github.com/nzh63/Ame/actions/workflows/build.yml/badge.svg)](https://github.com/nzh63/Ame/actions/workflows/build.yml)
+[![Release](https://github.com/nzh63/Ame/actions/workflows/release.yml/badge.svg)](https://github.com/nzh63/Ame/actions/workflows/release.yml)
+[![CodeQL](https://github.com/nzh63/Ame/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/nzh63/Ame/actions/workflows/codeql-analysis.yml)
 
 ![例子](./doc/example.png)
 
