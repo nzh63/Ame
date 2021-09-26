@@ -76,24 +76,29 @@ async function downloadTextractor(version = '4.16.0') {
     if (await checkFiles(files)) return;
 
     const pipeline = util.promisify(stream.pipeline);
-    const l = gotLicense('https://github.com/Artikash/Textractor/raw/master/LICENSE', path.join(__dirname, '../static/lib/LICENSE.Textractor.txt'));
     const url = `https://github.com/Artikash/Textractor/releases/download/v${version}/Textractor-${version}-Zip-Version-English-Only.zip`;
     const tmp = await fsPromise.mkdtemp(os.tmpdir());
     console.log('downloading', url);
-    await pipeline(
-        got.stream(url)
-            .on('downloadProgress', progress => {
-                process.stderr.write(` ${Math.round(progress.percent * 100)}% ${progress.transferred} / ${progress.total} bytes\r`);
-            }),
-        fs.createWriteStream(path.join(tmp, './Textractor.zip'))
-    );
-    await extract(
-        path.join(tmp, './Textractor.zip'),
-        files.map(i => i.replace('static/lib/', 'Textractor/')),
-        (entry) => entry.fileName.replace(/^Textractor\//, path.join(__dirname, '../static/lib/'))
-    );
-    await fsPromise.rmdir(tmp, { recursive: true });
-    await l;
+    try {
+        const license = gotLicense('https://github.com/Artikash/Textractor/raw/master/LICENSE', path.join(__dirname, '../static/lib/LICENSE.Textractor.txt'));
+        await pipeline(
+            got.stream(url)
+                .on('downloadProgress', progress => {
+                    process.stderr.write(` ${Math.round(progress.percent * 100)}% ${progress.transferred} / ${progress.total} bytes\r`);
+                }),
+            fs.createWriteStream(path.join(tmp, './Textractor.zip'))
+        );
+        await extract(
+            path.join(tmp, './Textractor.zip'),
+            files.map(i => i.replace('static/lib/', 'Textractor/')),
+            (entry) => entry.fileName.replace(/^Textractor\//, path.join(__dirname, '../static/lib/'))
+        );
+        await fsPromise.rmdir(tmp, { recursive: true });
+        await license;
+    } catch (e) {
+        await fsPromise.rmdir('static/lib', { recursive: true, force: true });
+        throw e;
+    }
 }
 
 async function downloadLanguageData() {
@@ -103,21 +108,26 @@ async function downloadLanguageData() {
     if (await checkFiles(files)) return;
 
     const pipeline = util.promisify(stream.pipeline);
-    const l = gotLicense('https://github.com/tesseract-ocr/tessdata_fast/raw/master/LICENSE', path.join(__dirname, '../static/lang-data/LICENSE.tesseract.txt'));
-    for (const file of files) {
-        const dstPath = path.join(__dirname, '../', file);
-        fs.mkdirSync(path.dirname(dstPath), { recursive: true });
-        const url = `https://github.com/tesseract-ocr/tessdata_fast/raw/master/${file.replace('static/lang-data/', '')}`;
-        console.log('downloading', url);
-        await pipeline(
-            got.stream(url)
-                .on('downloadProgress', progress => {
-                    process.stderr.write(` ${Math.round(progress.percent * 100)}% ${progress.transferred} / ${progress.total} bytes\r`);
-                }),
-            fs.createWriteStream(dstPath)
-        );
+    try {
+        const license = gotLicense('https://github.com/tesseract-ocr/tessdata_fast/raw/main/LICENSE', path.join(__dirname, '../static/lang-data/LICENSE.tesseract.txt'));
+        for (const file of files) {
+            const dstPath = path.join(__dirname, '../', file);
+            fs.mkdirSync(path.dirname(dstPath), { recursive: true });
+            const url = `https://github.com/tesseract-ocr/tessdata_fast/raw/main/${file.replace('static/lang-data/', '')}`;
+            console.log('downloading', url);
+            await pipeline(
+                got.stream(url)
+                    .on('downloadProgress', progress => {
+                        process.stderr.write(` ${Math.round(progress.percent * 100)}% ${progress.transferred} / ${progress.total} bytes\r`);
+                    }),
+                fs.createWriteStream(dstPath)
+            );
+        }
+        await license;
+    } catch (e) {
+        await fsPromise.rmdir('static/lang-data', { recursive: true, force: true });
+        throw e;
     }
-    await l;
 }
 
 async function downloadDependencies() {
