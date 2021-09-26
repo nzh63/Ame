@@ -18,8 +18,8 @@ export function buildTest<C extends OcrProviderConfig<string, any, unknown, any>
         this.timeout(20000);
         window = new SimpleWindow();
         await window.whenReady();
-        const width = 400;
-        const height = 300;
+        const width = 600;
+        const height = 400;
         await window.run(`(function(){const { width, height } = screen.screenToDipRect(window, { x: 0, y: 0, width: ${width}, height: ${height} }); window.setSize(width, height);})()`);
         await window.run('window.webContents.executeJavaScript(`document.open();document.write(\'<div style="width:100%;height:100%;display:flex;align-items:center;align-content:center;justify-content:center;"><h1>こんにちは。</h1></div>\');document.close();`)');
         screenCapturer = new ScreenCapturer(window.pids);
@@ -35,7 +35,7 @@ export function buildTest<C extends OcrProviderConfig<string, any, unknown, any>
     suite.addTest(new Test('recognize', async function(this: Mocha.Context) {
         this.timeout(20000);
         this.retries(3);
-        const result = await provider.recognize((await screenCapturer.capture()).extract({ left: 50, top: 100, width: 300, height: 100 }));
+        const result = await provider.recognize((await screenCapturer.capture()).extract({ left: 50, top: 100, width: 500, height: 200 }));
         expect(result).to.be.a('string').and.not.to.be.empty;
         expect(result.trim()).to.equal('こんにちは。');
     }));

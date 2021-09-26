@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import EventEmitter from 'events';
-import dgram from 'dgram';
+import http from 'http';
 import path from 'path';
 import { execPowerShell, findProcess } from '@main/win32';
+import fetch from 'electron-fetch';
 
 const electronPath = path.join(process.cwd(), './node_modules/electron/dist/electron.exe');
 
 export class SimpleWindow extends EventEmitter {
-    private server: dgram.Socket = dgram.createSocket('udp4');
+    private server!: http.Server;
     private childPort!: number;
     private readyPromise: Promise<void>;
     public pids: number[] = [];
@@ -16,18 +17,27 @@ export class SimpleWindow extends EventEmitter {
         super();
         let readyPromiseResolve: () => void;
         this.readyPromise = new Promise<void>(resolve => { readyPromiseResolve = resolve; });
-        this.server.bind();
         (async () => {
-            await new Promise(resolve => this.server.once('listening', resolve));
             const oldPids = await findProcess(electronPath);
-            execPowerShell(`&'${electronPath}' ./test/SimpleWindow/run.js ${this.server.address().port}`);
-            await new Promise<void>(resolve => this.server.once('message', (msg) => {
-                resolve();
-                this.childPort = parseInt(msg.toString('utf-8').replace('ok ', ''));
-            }));
-            this.pids = (await findProcess(electronPath)).filter(i => !oldPids.includes(i));
-            this.emit('ready');
-            readyPromiseResolve!();
+            this.server = http.createServer(async (req, resp) => {
+                if (req.socket.remoteAddress === '127.0.0.1') {
+                    let msg = '';
+                    req.on('data', data => { msg += '' + data; });
+                    await new Promise(resolve => req.once('end', resolve));
+                    this.childPort = parseInt(msg);
+                    resp.end();
+                    this.server.close();
+                    this.server.unref();
+                    this.pids = (await findProcess(electronPath)).filter(i => !oldPids.includes(i));
+                    this.emit('ready');
+                    readyPromiseResolve!();
+                } else {
+                    resp.end();
+                }
+            });
+            this.server.listen(0, '127.0.0.1');
+            await new Promise(resolve => this.server.once('listening', resolve));
+            execPowerShell(`&'${electronPath}' ./test/SimpleWindow/run.js ${(this.server.address() as any).port}`);
         })();
     }
 
@@ -35,20 +45,8 @@ export class SimpleWindow extends EventEmitter {
         return this.readyPromise;
     }
 
-    public async run(jsCode: string) {
-        this.server.send(jsCode, this.childPort, '127.0.0.1');
-        return new Promise<void>((resolve, reject) => {
-            const callback = (msg: Buffer) => {
-                if (msg.toString('utf-8') === 'ack') {
-                    resolve();
-                    this.server.off('message', callback);
-                } else if (msg.toString('utf-8').startsWith('err')) {
-                    reject(JSON.parse(msg.toString('utf-8').substr(3)));
-                    this.server.off('message', callback);
-                }
-            };
-            this.server.on('message', callback);
-        });
+    public run(jsCode: string) {
+        return fetch(`http://127.0.0.1:${this.childPort}`, { method: 'post', body: jsCode });
     }
 
     public async destroy() {

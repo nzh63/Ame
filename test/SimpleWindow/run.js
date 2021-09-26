@@ -7,21 +7,25 @@ let window;
 app.on('ready', async () => {
     window = new BrowserWindow();
     window.loadURL('about:blank');
-    const dgram = require('dgram');
-    const server = dgram.createSocket('udp4');
-    server.bind();
-    server.on('message', async (msg, rinfo) => {
-        msg = msg.toString('utf-8');
-        console.log(msg);
-        if (rinfo.address === '127.0.0.1') {
+    const http = require('http');
+    const { default: fetch } = require('electron-fetch');
+    const server = http.createServer(async (req, resp) => {
+        if (req.socket.remoteAddress === '127.0.0.1') {
+            let msg = '';
+            req.on('data', data => { msg += '' + data; });
+            await new Promise(resolve => req.once('end', resolve));
             try {
-                await eval(msg);
-                server.send('ack', parseInt(process.argv[2]), '127.0.0.1');
+                const ret = await eval(msg);
+                resp.statusCode = 200;
+                resp.write(ret);
             } catch (e) {
-                server.send('err' + JSON.stringify(e), parseInt(process.argv[2]), '127.0.0.1');
+                resp.statusCode = 400;
+                resp.write('err' + JSON.stringify(e));
             }
         }
+        resp.end();
     });
-    await new Promise(r => server.once('listening', r));
-    server.send(`ok ${server.address().port}`, parseInt(process.argv[2]), '127.0.0.1');
+    server.listen(0, '127.0.0.1');
+    await new Promise(resolve => server.once('listening', resolve));
+    fetch(`http://127.0.0.1:${parseInt(process.argv[2])}`, { method: 'post', body: '' + server.address().port });
 });
