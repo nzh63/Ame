@@ -1,15 +1,9 @@
-# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
-
-name: Build
+name: Release
 
 on:
   push:
-    branches: [ master ]
     tags:
       - 'v*'
-  pull_request:
-    branches: [ master ]
 
 jobs:
   build:
@@ -44,19 +38,11 @@ jobs:
 
     - run: yarn install --frozen-lockfile
 
-    - run: yarn lint
-
-    - run: yarn type-check
-
-    - run: yarn download:dep
-
-    - run: yarn test
-
     - run: yarn build --arch=${{ matrix.arch }} --publish=never
 
     - uses: actions/upload-artifact@v2
       with:
-        name: build-artifact
+        name: release-artifact
         path: build/*.exe
 
   release:
@@ -64,7 +50,7 @@ jobs:
 
     needs: build
 
-    if: startsWith(github.ref, 'refs/tags/') && success()
+    if: success()
 
     steps:
     - uses: actions/checkout@v2
@@ -77,7 +63,7 @@ jobs:
 
     - uses: actions/download-artifact@v2
       with:
-        name: build-artifact
+        name: release-artifact
         path: release-artifact
 
     - uses: softprops/action-gh-release@v1
