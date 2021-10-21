@@ -25,13 +25,15 @@
           :key="i.key"
         >
           <template #label>
-            {{ i.readableName }}
-            <a-typography-text
-              v-if="i.readableName !== i.key.join('.')"
-              type="secondary"
-            >
-              {{ i.key.join(".") }}
-            </a-typography-text>
+            <a-space>
+              {{ i.readableName }}
+              <a-typography-text
+                v-if="i.readableName !== i.key.join('.')"
+                type="secondary"
+              >
+                {{ i.key.join(".") }}
+              </a-typography-text>
+            </a-space>
           </template>
           <a-select
             v-if="
