@@ -39,6 +39,7 @@ void executeCapture(napi_env env, void *_data) {
     data.buffer = new uint8_t[data.bufferSize];
     GetBitmapBits(saveBitmap, data.bufferSize, data.buffer);
     DeleteObject(saveBitmap);
+    DeleteDC(saveDC);
     ReleaseDC(data.hwnd, hwndDC);
     DeleteObject(saveBitmap);
 }
