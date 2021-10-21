@@ -227,7 +227,7 @@ export default defineComponent({
                 this.result = 'success';
                 this.resultInfo = '';
                 this.done();
-            } catch (e) {
+            } catch (e: any) {
                 this.result = 'error';
                 this.resultInfo = '' + (e.message ?? e);
             }

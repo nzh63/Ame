@@ -238,7 +238,7 @@ export default defineComponent({
             if (isArray) {
                 try {
                     newValue = JSON.parse(newValue);
-                } catch (e) {
+                } catch (e: any) {
                     if (!isString) i.help = e.message;
                 }
             }

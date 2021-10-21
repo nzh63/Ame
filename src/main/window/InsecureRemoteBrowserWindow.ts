@@ -11,7 +11,6 @@ export class InsecureRemoteBrowserWindow extends BrowserWindow {
         options.show = false;
         options.webPreferences ??= {};
         options.webPreferences.sandbox = true;
-        options.webPreferences.enableRemoteModule = false;
         options.webPreferences.autoplayPolicy = 'user-gesture-required';
         options.webPreferences.partition = 'insecure-remote-content';
         super(options);

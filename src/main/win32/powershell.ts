@@ -16,7 +16,7 @@ fs.stat(powershellPath, async (err) => {
     if (err) powershellPath = 'powershell.exe';
     try {
         await execPromisify(`${powershellPath} /?`);
-    } catch (e) {
+    } catch (e: any) {
         powershellReadyReject(e);
         dialog.showErrorBox('环境出错', `无法运行Powershell\n${e.message ?? e}`);
         app.exit(1);
