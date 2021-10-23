@@ -110,7 +110,7 @@
 <script lang="ts">
 import { defineComponent, ref, toRaw, watch, nextTick } from 'vue';
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRouter } from 'vue-router';
-import { message } from 'ant-design-vue';
+import message from 'ant-design-vue/es/message';
 
 import type { JSONSchema } from '@main/schema';
 import {

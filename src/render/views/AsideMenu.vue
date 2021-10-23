@@ -109,7 +109,7 @@
 </template>
 
 <script lang="ts">
-import type Item from 'ant-design-vue/lib/menu/MenuItem';
+import type { Item } from 'ant-design-vue/es/menu';
 import { useRouter } from 'vue-router';
 import { computed, defineComponent, ref } from 'vue';
 import { getTranslateProvidersIDs, getTtsProvidersIDs, getOcrProvidersIDs, getSegmentProvidersIDs, getDictProvidersIDs } from '@render/remote';
@@ -119,7 +119,7 @@ export default defineComponent({
         const router = useRouter();
         function onClick(item: typeof Item) {
             if (item.key) {
-                router.push('' + item.key);
+                router.push(item.key.toString());
             }
         }
         const selectedKeys = computed(() => [router.currentRoute.value.path]);

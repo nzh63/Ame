@@ -1,6 +1,8 @@
 import type { RouteLocationNormalized, Router } from 'vue-router';
 import { h } from 'vue';
-import { notification, Button, Space } from 'ant-design-vue';
+import notification from 'ant-design-vue/es/notification';
+import Button from 'ant-design-vue/es/button';
+import Space from 'ant-design-vue/es/space';
 
 export function checkIfUnsaved(hasChange: () => boolean, router: Router) {
     let skipCheck = false;

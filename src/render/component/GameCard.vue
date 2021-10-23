@@ -117,19 +117,13 @@
 
 <script lang="ts">
 import { defineComponent, PropType, toRaw } from 'vue';
-import { message } from 'ant-design-vue';
-import { DeleteOutlined, PlayCircleOutlined, RollbackOutlined, SaveFilled, SettingOutlined } from '@ant-design/icons-vue';
+import message from 'ant-design-vue/es/message';
 import InputWithOpenFile from '@render/component/InputWithOpenFile.vue';
 import Spin from '@render/component/Spin';
 import { startGame, startExtract } from '@render/remote';
 
 export default defineComponent({
     components: {
-        SettingOutlined,
-        PlayCircleOutlined,
-        RollbackOutlined,
-        DeleteOutlined,
-        SaveFilled,
         InputWithOpenFile,
         Spin
     },
@@ -195,7 +189,7 @@ export default defineComponent({
             try {
                 const { pids } = await startGame(toRaw(this.$props));
                 startExtract(this.uuid, pids, this.hookCode, this.type);
-            } catch (e) {
+            } catch (e: any) {
                 message.error(`启动失败：${e.message ?? e}`);
             }
             this.starting = false;

@@ -43,14 +43,12 @@
 
 <script lang="ts">
 import { defineComponent, inject, ref } from 'vue';
-import { ReloadOutlined } from '@ant-design/icons-vue';
 import TextractorSetting from '@render/component/TextractorSetting.vue';
 import { switchExtractorType, getExtractorType, openOcrGuideWindow } from '@render/remote';
 
 export default defineComponent({
     components: {
-        TextractorSetting,
-        ReloadOutlined
+        TextractorSetting
     },
     setup() {
         const type = ref<Ame.Extractor.ExtractorType>('textractor');

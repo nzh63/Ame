@@ -173,7 +173,6 @@
 
 <script lang="ts">
 import { defineComponent, ref, watch, toRaw, computed } from 'vue';
-import { ReloadOutlined } from '@ant-design/icons-vue';
 import {
     getScreenCapture,
     getScreenCaptureCropRect,
@@ -184,9 +183,6 @@ import {
 const sharp = require('sharp');
 
 export default defineComponent({
-    components: {
-        ReloadOutlined
-    },
     setup() {
         const current = ref(0);
         const steps: string[] = ['选择区域', '设置预处理'];

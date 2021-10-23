@@ -62,16 +62,12 @@
 
 <script lang="ts">
 import { defineComponent, ref, inject, Ref, nextTick } from 'vue';
-import { LineOutlined, PauseOutlined, CaretRightOutlined, LockOutlined, UnlockOutlined } from '@ant-design/icons-vue';
 import type { RadioChangeEvent } from 'ant-design-vue/lib/radio/interface';
 import { useRouter } from 'vue-router';
 
 import * as remote from '@render/remote';
 
 export default defineComponent({
-    components: {
-        LineOutlined, PauseOutlined, CaretRightOutlined, LockOutlined, UnlockOutlined
-    },
     props: {
         hideTitleBar: {
             type: Boolean,

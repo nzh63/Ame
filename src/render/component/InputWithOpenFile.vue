@@ -18,13 +18,9 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { MoreOutlined } from '@ant-design/icons-vue';
 import { showOpenDialog } from '@render/remote';
 
 export default defineComponent({
-    components: {
-        MoreOutlined
-    },
     props: {
         value: {
             type: String,

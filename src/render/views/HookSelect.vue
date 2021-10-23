@@ -70,16 +70,10 @@
 
 <script lang="ts">
 import { defineComponent, inject, onUnmounted, Ref, ref } from 'vue';
-import { CheckOutlined, DeleteOutlined, SelectOutlined } from '@ant-design/icons-vue';
 import { watchOriginal, unwatchOriginal, getAllExtractText } from '@render/remote';
 import { useRouter } from 'vue-router';
 
 export default defineComponent({
-    components: {
-        CheckOutlined,
-        DeleteOutlined,
-        SelectOutlined
-    },
     setup() {
         const texts = ref<{ [key: string]: string }>({});
         getAllExtractText().then(value => { texts.value = value; }).catch(() => { });

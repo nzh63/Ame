@@ -77,8 +77,7 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRouter } from 'vue-router';
-import { message } from 'ant-design-vue';
-import { PlusOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons-vue';
+import message from 'ant-design-vue/es/message';
 
 import { checkIfUnsaved } from '@render/utils';
 import InputWithOpenFile from '@render/component/InputWithOpenFile.vue';
@@ -86,10 +85,7 @@ import store from '@render/store';
 
 export default defineComponent({
     components: {
-        InputWithOpenFile,
-        PlusOutlined,
-        DeleteOutlined,
-        EditOutlined
+        InputWithOpenFile
     },
     setup() {
         const updating = ref(false);

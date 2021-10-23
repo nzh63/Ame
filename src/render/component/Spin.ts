@@ -1,6 +1,6 @@
 import { defineComponent, h } from 'vue';
-import { Spin } from 'ant-design-vue';
-import { LoadingOutlined } from '@ant-design/icons-vue';
+import Spin from 'ant-design-vue/es/spin';
+import LoadingOutlined from '@ant-design/icons-vue/LoadingOutlined';
 
 export default defineComponent({
     props: {

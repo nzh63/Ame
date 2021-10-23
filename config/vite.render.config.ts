@@ -1,8 +1,11 @@
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import path from 'path';
+import glob from 'glob';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import log from './LogPlugin';
+import Components from 'unplugin-vue-components/vite';
+import { AntDesignVueResolver } from './antdv-resolver';
 
 import builtinModules from 'builtin-modules/static';
 const license = require('rollup-plugin-license');
@@ -15,6 +18,10 @@ const externalPackages = [
     ...builtinModules
 ];
 
+const ant = glob.sync('ant-design-vue/es/*/index.js', { cwd: path.join(__dirname, '../node_modules') }).map(i => i.replace(/\/index\.js$/, ''));
+const antStyle = glob.sync('ant-design-vue/es/*/style/css.js', { cwd: path.join(__dirname, '../node_modules') }).map(i => i.replace(/\.js$/, ''));
+const antIcon = glob.sync('@ant-design/icons-vue/*.js', { cwd: path.join(__dirname, '../node_modules') }).map(i => i.replace(/\.js$/, ''));
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode } = { command: 'build', mode: 'production' }) => ({
     optimizeDeps: {
@@ -23,7 +30,15 @@ export default defineConfig(({ mode } = { command: 'build', mode: 'production' }
             path.join(__dirname, '../src/render/TranslatorWindow.html'),
             path.join(__dirname, '../src/render/OcrGuide.html')
         ],
-        include: ['vue', 'ant-design-vue', 'vue-router', '@ant-design/icons-vue', 'debug', 'uuid']
+        include: [
+            'vue',
+            'vue-router',
+            ...ant,
+            ...antStyle,
+            ...antIcon,
+            'debug',
+            'uuid'
+        ]
     },
     mode,
     root: path.join(__dirname, '../src/render'),
@@ -39,6 +54,7 @@ export default defineConfig(({ mode } = { command: 'build', mode: 'production' }
         disableLog: mode === 'production'
     }),
     vue(),
+    Components({ resolvers: [AntDesignVueResolver({ importStyle: false, resolveIcons: true })] }),
     nodeResolve({ extensions: ['.js', '.ts', '.node'], browser: true }),
     mode === 'production'
         ? license({
