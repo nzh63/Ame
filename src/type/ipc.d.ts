@@ -17,6 +17,8 @@ declare namespace Electron {
 
     interface IpcRenderer {
         invoke(channel: 'start-game', arg: Ame.GameSetting): Promise<Ame.IpcRet<{ pids: number[] }>>;
+        invoke(channel: 'get-game-setting'): Promise<Ame.IpcRet<Ame.GameSetting | undefined>>;
+        invoke(channel: 'set-game-select-keys', keys: Ame.GameSetting.Key[]): Promise<Ame.IpcRet<void>>;
         invoke(channel: 'show-open-dialog', arg: OpenDialogOptions): Promise<Ame.IpcRet<void | string>>;
         invoke(channel: 'get-all-extract-text'): Promise<Ame.IpcRet<Ame.Extractor.Result>>;
         invoke(channel: 'start-extract', arg: { gamePids: number[], hookCode?: string, type?: string }): Promise<Ame.IpcRet<void>>;

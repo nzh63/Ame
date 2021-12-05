@@ -1,5 +1,6 @@
 export * from './dialog';
 export * from './startGame';
+export * from './setting';
 export * from './extract';
 export * from './watch';
 export * from './options';

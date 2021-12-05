@@ -6,6 +6,7 @@ declare namespace Ame {
         execShell: string;
         type: Ame.Extractor.ExtractorType;
         hookCode: string;
+        selectKeys?: string[];
         textractor?: {
             postProcessOption?: {
                 removeDuplication?: boolean;

@@ -16,9 +16,12 @@
 </template>
 
 <script lang="ts">
+import type { LayoutContent } from 'ant-design-vue';
 import { defineComponent, provide, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 import TranslatorTitleBar from '@render/component/TranslatorTitleBar.vue';
+import { getGameSetting, setGameSelectKeys } from './remote';
 
 export default defineComponent({
     components: {
@@ -38,17 +41,34 @@ export default defineComponent({
         };
 
         const hookCodes = ref<string[]>([]);
-        provide('setHookCodes', (h: string[]) => { hookCodes.value = h; });
+        provide('setHookCodes', (h: string[]) => {
+            hookCodes.value = h;
+            setGameSelectKeys(h);
+        });
         provide('hookCodes', hookCodes);
 
         const running = ref(false);
         provide('setRunning', (r: boolean) => { running.value = r; });
         provide('running', running);
 
-        const content = ref<any>(null);
+        const content = ref<typeof LayoutContent | null>(null);
         provide('scrollToTop', () => {
             if (content.value) content.value.$el.scrollTop &&= 0;
         });
+
+        const router = useRouter();
+        getGameSetting()
+            .then(setting => {
+                console.log(router.currentRoute.value.path, setting);
+                if (setting?.selectKeys?.length) {
+                    if (['/', '/hook-select'].find(i => i === router.currentRoute.value.path) &&
+                         hookCodes.value.length === 0) {
+                        hookCodes.value = setting.selectKeys;
+                        running.value = true;
+                        router.push('/translator');
+                    }
+                }
+            });
 
         return {
             hideTitleBar,
