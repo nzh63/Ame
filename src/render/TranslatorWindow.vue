@@ -21,7 +21,7 @@ import { defineComponent, provide, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 import TranslatorTitleBar from '@render/component/TranslatorTitleBar.vue';
-import { getGameSetting, setGameSelectKeys } from './remote';
+import { getGameSetting, onWindowBlur, onWindowFocus, setGameSelectKeys } from './remote';
 
 export default defineComponent({
     components: {
@@ -39,6 +39,8 @@ export default defineComponent({
             if (hideTimeout) clearTimeout(hideTimeout);
             hideTimeout = setTimeout(() => { hideTitleBar.value = true; }, 1000);
         };
+        onWindowFocus(mouseover);
+        onWindowBlur(mouseleave);
 
         const hookCodes = ref<string[]>([]);
         provide('setHookCodes', (h: string[]) => {

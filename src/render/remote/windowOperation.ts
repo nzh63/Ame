@@ -1,3 +1,4 @@
+import type { IpcRendererEvent } from 'electron/renderer';
 import { handleError } from '@render/remote/handle';
 
 const electron = require('electron');
@@ -24,4 +25,12 @@ export function setWindowAlwaysOnTop(flag: boolean) {
 
 export function showContextMenu() {
     return handleError(electron.ipcRenderer.invoke('show-context-menu'));
+}
+
+export function onWindowFocus(callback: (event: IpcRendererEvent) => void) {
+    return electron.ipcRenderer.on('window-focus', callback);
+}
+
+export function onWindowBlur(callback: (event: IpcRendererEvent) => void) {
+    return electron.ipcRenderer.on('window-blur', callback);
 }

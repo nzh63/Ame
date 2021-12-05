@@ -38,6 +38,8 @@ declare namespace Electron {
         invoke(channel: 'segment', text: string): Promise<Ame.IpcRet<import('@main/manager/SegmentManager').SegmentWord[] | void>>;
         on(channel: 'original-watch-list-update', listener: (event: IpcRendererEvent, arg: Ame.Translator.OriginalText) => void): void;
         on(channel: 'translate-watch-list-update', listener: (event: IpcRendererEvent, arg: Ame.Translator.TranslateResult) => void): void;
+        on(channel: 'window-focus', listener: (event: IpcRendererEvent) => void): void;
+        on(channel: 'window-blur', listener: (event: IpcRendererEvent) => void): void;
     }
 
 }

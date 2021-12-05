@@ -51,6 +51,15 @@ export class TranslatorWindow extends WindowWithGeneral {
             this.hide();
             e.preventDefault();
         });
+
+        this.on('focus', () => {
+            logger('windows focus');
+            this.webContents.send('window-focus');
+        });
+        this.on('blur', () => {
+            logger('windows blur');
+            this.webContents.send('window-blur');
+        });
     }
 
     public showContextMenu() {
