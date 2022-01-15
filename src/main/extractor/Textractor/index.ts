@@ -3,14 +3,14 @@ import { EOL } from 'os';
 import { join } from 'path';
 import { isWow64 } from '@main/win32';
 import { __static } from '@main/paths';
-import { BaseExtractor } from '@main/extractor/BaseExtractor';
+import { IExtractor } from '@main/extractor/IExtractor';
 import logger from '@logger/extractor/textractor';
 
 export interface PostProcessOption {
     removeDuplication?: boolean;
 }
 
-export declare interface Textractor extends BaseExtractor {
+export declare interface Textractor extends IExtractor {
     on(event: 'update:any', listener: (t: Ame.Translator.OriginalText) => void): this;
     on<T extends Ame.Extractor.Key>(event: `update:${T}`, listener: (t: Ame.Translator.OriginalText) => void): this;
     on(event: 'textractor-cli-exit', listener: (code: number | null) => void): this;
@@ -24,7 +24,7 @@ export declare interface Textractor extends BaseExtractor {
     off(event: 'textractor-cli-exit', listener: (code: number | null) => void): this;
 }
 
-export class Textractor extends BaseExtractor {
+export class Textractor extends IExtractor {
     static readonly TextractorCliX64 = join(__static, './lib/x64/TextractorCLI.exe');
     static readonly TextractorCliX86 = join(__static, './lib/x86/TextractorCLI.exe');
     private textractorCliProcess: ChildProcessWithoutNullStreams;
@@ -78,7 +78,7 @@ export class Textractor extends BaseExtractor {
                 const line = '' + result.shift();
                 const [, addr, name, text] = /^\[.*?:.*?:(.*?):(.*?)\] ([\S\s]*)$/.exec(line) ?? [null];
                 if (addr && name && text) {
-                    this.onUpdate(`${addr}:${name}`, this.postProcess(text));
+                    this.update(`${addr}:${name}`, this.postProcess(text));
                 }
             }
             this.textractorCliStdoutBuffer = result[0];

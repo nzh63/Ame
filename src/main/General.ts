@@ -5,7 +5,7 @@ import { TranslatorWindow } from '@main/window/TranslatorWindow';
 import { OcrGuideWindow } from '@main/window/OcrGuideWindow';
 import { createMainWindow, mainWindow } from '@main/index';
 import { TranslateManager, TtsManager, SegmentManager, DictManager } from '@main/manager';
-import { BaseExtractor, OcrExtractor, Textractor, PreprocessOption, PostProcessOption } from '@main/extractor';
+import { IExtractor, OcrExtractor, Textractor, PreprocessOption, PostProcessOption } from '@main/extractor';
 import store from '@main/store';
 import logger from '@logger/general';
 
@@ -14,7 +14,7 @@ type WatchCallback = (arg: Ame.Translator.OriginalText) => void;
 export class General {
     private static instances: General[] = [];
 
-    public extractor: BaseExtractor;
+    public extractor: IExtractor;
 
     private translatorWindow: TranslatorWindow;
     private ocrGuideWindow?: OcrGuideWindow;

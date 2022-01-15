@@ -1,7 +1,7 @@
 import EventEmitter from 'events';
-import logger from '@logger/extractor/baseExtractor';
+import logger from '@logger/extractor/IExtractor';
 
-export declare interface BaseExtractor extends EventEmitter {
+export declare interface IExtractor extends EventEmitter {
     on(event: 'update:any', listener: (t: Ame.Translator.OriginalText) => void): this;
     on<T extends Ame.Extractor.Key>(event: `update:${T}`, listener: (t: Ame.Translator.OriginalText) => void): this;
 
@@ -12,17 +12,17 @@ export declare interface BaseExtractor extends EventEmitter {
     off<T extends Ame.Extractor.Key>(event: `update:${T}`, listener: (t: Ame.Translator.OriginalText) => void): this;
 }
 
-export abstract class BaseExtractor extends EventEmitter {
-    private text_: Ame.Extractor.Result = {};
+export abstract class IExtractor extends EventEmitter {
+    #text: Ame.Extractor.Result = {};
 
     public get text(): Readonly<Ame.Extractor.Result> {
-        return this.text_;
+        return this.#text;
     }
 
-    protected onUpdate(key: string, text: string) {
+    protected update(key: string, text: string) {
         logger('Extractor update { %s: %s }', key, text);
-        if (text !== this.text_[key]) {
-            this.text_[key] = text;
+        if (text !== this.#text[key]) {
+            this.#text[key] = text;
             this.emit(`update:${key}`, { key, text });
             this.emit('update:any', { key, text });
         }

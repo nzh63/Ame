@@ -2,7 +2,7 @@ import type { Hook } from '@main/hook';
 import type { OcrExtractorOptions } from '@main/extractor/OcrExtractor/options';
 import sharp from 'sharp';
 import store from '@main/store';
-import { BaseExtractor } from '@main/extractor/BaseExtractor';
+import { IExtractor } from '@main/extractor/IExtractor';
 import { ScreenCapturer } from '@main/extractor/OcrExtractor//ScreenCapturer';
 import { OcrManager } from '@main/manager/OcrManager';
 import logger from '@logger/extractor/OcrExtractor';
@@ -12,7 +12,7 @@ export interface PreprocessOption {
     threshold?: number
 }
 
-export class OcrExtractor extends BaseExtractor {
+export class OcrExtractor extends IExtractor {
     private lastImage?: sharp.Sharp;
     private lastCropImage?: sharp.Sharp;
     private shouldCapture1 = true;
@@ -109,7 +109,7 @@ export class OcrExtractor extends BaseExtractor {
                 text = res.text;
             }
             const key = `ocr-${res.providerId}`;
-            this.onUpdate(key, text);
+            this.update(key, text);
         });
     }
 
