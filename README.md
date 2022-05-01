@@ -16,7 +16,7 @@
 * 图形化的、易于配置的设置界面。
 
 ## 编译与运行
-1. 首先安装[node.js](https://nodejs.org/en/)(v12+)、[yarn](https://yarnpkg.com/)，然后：
+1. 首先安装[node.js](https://nodejs.org/en/)(v14+)、[yarn](https://yarnpkg.com/)，然后：
 2. 然后安装[python](https://www.python.org/)与[Visual Studio](https://visualstudio.microsoft.com/vs)，可以通过执行`yarn global add windows-build-tools`来安装它们。
 3. 执行以下命令即可进行开发与调试。
     ```cmd
