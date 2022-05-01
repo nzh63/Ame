@@ -17,7 +17,7 @@ export function buildTest<C extends TranslateProviderConfig<string, any, unknown
     }));
 
     suite.addTest(new Test('translate', async function(this: Mocha.Context) {
-        this.timeout(20000);
+        this.timeout(60000);
         const result = await provider.translate('こんにちは。');
         expect(result).to.be.a('string').and.not.to.be.empty;
         expect(result).to.match(/[你您]好[.。!！]?/);
