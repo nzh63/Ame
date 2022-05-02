@@ -165,6 +165,9 @@ export default defineComponent({
     flex-basis: 300px;
     flex-grow: 1;
 }
+.placeholder {
+    margin: 0px;
+}
 .pid,
 .game-card {
     min-height: 175px;
