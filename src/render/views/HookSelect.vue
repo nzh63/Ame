@@ -1,75 +1,72 @@
 <template>
-  <div>
-    <a-affix :offset-top="0">
-      <a-space>
+  <a-space>
+    <a-button
+      shape="circle"
+      @click="clear"
+    >
+      <template #icon>
+        <delete-outlined />
+      </template>
+    </a-button>
+    <a-radio-group
+      v-model:value="multiselect"
+      name="mode"
+    >
+      <a-radio :value="false">
+        单选模式
+      </a-radio>
+      <a-radio :value="true">
+        多选模式
+      </a-radio>
+    </a-radio-group>
+  </a-space>
+  <a-list
+    item-layout="horizontal"
+    :data-source="Object.keys(texts)"
+    v-bind="$attrs"
+  >
+    <a-list-item
+      v-for="(text, key) of texts"
+      :key="key"
+    >
+      <a-list-item-meta>
+        <template #title>
+          <span class="break-all">{{ text }}</span>
+        </template>
+        <template #description>
+          {{ key }}
+        </template>
+      </a-list-item-meta>
+      <template #actions>
         <a-button
-          shape="circle"
-          @click="clear"
+          v-if="hookCodes.includes(key)"
+          class="sucess"
+          type="primary"
+          shape="round"
         >
           <template #icon>
-            <delete-outlined />
+            <check-outlined />
           </template>
+          使用中
         </a-button>
-        <a-radio-group
-          v-model:value="multiselect"
-          name="mode"
+        <a-button
+          v-else
+          type="primary"
+          shape="round"
+          @click="setHookCode(key)"
         >
-          <a-radio :value="false">
-            单选模式
-          </a-radio>
-          <a-radio :value="true">
-            多选模式
-          </a-radio>
-        </a-radio-group>
-      </a-space>
-    </a-affix>
-    <a-list
-      item-layout="horizontal"
-      :data-source="Object.keys(texts)"
-    >
-      <a-list-item
-        v-for="(text, key) of texts"
-        :key="key"
-      >
-        <a-list-item-meta>
-          <template #title>
-            <span class="break-all">{{ text }}</span>
+          <template #icon>
+            <select-outlined />
           </template>
-          <template #description>
-            {{ key }}
-          </template>
-        </a-list-item-meta>
-        <template #actions>
-          <a-button
-            v-if="hookCodes.includes(key)"
-            class="sucess"
-            type="primary"
-            shape="round"
-          >
-            <template #icon>
-              <check-outlined />
-            </template>
-            使用中
-          </a-button>
-          <a-button
-            v-else
-            type="primary"
-            shape="round"
-            @click="setHookCode(key)"
-          >
-            <template #icon>
-              <select-outlined />
-            </template>
-            使用
-          </a-button>
-        </template>
-      </a-list-item>
-    </a-list>
-  </div>
+          使用
+        </a-button>
+      </template>
+    </a-list-item>
+  </a-list>
 </template>
 
 <script lang="ts">
-import { defineComponent, inject, onUnmounted, Ref, ref } from 'vue';
+import { defineComponent, inject, onUnmounted, Ref, ref, VNode, onMounted } from 'vue';
 import { watchOriginal, unwatchOriginal, getAllExtractText } from '@render/remote';
 import { useRouter } from 'vue-router';
 
@@ -106,12 +103,18 @@ export default defineComponent({
             }
         };
 
+        const top = ref<VNode>();
+        onMounted(() => {
+            console.log(top.value);
+        });
+
         return {
             hookCodes,
             texts,
             setHookCode,
             multiselect,
-            clear
+            clear,
+            top
         };
     }
 });

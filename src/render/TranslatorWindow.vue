@@ -22,6 +22,7 @@ import { useRouter } from 'vue-router';
 
 import TranslatorTitleBar from '@render/component/TranslatorTitleBar.vue';
 import { getGameSetting, onWindowBlur, onWindowFocus, setGameSelectKeys } from './remote';
+import logger from '@logger/TranslatorWindow';
 
 export default defineComponent({
     components: {
@@ -61,7 +62,7 @@ export default defineComponent({
         const router = useRouter();
         getGameSetting()
             .then(setting => {
-                console.log(router.currentRoute.value.path, setting);
+                logger('%s %O', router.currentRoute.value.path, setting);
                 if (setting?.selectKeys?.length) {
                     if (['/', '/hook-select'].find(i => i === router.currentRoute.value.path) &&
                          hookCodes.value.length === 0) {
@@ -107,7 +108,6 @@ body,
 ::-webkit-scrollbar {
     width: 2px;
     height: 2px;
-    transition: all 2s 1s;
 }
 *:hover::-webkit-scrollbar {
     width: 15px;
