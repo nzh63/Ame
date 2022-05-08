@@ -231,6 +231,7 @@ export class General {
         }
         const callback: WatchCallback = (value) => {
             logger('original-watch-list-update %O', value);
+            if (!this.translatorWindow.webContents) return;
             this.translatorWindow.webContents.send('original-watch-list-update', value);
             if (key !== 'any') this.translatorWindow.showInactive();
         };
@@ -254,6 +255,7 @@ export class General {
         }
         const callback: WatchCallback = ({ key, text }) => {
             this.translateManager.translate(key, text, (err, result) => {
+                if (!this.translatorWindow.webContents) return;
                 if (!err) this.translatorWindow.webContents.send('translate-watch-list-update', result);
                 else this.translatorWindow.webContents.send('translate-watch-list-update-error', err, result);
             });
