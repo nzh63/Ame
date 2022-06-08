@@ -27,7 +27,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "sharp": "^0.28.3",
+    "sharp": "^0.30.5",
     "tesseract.js-core": "^2.2.0"
   },
   "devDependencies": {
