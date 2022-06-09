@@ -239,7 +239,7 @@ export default defineComponent({
             await store.set('games', [...await store.get('games', []), { ...newGame, uuid: uuidv4() }]);
         },
         updateExecShell() {
-            this.formState.execShell = (this.localeChangers.find(i => i.name === this.formState.localeChanger)?.execShell ?? "&'%GAME'").replace('%GAME%', this.formState.path);
+            this.formState.execShell = (this.localeChangers.find(i => i.name === this.formState.localeChanger)?.execShell ?? "&'%GAME'").replace('%GAME%', this.formState.path.replace(/'/g, "\\'"));
         }
     }
 });

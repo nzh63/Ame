@@ -115,7 +115,7 @@ export default defineComponent({
                     uuid: uuidv4(),
                     path,
                     name,
-                    execShell: `&'${path}'`,
+                    execShell: `&'${path.replace(/'/g, "\\'")}'`,
                     type: 'textractor',
                     hookCode: ''
                 });
