@@ -24,7 +24,7 @@ fs.stat(powershellPath, async (err) => {
     powershellReadyResolve();
 });
 
-export async function execPowerShell(command: string) {
+export async function execPowerShell(command: string, cwd: string | undefined = undefined) {
     await powershellReady;
-    return await execPromisify(`${command}`, { shell: powershellPath });
+    return await execPromisify(`${command}`, { shell: powershellPath, cwd });
 }
