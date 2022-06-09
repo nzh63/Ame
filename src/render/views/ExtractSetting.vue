@@ -4,6 +4,15 @@
       :label-col="{ span: 3 }"
       :wrapper-col="{ span: 21 }"
     >
+      <a-form-item label="文本大小">
+        <a-slider
+          v-model:value="fontSize"
+          :min="6"
+          :max="100"
+          tooltip-placement="bottom"
+          @AfterChange="changeFontSize"
+        />
+      </a-form-item>
       <a-form-item label="提取方法">
         <a-select
           :value="type"
@@ -42,9 +51,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, inject, ref } from 'vue';
+import { defineComponent, inject, Ref, ref } from 'vue';
 import TextractorSetting from '@render/component/TextractorSetting.vue';
 import { switchExtractorType, getExtractorType, openOcrGuideWindow } from '@render/remote';
+import store from '@render/store';
 
 export default defineComponent({
     components: {
@@ -59,6 +69,13 @@ export default defineComponent({
 
         const setHookCodeInject = inject<(h: string) => void>('setHookCode');
         const setRunning = inject<(h: boolean) => void>('setRunning');
+        const _fontSize = inject<Ref<number>>('fontSize');
+        const fontSize = ref(_fontSize?.value);
+
+        const changeFontSize = async (value: number) => {
+            if (_fontSize) _fontSize.value = value;
+            await store.set('general.fontSize', value);
+        };
 
         const changeType = async (newType: Ame.Extractor.ExtractorType) => {
             setRunning?.(false);
@@ -69,7 +86,9 @@ export default defineComponent({
 
         return {
             screen,
+            fontSize,
             type,
+            changeFontSize,
             changeType,
             openOcrGuideWindow
         };

@@ -22,6 +22,7 @@ import { useRouter } from 'vue-router';
 
 import TranslatorTitleBar from '@render/component/TranslatorTitleBar.vue';
 import { getGameSetting, onWindowBlur, onWindowFocus, setGameSelectKeys } from './remote';
+import store from '@render/store';
 import logger from '@logger/TranslatorWindow';
 
 export default defineComponent({
@@ -58,6 +59,10 @@ export default defineComponent({
         provide('scrollToTop', () => {
             if (content.value) content.value.$el.scrollTop &&= 0;
         });
+
+        const fontSize = ref(16);
+        store.get('general').then((value) => { fontSize.value = value.fontSize; });
+        provide('fontSize', fontSize);
 
         const router = useRouter();
         getGameSetting()

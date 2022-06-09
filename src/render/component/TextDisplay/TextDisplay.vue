@@ -34,7 +34,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from 'vue';
+import { computed, defineComponent, inject, PropType, Ref } from 'vue';
 import OriginalText from '@render/component/TextDisplay/OriginalText.vue';
 
 export default defineComponent({
@@ -59,8 +59,12 @@ export default defineComponent({
             context.emit('tts-speak', s, t);
         };
 
+        const _fontSize = inject<Ref<number>>('fontSize');
+        const fontSize = computed(() => (_fontSize?.value ?? 16) + 'px');
+
         return {
-            onRightClick
+            onRightClick,
+            fontSize
         };
     }
 });
@@ -70,7 +74,7 @@ export default defineComponent({
 .translator .line {
     line-height: 1.2;
     font-weight: 500;
-    font-size: 16px;
+    font-size: v-bind('fontSize');
 }
 .translator .line:not(:last-child) {
     margin-bottom: 0.3em;

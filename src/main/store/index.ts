@@ -10,6 +10,7 @@ import { SegmentManagerStore, segmentManagerStoreJSONSchema } from './segmentMan
 import { OcrExtractorStore, ocrExtractorStoreJSONSchema } from './ocrExtractor';
 import { DictProvidersStore, dictProvidersStoreJSONSchema } from './dictProviders';
 import { DictManagerStore, dictManagerStoreJSONSchema } from './dictManager';
+import { generalStore, generalStoreJSONSchema } from './general';
 
 const store = new Store<{
     games: Ame.GameSetting[];
@@ -23,6 +24,7 @@ const store = new Store<{
     segmentManager: SegmentManagerStore;
     dictManager: DictManagerStore;
     ocrExtractor: OcrExtractorStore;
+    general: generalStore;
 }>({
     schema: {
         games: gamesStoreJSONSchema,
@@ -35,7 +37,8 @@ const store = new Store<{
         ttsManager: ttsManagerStoreJSONSchema,
         segmentManager: segmentManagerStoreJSONSchema,
         dictManager: dictManagerStoreJSONSchema,
-        ocrExtractor: ocrExtractorStoreJSONSchema
+        ocrExtractor: ocrExtractorStoreJSONSchema,
+        general: generalStoreJSONSchema
     },
     clearInvalidConfig: true
 });
