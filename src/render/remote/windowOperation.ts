@@ -23,8 +23,8 @@ export function setWindowAlwaysOnTop(flag: boolean) {
     return handleError(electron.ipcRenderer.invoke('set-window-always-on-top', flag));
 }
 
-export function showContextMenu() {
-    return handleError(electron.ipcRenderer.invoke('show-context-menu'));
+export function showContextMenu(x?: number, y?: number) {
+    return handleError(electron.ipcRenderer.invoke('show-context-menu', x, y));
 }
 
 export function onWindowFocus(callback: (event: IpcRendererEvent) => void) {

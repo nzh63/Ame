@@ -111,10 +111,10 @@ export default defineComponent({
             offTtsReply(ttsCallback);
         });
 
-        const onTts = (s: string, t: 'original' | 'translate') => {
+        const onTts = (s: string, t: 'original' | 'translate', x?: number, y?: number) => {
             ttsString = s;
             ttsType = t;
-            showContextMenu();
+            showContextMenu(x, y);
         };
 
         return {

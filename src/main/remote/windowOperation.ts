@@ -46,11 +46,11 @@ ipcMain.handle('set-window-always-on-top', handleError(async (event: IpcMainInvo
     }
 }));
 
-ipcMain.handle('show-context-menu', handleError(async (event: IpcMainInvokeEvent) => {
-    logger('show-context-menu');
+ipcMain.handle('show-context-menu', handleError(async (event: IpcMainInvokeEvent, x?: number, y?: number) => {
+    logger('show-context-menu x:%o y:%o', x, y);
     const window = BrowserWindow.fromWebContents(event.sender);
     if (window && window instanceof TranslatorWindow) {
-        window.showContextMenu();
+        window.showContextMenu(x, y);
     } else {
         throw new Error('You can only get extract text from a TranslatorWindow');
     }

@@ -7,6 +7,10 @@
       class="line"
       title="原文"
       @click.right="onRightClick(original, 'original')"
+      @touchstart="e => onTouchstart(e, original, 'original')"
+      @touchend="onTouchend()"
+      @touchmove="onTouchend()"
+      @touchcancel="onTouchend()"
     >
       <original-text :text="original" />
     </div>
@@ -21,6 +25,14 @@
           'translate'
         )
       "
+      @touchstart="e => onTouchstart(
+        e,
+        i.err ? i.err?.message ?? i.err : i.text,
+        'translate'
+      )"
+      @touchend="onTouchend()"
+      @touchmove="onTouchend()"
+      @touchcancel="onTouchend()"
     >
       <span
         v-if="i.err"
@@ -52,11 +64,26 @@ export default defineComponent({
         }
     },
     emits: {
-        'tts-speak': (s: string, t: 'original' | 'translate') => true
+        'tts-speak': (s: string, t: 'original' | 'translate', x?: number, y?: number) => true
     },
     setup(props, context) {
         const onRightClick = (s: string, t: 'original' | 'translate') => {
             context.emit('tts-speak', s, t);
+        };
+
+        let timer: ReturnType<typeof setTimeout> | null = null;
+        const onTouchend = () => {
+            if (timer) {
+                clearTimeout(timer);
+                timer = null;
+            }
+        };
+        const onTouchstart = (e: TouchEvent, s: string, t: 'original' | 'translate') => {
+            onTouchend();
+            timer = setTimeout(() => {
+                timer = null;
+                context.emit('tts-speak', s, t, e.changedTouches[0].screenX, e.changedTouches[0].screenY);
+            }, 750);
         };
 
         const _fontSize = inject<Ref<number>>('fontSize');
@@ -64,6 +91,8 @@ export default defineComponent({
 
         return {
             onRightClick,
+            onTouchstart,
+            onTouchend,
             fontSize
         };
     }
