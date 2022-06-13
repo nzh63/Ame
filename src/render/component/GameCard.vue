@@ -56,10 +56,7 @@
         </a-form-item>
       </a-form>
     </transition>
-    <template
-      #actions
-      class="ant-card-actions"
-    >
+    <template #actions>
       <a-button
         v-if="!showEdit"
         key="setting"

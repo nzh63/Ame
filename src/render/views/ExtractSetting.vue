@@ -10,7 +10,7 @@
           :min="6"
           :max="100"
           tooltip-placement="bottom"
-          @AfterChange="changeFontSize"
+          @after-change="changeFontSize"
         />
       </a-form-item>
       <a-form-item label="提取方法">

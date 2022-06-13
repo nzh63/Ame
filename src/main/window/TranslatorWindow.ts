@@ -21,7 +21,7 @@ export class TranslatorWindow extends WindowWithGeneral {
 
     private static readonly url = import.meta.env.DEV
         ? 'http://localhost:9080/TranslatorWindow.html'
-        // eslint-disable-next-line node/no-path-concat
+        // eslint-disable-next-line n/no-path-concat
         : `file://${__dirname}/../render/TranslatorWindow.html`;
 
     private contextMenu = Menu.buildFromTemplate([{
@@ -62,7 +62,10 @@ export class TranslatorWindow extends WindowWithGeneral {
         });
     }
 
-    public showContextMenu() {
-        this.contextMenu.popup();
+    public showContextMenu(x?: number, y?: number) {
+        const option: Electron.PopupOptions = {};
+        if (x !== undefined) option.x = Math.round(x);
+        if (y !== undefined) option.y = Math.round(y);
+        this.contextMenu.popup(option);
     }
 }

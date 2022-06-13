@@ -16,7 +16,7 @@ export class OcrGuideWindow extends WindowWithGeneral {
 
     private static readonly url = import.meta.env.DEV
         ? 'http://localhost:9080/OcrGuide.html'
-        // eslint-disable-next-line node/no-path-concat
+        // eslint-disable-next-line n/no-path-concat
         : `file://${__dirname}/../render/OcrGuide.html`;
 
     constructor(

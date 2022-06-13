@@ -51,10 +51,10 @@ export default defineTranslateProvider({
         return fetch('https://fanyi-api.baidu.com/api/trans/vip/translate?' + querystring.stringify({
             q: text,
             appid: this.apiConfig.appid,
-            salt: salt,
+            salt,
             from: this.apiConfig.fromLanguage,
             to: this.apiConfig.toLanguage,
-            sign: sign
+            sign
         }))
             .then(res => res.json())
             .then(res => {

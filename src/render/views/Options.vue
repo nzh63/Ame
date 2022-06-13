@@ -55,7 +55,7 @@
           <a-input
             v-else
             v-model:value="i.optionsValueString"
-            @pressEnter="onUpdate(i.optionsValueString, i.key, i)"
+            @press-enter="onUpdate(i.optionsValueString, i.key, i)"
             @blur="onUpdate(i.optionsValueString, i.key, i)"
           >
             <template #suffix>
