@@ -21,7 +21,7 @@ export default function devSpeedup() {
                         return null;
                     }
                 } catch (e) {
-                    tryId = tryId.substr(0, tryId.lastIndexOf('/'));
+                    tryId = tryId.substring(0, tryId.lastIndexOf('/'));
                 }
             }
             return null;

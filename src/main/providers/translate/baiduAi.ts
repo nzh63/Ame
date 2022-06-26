@@ -1,6 +1,5 @@
 import { defineTranslateProvider } from '@main/providers/translate';
 import crypto from 'crypto';
-import querystring from 'querystring';
 import fetch from 'electron-fetch';
 
 export default defineTranslateProvider({
@@ -44,18 +43,18 @@ export default defineTranslateProvider({
             this.apiConfig.key !== null;
     },
     async translate(text) {
-        const salt = (new Date()).getTime();
+        const salt = '' + (new Date()).getTime();
         const str1 = this.apiConfig.appid + text + salt + this.apiConfig.key;
         const md5 = crypto.createHash('md5');
         const sign = md5.update(str1).digest('hex');
-        return fetch('https://fanyi-api.baidu.com/api/trans/vip/translate?' + querystring.stringify({
+        return fetch('https://fanyi-api.baidu.com/api/trans/vip/translate?' + new URLSearchParams({
             q: text,
-            appid: this.apiConfig.appid,
+            appid: this.apiConfig.appid ?? '',
             salt,
             from: this.apiConfig.fromLanguage,
             to: this.apiConfig.toLanguage,
             sign
-        }), {
+        }).toString(), {
             headers: { connection: 'keep-alive' }
         })
             .then(res => res.json())

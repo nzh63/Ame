@@ -118,7 +118,7 @@ export default function replace(options: Options = { logFunction: {} }) {
         load(id) {
             if (id.startsWith('@logger')) {
                 if (options.disableLog !== true) {
-                    const namespace = /@logger\//.test(id) ? id.substr(id.lastIndexOf('@logger/') + '@logger/'.length).replace(/\//g, ':') : undefined;
+                    const namespace = /@logger\//.test(id) ? id.substring(id.lastIndexOf('@logger/') + '@logger/'.length).replace(/\//g, ':') : undefined;
                     return `import logger from '${options.loggerPath ? options.loggerPath : 'debug'}'
                             const logger2 = ${options.loggerPath ? 'logger' : 'logger("")'}
                             ${namespace ? `export default logger2.extend('${namespace}')` : 'export default logger2'}`;
