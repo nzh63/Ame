@@ -1,5 +1,6 @@
-import { BrowserWindow, Menu, Tray, app } from 'electron';
+import { BrowserWindow, Menu, Tray, app, dialog, shell } from 'electron';
 import { join } from 'path';
+import fetch from 'electron-fetch';
 import { description, name } from '../../package.json';
 import { __assets } from '@main/paths';
 import { General } from '@main/General';
@@ -70,6 +71,29 @@ app.on('ready', () => {
     tray.on('double-click', createMainWindow);
     tray.setToolTip(name);
     createMainWindow();
+    if (import.meta.env.PROD) {
+        setTimeout(() => {
+            fetch(`https://update.electronjs.org/nzh63/Ame/${process.platform}-${process.arch}/${app.getVersion()}`)
+                .then(res => res.json())
+                .then(res => {
+                    logger('update: %O', res);
+                    if (res.name && res.notes && res.url) {
+                        dialog.showMessageBox({
+                            type: 'info',
+                            title: '发现新版本',
+                            message: ('' + res.name).trim(),
+                            detail: ('' + res.notes).trim().replace(/\[(.*?)\]\(.*?\)/g, '$1').replace(/[\n\r]+/g, '\n'),
+                            buttons: ['下载', '取消']
+                        }).then(({ response }) => {
+                            if (response === 0) {
+                                shell.openExternal(res.url);
+                            }
+                        });
+                    }
+                })
+                .catch(e => logger('%O', e));
+        }, 3000);
+    }
 });
 
 app.on('activate', () => {
