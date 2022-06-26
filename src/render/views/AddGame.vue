@@ -148,7 +148,7 @@
             >
               重新添加
             </a-button>
-            <a-button @click="done">
+            <a-button @click="done(); $router.push('/')">
               仍然使用当前配置
             </a-button>
           </div>
