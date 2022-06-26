@@ -55,7 +55,9 @@ export default defineTranslateProvider({
             from: this.apiConfig.fromLanguage,
             to: this.apiConfig.toLanguage,
             sign
-        }))
+        }), {
+            headers: { connection: 'keep-alive' }
+        })
             .then(res => res.json())
             .then(res => {
                 if (!res.trans_result) throw res;
