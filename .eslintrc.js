@@ -16,14 +16,15 @@ module.exports = {
             named: 'never',
             asyncArrow: 'always'
         }],
-        'node/no-callback-literal': 'off',
+        'n/no-callback-literal': 'off',
         '@typescript-eslint/semi': ['warn', 'always'],
         '@typescript-eslint/explicit-module-boundary-types': 'off',
         '@typescript-eslint/no-var-requires': 'off',
         '@typescript-eslint/no-explicit-any': 'off',
         '@typescript-eslint/no-unused-vars': ['error', { args: 'none' }],
         '@typescript-eslint/no-empty-function': 'off',
-        'vue/no-v-model-argument': 'off'
+        'vue/no-v-model-argument': 'off',
+        'vue/multi-word-component-names': 'off'
     },
     extends: [
         'plugin:vue/vue3-recommended',

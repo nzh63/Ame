@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 require('ts-node/register');
 const os = require('os');
 const fs = require('fs');
@@ -5,7 +6,6 @@ const fsPromise = require('fs').promises;
 const path = require('path');
 const stream = require('stream');
 const util = require('util');
-// eslint-disable-next-line camelcase
 const child_process = require('child_process');
 const electron = require('electron');
 const yauzl = require('yauzl');
