@@ -2,6 +2,7 @@
 [![Build](https://github.com/nzh63/Ame/actions/workflows/build.yml/badge.svg)](https://github.com/nzh63/Ame/actions/workflows/build.yml)
 [![Release](https://github.com/nzh63/Ame/actions/workflows/release.yml/badge.svg)](https://github.com/nzh63/Ame/actions/workflows/release.yml)
 [![CodeQL](https://github.com/nzh63/Ame/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/nzh63/Ame/actions/workflows/codeql-analysis.yml)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fnzh63%2FAme.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fnzh63%2FAme?ref=badge_shield)
 
 ![例子](./doc/example.webp)
 
@@ -38,3 +39,6 @@
 
 ## License
 MIT
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fnzh63%2FAme.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fnzh63%2FAme?ref=badge_large)
