@@ -21,19 +21,19 @@ function extract(zipPath, files, dst) {
         yauzl.open(zipPath, { lazyEntries: true }, (err, zipFile) => {
             if (err) return reject(err);
             zipFile.readEntry();
-            zipFile.on('entry', function(entry) {
+            zipFile.on('entry', function (entry) {
                 if (entry.fileName.endsWith('/')) {
                     zipFile.readEntry();
                 } else {
                     if (files.includes(entry.fileName)) {
                         files.splice(files.findIndex(i => i === entry.fileName), 1);
-                        zipFile.openReadStream(entry, function(err, readStream) {
+                        zipFile.openReadStream(entry, function (err, readStream) {
                             if (err) return reject(err);
                             const dstPath = dst(entry);
                             fs.mkdirSync(path.dirname(dstPath), { recursive: true });
                             const out = fs.createWriteStream(dstPath, { flags: 'w+' });
                             readStream.pipe(out);
-                            readStream.on('end', function() {
+                            readStream.on('end', function () {
                                 out.end();
                                 if (files.length) zipFile.readEntry();
                                 else { zipFile.close(); resolve(); }
@@ -93,10 +93,10 @@ async function downloadTextractor(version = '4.16.0') {
             files.map(i => i.replace('static/lib/', 'Textractor/')),
             (entry) => entry.fileName.replace(/^Textractor\//, path.join(__dirname, '../static/lib/'))
         );
-        await fsPromise.rmdir(tmp, { recursive: true });
+        await fsPromise.rm(tmp, { recursive: true });
         await license;
     } catch (e) {
-        await fsPromise.rmdir('static/lib', { recursive: true, force: true });
+        await fsPromise.rm('static/lib', { recursive: true, force: true });
         throw e;
     }
 }
@@ -125,7 +125,7 @@ async function downloadLanguageData() {
         }
         await license;
     } catch (e) {
-        await fsPromise.rmdir('static/lang-data', { recursive: true, force: true });
+        await fsPromise.rm('static/lang-data', { recursive: true, force: true });
         throw e;
     }
 }
@@ -163,7 +163,7 @@ async function buildNative(arch = 'x64', configureOnly = false) {
         await execFile('yarn', ['node-gyp', '-C', path.join(__dirname, '..', dir), 'configure', `--arch=${arch}`, ...configureOptions], { shell: true, env: { ...process.env, npm_config_arch: arch } });
         if (configureOnly) return;
         await execFile('yarn', ['node-gyp', '-C', path.join(__dirname, '..', dir), 'build', '-j', 'max'], { shell: true, env: { ...process.env, npm_config_arch: arch } });
-        await fsPromise.rmdir(path.join(__dirname, '..', dir, 'build'), { recursive: true });
+        await fsPromise.rm(path.join(__dirname, '..', dir, 'build'), { recursive: true });
     }
 }
 
@@ -176,7 +176,7 @@ async function buildRender(mode = 'production') {
 }
 
 async function clear(type) {
-    await fsPromise.rmdir(path.join(__dirname, '../dist', type), { recursive: true, force: true });
+    await fsPromise.rm(path.join(__dirname, '../dist', type), { recursive: true, force: true });
 }
 
 async function build(type, mode = 'production') {
@@ -320,7 +320,7 @@ async function removeSharpVendor(cliArgs) {
     process.env.npm_config_arch = cliArgs.arch;
     const platformJson = await util.promisify(glob)(path.join(__dirname, '../node_modules/sharp/vendor/*/platform.json'));
     if (platformJson[0] && platform() !== require(platformJson[0])) {
-        await fsPromise.rmdir(path.join(__dirname, '../node_modules/sharp/vendor'), { recursive: true, force: true });
+        await fsPromise.rm(path.join(__dirname, '../node_modules/sharp/vendor'), { recursive: true, force: true });
     }
 }
 
@@ -351,17 +351,17 @@ function clean() {
         [
             'dist',
             'static/native'
-        ].map(i => fsPromise.rmdir(path.join(__dirname, '..', i), { recursive: true }))
+        ].map(i => fsPromise.rm(path.join(__dirname, '..', i), { recursive: true }))
     );
 }
 
-(async function() {
+(async function () {
     const yargs = require('yargs');
     await yargs
         .command('clean', '清理生成的文件', {}, () => clean())
         .command('download-dependencies', '下载依赖', {}, () => downloadDependencies())
         .command('dev', '以开发模式启动', {}, () => dev())
-        .command('build', '构建', function(args) {
+        .command('build', '构建', function (args) {
             return args
                 .option('mode', { choices: ['development', 'production', undefined] })
                 .option('arch', { choices: ['x64', 'ia32'], default: process.env.npm_config_arch || 'x64' })
