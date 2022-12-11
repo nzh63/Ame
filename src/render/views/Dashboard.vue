@@ -50,6 +50,7 @@
         <a-input-number
           v-model:value="pid"
           :min="0"
+          @keyup.enter="start"
         />
       </a-modal>
     </div>
