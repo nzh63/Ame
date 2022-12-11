@@ -58,6 +58,7 @@
 
 <script lang="ts">
 import { v4 as uuidv4 } from 'uuid';
+import { quote } from 'shell-quote';
 import { defineComponent, toRaw } from 'vue';
 
 import GameCard from '@render/component/GameCard.vue';
@@ -115,7 +116,7 @@ export default defineComponent({
                     uuid: uuidv4(),
                     path,
                     name,
-                    execShell: `&'${path.replace(/'/g, "\\'")}'`,
+                    execShell: '& ' + quote([path]),
                     type: 'textractor',
                     hookCode: ''
                 });

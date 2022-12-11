@@ -75,6 +75,7 @@
 </template>
 
 <script lang="ts">
+import { quote } from 'shell-quote';
 import { defineComponent, ref } from 'vue';
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRouter } from 'vue-router';
 import message from 'ant-design-vue/es/message';
@@ -141,7 +142,7 @@ export default defineComponent({
                 .catch((e: any) => message.error(e.message ?? e));
         };
 
-        const pathTransform = (p: string) => `&'${p}' '%GAME%'`;
+        const pathTransform = (p: string) => `& ${quote([p])} %GAME%`;
 
         const del = (i: typeof options.value[number]) => {
             options.value.splice(options.value.findIndex(j => i === j), 1);

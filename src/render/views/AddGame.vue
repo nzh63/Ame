@@ -162,6 +162,7 @@
 
 import { defineComponent, toRaw } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
+import { quote } from 'shell-quote';
 import InputWithOpenFile from '@render/component/InputWithOpenFile.vue';
 import type { PlatformPath } from 'path';
 import Spin from '@render/component/Spin';
@@ -205,13 +206,13 @@ export default defineComponent({
     },
     async mounted() {
         this.localeChangers = await store.get('localeChangers');
-        this.localeChangers.unshift({ name: '不转换', enable: true, execShell: "&'%GAME%'" });
-        this.localeChangers.push({ name: '自定义启动参数', enable: true, execShell: "&'%GAME%'" });
+        this.localeChangers.unshift({ name: '不转换', enable: true, execShell: '& %GAME%' });
+        this.localeChangers.push({ name: '自定义启动参数', enable: true, execShell: '& %GAME%' });
     },
     methods: {
         next(): void {
             if (this.current === 0) {
-                this.formState.execShell = `&'${this.formState.path}'`;
+                this.formState.execShell = `& ${quote([this.formState.path])}`;
             }
             this.current++;
             if (this.current === 2) {
@@ -239,7 +240,8 @@ export default defineComponent({
             await store.set('games', [...await store.get('games', []), { ...newGame, uuid: uuidv4() }]);
         },
         updateExecShell() {
-            this.formState.execShell = (this.localeChangers.find(i => i.name === this.formState.localeChanger)?.execShell ?? "&'%GAME'").replace('%GAME%', this.formState.path.replace(/'/g, "\\'"));
+            const pattern = this.localeChangers.find(i => i.name === this.formState.localeChanger)?.execShell ?? '& %GAME%';
+            this.formState.execShell = pattern.replaceAll('%GAME%', quote([this.formState.path]));
         }
     }
 });
