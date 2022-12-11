@@ -20,7 +20,7 @@ export class TranslatorWindow extends WindowWithGeneral {
     };
 
     private static readonly url = import.meta.env.DEV
-        ? 'http://localhost:9080/TranslatorWindow.html'
+        ? 'http://localhost:9090/TranslatorWindow.html'
         // eslint-disable-next-line n/no-path-concat
         : `file://${__dirname}/../render/TranslatorWindow.html`;
 

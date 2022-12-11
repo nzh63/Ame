@@ -9,7 +9,7 @@ import logger from '@logger';
 
 export let mainWindow: BrowserWindow | null, tray: Tray;
 const mainWindowURL = import.meta.env.DEV
-    ? 'http://localhost:9080/MainWindow.html'
+    ? 'http://localhost:9090/MainWindow.html'
     // eslint-disable-next-line n/no-path-concat
     : `file://${__dirname}/../render/MainWindow.html`;
 

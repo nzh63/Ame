@@ -211,7 +211,7 @@ async function devRender(mode = 'development') {
         configFile: path.join(__dirname, './vite.render.config.ts'),
         mode
     });
-    await server.listen(9080);
+    await server.listen(9090);
     process.once('SIGINT', () => {
         server.close();
     });
