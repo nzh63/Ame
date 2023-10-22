@@ -17,18 +17,18 @@ jobs:
         npm_config_arch: ${{ matrix.arch }}
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
-    - name: Use Node.js 14.x
-      uses: actions/setup-node@v2
+    - name: Use Node.js 18.x
+      uses: actions/setup-node@v3
       with:
-        node-version: 14.x
+        node-version: 18.x
 
     - name: Get yarn cache directory path
       id: yarn-cache-dir-path
-      run: echo "::set-output name=dir::$(yarn cache dir)"
+      run: echo "dir=$(yarn cache dir)" >> $ENV:GITHUB_OUTPUT
 
-    - uses: actions/cache@v1
+    - uses: actions/cache@v3
       id: yarn-cache
       with:
         path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
@@ -40,7 +40,7 @@ jobs:
 
     - run: yarn build --arch=${{ matrix.arch }} --publish=never
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: release-artifact
         path: build/*.exe
@@ -53,7 +53,7 @@ jobs:
     if: success()
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
@@ -61,7 +61,7 @@ jobs:
       run: npx conventional-changelog-cli -p angular -o CHANGELOG.md -r 2
     - run: cat CHANGELOG.md
 
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: release-artifact
         path: release-artifact
