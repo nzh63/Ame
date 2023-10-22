@@ -1,5 +1,6 @@
 import sharp from 'sharp';
 import { findWindow, capture, CaptureResult, HWND } from '@addons/ScreenCapturer';
+import logger from '@logger/extractor/OcrExtractor/ScreenCapturer';
 
 export class ScreenCapturer {
     private static emptyImage = () => sharp(Buffer.alloc(1, 0), { raw: { width: 1, height: 1, channels: 1 } });
@@ -24,6 +25,7 @@ export class ScreenCapturer {
         try {
             result = await capture(this.hwnd);
         } catch (e) {
+            logger('fail to capture screen: %O', e);
             if (canRetry) return this.capture(false);
             else return ScreenCapturer.emptyImage();
         }

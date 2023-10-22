@@ -35,7 +35,7 @@ export default defineOcrProvider({
         if (import.meta.env.DEV) {
             worker.on('message', args => {
                 if (args.type === 'log') {
-                    logger(args.value);
+                    logger('%O', args.value);
                 }
             });
         }
