@@ -48,7 +48,7 @@
     "@typescript-eslint/parser": "^5.27.1",
     "@vitejs/plugin-vue": "^1.4.0",
     "@vue/compiler-sfc": "^3.2.2",
-    "@vue/eslint-config-standard": "^7.0.0",
+    "@vue/eslint-config-standard": "^8.0.1",
     "@vue/eslint-config-typescript": "^10.0.0",
     "ajv": "^8.6.2",
     "ant-design-vue": "^2.2.8",
