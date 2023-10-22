@@ -23,9 +23,6 @@ files:
   - "!**/{appveyor.yml,.travis.yml,circle.yml}"
   - "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}"
   - "!node_modules/sharp/vendor"
-asarUnpack:
-  - dist/workers/**/*
-  - node_modules/tesseract.js-core/**/*
 buildDependenciesFromSource: true
 extraResources:
   - from: ./static

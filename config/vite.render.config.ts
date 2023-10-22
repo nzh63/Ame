@@ -5,7 +5,7 @@ import glob from 'glob';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import log from './LogPlugin';
 import Components from 'unplugin-vue-components/vite';
-import { AntDesignVueResolver } from './antdv-resolver';
+import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers';
 
 import builtinModules from 'builtin-modules/static';
 const license = require('rollup-plugin-license');
@@ -54,7 +54,7 @@ export default defineConfig(({ mode } = { command: 'build', mode: 'production' }
         disableLog: mode === 'production'
     }),
     vue(),
-    Components({ resolvers: [AntDesignVueResolver({ importStyle: false, resolveIcons: true })] }),
+    Components({ dts: false, resolvers: [AntDesignVueResolver({ importStyle: false, resolveIcons: true })] }),
     nodeResolve({ extensions: ['.js', '.ts', '.node'], browser: true }),
     mode === 'production'
         ? license({

@@ -7,6 +7,7 @@ import json from '@rollup/plugin-json';
 import alias from '@rollup/plugin-alias';
 import { wasm } from '@rollup/plugin-wasm';
 import esbuild from 'rollup-plugin-esbuild';
+import copy from 'rollup-plugin-copy';
 import log from './LogPlugin';
 import native from './NativePlugin';
 import devSpeedup from './DevSpeedupPlugin';
@@ -75,6 +76,17 @@ export default (mode = 'production') => ({
                     }
                 }
             })
+            : null,
+        mode === 'production'
+            ? copy({
+                targets: [{
+                    src: [
+                        'node_modules/tesseract.js-core/tesseract-core.wasm',
+                        'node_modules/tesseract.js-core/tesseract-core-simd.wasm'
+                    ],
+                    dest: path.join(__dirname, '../dist/workers')
+                }]
+            })
             : null
     ],
     input: workerEntries,
@@ -82,7 +94,7 @@ export default (mode = 'production') => ({
         dir: path.join(__dirname, '../dist/workers'),
         entryFileNames: (chunkInfo) => {
             const workerBase = path.join(__dirname, '../src/workers').replace(/\\/g, '/');
-            const facadeModuleId = chunkInfo.facadeModuleId.replace(/\\/g, '/');
+            const facadeModuleId = (chunkInfo.facadeModuleId ?? '').replace(/\\/g, '/');
             if (facadeModuleId.startsWith(workerBase)) {
                 const reg = new RegExp(`^${workerBase}/(.*?)/`);
                 const workerName = (reg.exec(facadeModuleId) ?? [])[1];

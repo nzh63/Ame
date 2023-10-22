@@ -5,7 +5,7 @@ const { app, BrowserWindow, screen } = require('electron');
 
 let window;
 app.on('ready', async () => {
-    window = new BrowserWindow();
+    window = new BrowserWindow({ minimizable: false, alwaysOnTop: true, backgroundThrottling: false });
     window.loadURL('about:blank');
     const http = require('http');
     const { default: fetch } = require('electron-fetch');

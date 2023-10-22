@@ -8,9 +8,9 @@ if (import.meta.env.DEV) {
 }
 
 export const __assets = join(__dirname, '../../assets').replace(/\\/g, '/');
-export let __workers:string;
+export let __workers: string;
 if (import.meta.env.DEV) {
     __workers = join(__dirname, '../workers').replace(/\\/g, '/');
 } else {
-    __workers = join(process.resourcesPath, 'app.asar.unpacked/dist/workers').replace(/\\/g, '/');
+    __workers = join(process.resourcesPath, 'app.asar/dist/workers').replace(/\\/g, '/');
 }
