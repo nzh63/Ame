@@ -46,6 +46,9 @@ jobs:
     - run: yarn download:dep
 
     - run: yarn test
+      env:
+        DEBUG: ame:*
+        DEBUG_COLORS: "1"
 
     - run: yarn build --arch=${{ matrix.arch }} --publish=never
 

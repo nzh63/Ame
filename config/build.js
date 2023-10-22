@@ -250,6 +250,7 @@ function startElectron() {
     electronProcess = child_process.spawn(electron, args, {
         stdio: 'inherit',
         env: {
+            DEBUG: 'ame:*',
             DEBUG_COLORS: 'yes',
             DEBUG_DEPTH: 'Infinity'
         }

@@ -36,7 +36,7 @@ export default (mode = 'production') => ({
             ],
             loggerPath: '@main/logger',
             logFunction: { logger: 'logger' },
-            disableLog: true
+            disableLog: false
         }),
         mode === 'development' ? devSpeedup() : null,
         alias({

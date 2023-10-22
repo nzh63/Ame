@@ -4,6 +4,8 @@ import http from 'http';
 import path from 'path';
 import { execPowerShell, findProcess } from '@main/win32';
 import fetch from 'electron-fetch';
+import logger from '@logger/test/SimpleWindow';
+import { spawn } from 'child_process';
 
 const electronPath = path.join(process.cwd(), './node_modules/electron/dist/electron.exe');
 
@@ -36,8 +38,15 @@ export class SimpleWindow extends EventEmitter {
                 }
             });
             this.server.listen(0, '127.0.0.1');
+            logger('create http server...');
             await new Promise(resolve => this.server.once('listening', resolve));
-            execPowerShell(`&'${electronPath}' ./test/SimpleWindow/run.js ${(this.server.address() as any).port}`);
+            logger('http server listen on %o', this.server.address());
+            const child = spawn(
+                electronPath,
+                ['./test/SimpleWindow/run.js', '' + (this.server.address() as any).port],
+                { stdio: 'inherit' }
+            );
+            child.unref();
         })();
     }
 
