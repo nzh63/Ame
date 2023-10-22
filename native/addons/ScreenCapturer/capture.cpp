@@ -9,8 +9,8 @@
 struct CaptureData {
     HWND hwnd = nullptr;
     bool error = false;
-    int width = 0;
-    int height = 0;
+    size_t width = 0;
+    size_t height = 0;
     void *data = nullptr;
     napi_ref buffer = nullptr;
     napi_deferred deferred = nullptr;
