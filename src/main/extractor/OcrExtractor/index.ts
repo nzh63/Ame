@@ -98,7 +98,19 @@ export class OcrExtractor extends IExtractor {
 
     private async triggerRecognize() {
         this.lastImage = await this.screenCapturer.capture();
-        this.lastCropImage = this.rect ? this.lastImage.clone().extract(this.rect) : this.lastImage.clone();
+        if (this.rect) {
+            // NOTE: 我们把图像flip过，所以这里rect同样要反转
+            const metatdat = await this.lastImage.metadata();
+            const rect: sharp.Region = {
+                left: this.rect.left,
+                width: this.rect.width,
+                top: (metatdat.height ?? 0) - this.rect.top - this.rect.height,
+                height: this.rect.height
+            };
+            this.lastCropImage = this.lastImage.clone().extract(rect);
+        } else {
+            this.lastCropImage = this.lastImage.clone();
+        }
         this.lastCropImage = this.preprocess(this.lastCropImage);
         this.ocrManager.recognize(this.lastCropImage, (e, res) => {
             if (this.lastCropImage !== res.img) return;
@@ -117,7 +129,7 @@ export class OcrExtractor extends IExtractor {
         if (this.preprocessOption.color === 'grey') {
             img = img.clone().greyscale();
         } else if (['red', 'green', 'blue'].includes(this.preprocessOption.color)) {
-            img = img.clone().extractChannel(this.preprocessOption.color);
+            img = img.clone().extractChannel(this.preprocessOption.color as any);
         }
         if (this.preprocessOption.threshold) {
             img = img.threshold(this.preprocessOption.threshold, { greyscale: false });
