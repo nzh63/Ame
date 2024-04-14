@@ -6,6 +6,7 @@ export default function devSpeedup() {
         resolveId(id) {
             if (id === 'lodash-es') id = 'lodash';
             if (id.trim().startsWith('.')) return null;
+            if (id.includes('web-streams-polyfill')) return null;
             let tryId = id;
             while (tryId) {
                 try {

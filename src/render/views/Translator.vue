@@ -52,7 +52,12 @@ export default defineComponent({
                         (result) => {
                             const text = texts.find(i => i.original === result.originalText);
                             if (result.key === hookCode && text) {
-                                text.translate.push({ id: result.providerId, text: result.translateText });
+                                const translate = text.translate.find(i => i.id === result.providerId);
+                                if (translate) {
+                                    translate.text = result.translateText;
+                                } else {
+                                    text.translate.push({ id: result.providerId, text: result.translateText });
+                                }
                                 updateWindowHeight();
                             }
                         },
