@@ -1,6 +1,6 @@
 import type { JSONSchema } from '@main/schema';
 
-export const generalStoreJSONSchema: JSONSchema = {
+export const uiStoreJSONSchema: JSONSchema = {
     type: 'object',
     required: ['fontSize'],
     properties: {
@@ -8,4 +8,4 @@ export const generalStoreJSONSchema: JSONSchema = {
     }
 };
 
-export type generalStore = { fontSize: number };
+export type uiStore = { fontSize: number };

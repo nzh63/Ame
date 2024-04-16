@@ -3,7 +3,7 @@ import { join } from 'path';
 import fetch from 'electron-fetch';
 import { description, name } from '../../package.json';
 import { __assets } from '@main/paths';
-import { General } from '@main/General';
+import { Context } from '@main/Context';
 import '@main/remote';
 import logger from '@logger';
 
@@ -51,7 +51,7 @@ export function createMainWindow() {
 }
 
 function quit() {
-    General.getAllInstances().forEach(i => i.destroy());
+    Context.getAllInstances().forEach(i => i.destroy());
     app.quit();
 }
 

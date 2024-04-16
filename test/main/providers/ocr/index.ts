@@ -14,7 +14,7 @@ export function buildTest<C extends OcrProviderConfig<string, any, unknown, any>
     let screenCapturer: ScreenCapturer;
     let window: SimpleWindow;
 
-    suite.beforeAll(async function () {
+    suite.beforeAll(async function() {
         this.timeout(20000);
         this.retries(3);
         window = new SimpleWindow();
@@ -26,14 +26,14 @@ export function buildTest<C extends OcrProviderConfig<string, any, unknown, any>
         screenCapturer = new ScreenCapturer(window.pids);
     });
 
-    suite.addTest(new Test('init', async function (this: Mocha.Context) {
+    suite.addTest(new Test('init', async function(this: Mocha.Context) {
         this.timeout(20000);
         provider = new OcrProvider(config, () => options);
         await provider.whenInitDone();
         expect(provider.isReady()).to.be.true;
     }));
 
-    suite.addTest(new Test('recognize', async function (this: Mocha.Context) {
+    suite.addTest(new Test('recognize', async function(this: Mocha.Context) {
         this.timeout(20000);
         this.retries(3);
         const result = await provider.recognize((await screenCapturer.capture()).extract({ left: 50, top: 100, width: 500, height: 200 }));
@@ -41,7 +41,7 @@ export function buildTest<C extends OcrProviderConfig<string, any, unknown, any>
         expect(result.trim()).to.equal('こんにちは。');
     }));
 
-    suite.afterAll(async function () {
+    suite.afterAll(async function() {
         provider?.destroy();
         await window.destroy();
         screenCapturer.destroy();

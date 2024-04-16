@@ -1,5 +1,5 @@
-import type { General } from '@main/General';
-import { WindowWithGeneral } from '@main/window/WindowWithGeneral';
+import type { Context } from '@main/Context';
+import { WindowWithGeneral } from '@main/window/WindowWithContext';
 
 export class OcrGuideWindow extends WindowWithGeneral {
     private static readonly windowOption = {
@@ -20,9 +20,9 @@ export class OcrGuideWindow extends WindowWithGeneral {
         : `file://${__dirname}/../render/OcrGuide.html`;
 
     constructor(
-        general: General
+        context: Context
     ) {
-        super(general, OcrGuideWindow.windowOption);
+        super(context, OcrGuideWindow.windowOption);
         this.loadURL(OcrGuideWindow.url);
 
         this.once('ready-to-show', () => {

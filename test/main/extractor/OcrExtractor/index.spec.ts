@@ -42,7 +42,7 @@ class MockScreenCapturer {
     public destroy() { }
 }
 
-describe('OcrExtractor', function () {
+describe('OcrExtractor', function() {
     let ocrExtractor: OcrExtractor;
     let window: SimpleWindow;
     let hook: Hook;
@@ -50,18 +50,18 @@ describe('OcrExtractor', function () {
     let ocrManager: OcrManager & MockOcrManager;
     let options: OcrExtractorOptions;
 
-    before(async function () {
+    before(async function() {
         this.timeout(10000);
         this.retries(3);
         window = new SimpleWindow();
         await window.whenReady();
     });
 
-    after(async function () {
+    after(async function() {
         await window.destroy();
     });
 
-    beforeEach(function () {
+    beforeEach(function() {
         hook = new MockHook() as any;
         ocrManager = new MockOcrManager() as any;
         screenCapturer = new MockScreenCapturer() as any;
@@ -70,13 +70,13 @@ describe('OcrExtractor', function () {
         options.delay = 0;
     });
 
-    afterEach(function () {
+    afterEach(function() {
         hook.destroy();
         ocrExtractor.destroy();
     });
 
     function addTest(name: string, set: (v: boolean) => void, value?: any, displayName = name) {
-        it(displayName, async function () {
+        it(displayName, async function() {
             set(true);
             ocrManager.flag = false;
             ocrManager.p = new Promise<void>(resolve => { ocrManager.resolve = resolve; });
@@ -121,7 +121,7 @@ describe('OcrExtractor', function () {
         expect(ocrManager.flag).to.equal(value);
     }
 
-    it('minimize-restore', async function () {
+    it('minimize-restore', async function() {
         hook.emit('window-minimize');
         await new Promise(resolve => setImmediate(resolve));
         await expectPause(false);
@@ -130,7 +130,7 @@ describe('OcrExtractor', function () {
         await expectPause(true);
     });
 
-    it('pause-resume', async function () {
+    it('pause-resume', async function() {
         ocrExtractor.pause();
         await new Promise(resolve => setImmediate(resolve));
         await expectPause(false);

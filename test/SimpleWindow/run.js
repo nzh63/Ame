@@ -3,7 +3,7 @@
 /* eslint-disable no-eval */
 const { app, BrowserWindow, screen } = require('electron');
 const debug = require('debug');
-const logger = debug('ame:test:SimpleWindow:run')
+const logger = debug('ame:test:SimpleWindow:run');
 
 let window;
 app.on('ready', async () => {

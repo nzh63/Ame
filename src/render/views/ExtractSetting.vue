@@ -74,7 +74,7 @@ export default defineComponent({
 
         const changeFontSize = async (value: number) => {
             if (_fontSize) _fontSize.value = value;
-            await store.set('general.fontSize', value);
+            await store.set('ui.fontSize', value);
         };
 
         const changeType = async (newType: Ame.Extractor.ExtractorType) => {

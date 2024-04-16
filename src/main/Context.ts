@@ -7,12 +7,12 @@ import { createMainWindow, mainWindow } from '@main/index';
 import { TranslateManager, TtsManager, SegmentManager, DictManager } from '@main/manager';
 import { IExtractor, OcrExtractor, Textractor, PreprocessOption, PostProcessOption } from '@main/extractor';
 import store from '@main/store';
-import logger from '@logger/general';
+import logger from '@logger/context';
 
 type WatchCallback = (arg: Ame.Translator.OriginalText) => void;
 
-export class General {
-    private static instances: General[] = [];
+export class Context {
+    private static instances: Context[] = [];
 
     public extractor: IExtractor;
 
@@ -34,7 +34,7 @@ export class General {
         private hook: Hook
     ) {
         logger('start game for pids %O', this.gamePids);
-        General.instances.push(this);
+        Context.instances.push(this);
         this.extractor = this.type === 'textractor'
             ? new Textractor(this.gamePids, this.hookCode)
             : new OcrExtractor(this.gamePids, this.hook);
@@ -93,7 +93,7 @@ export class General {
         segmentManager: SegmentManager = new SegmentManager(),
         dictManager: DictManager = new DictManager()
     ) {
-        return new General(
+        return new Context(
             uuid,
             gamePids,
             hookCode,
@@ -107,8 +107,8 @@ export class General {
     }
 
     public extractorTypeIs<T extends Ame.Extractor.ExtractorType>(type: T): this is (
-        typeof type extends 'ocr' ? OcrGeneral
-        : typeof type extends 'textractor' ? TextractorGeneral
+        typeof type extends 'ocr' ? OcrContext
+        : typeof type extends 'textractor' ? TextractorContext
         : never
     ) {
         return this.type === type;
@@ -298,15 +298,15 @@ export class General {
         this.dictManager.destroy();
     }
 
-    static getAllInstances(): readonly General[] {
-        return General.instances;
+    static getAllInstances(): readonly Context[] {
+        return Context.instances;
     }
 }
 
-interface OcrGeneral extends General {
+interface OcrContext extends Context {
     extractor: OcrExtractor;
 }
 
-interface TextractorGeneral extends General {
+interface TextractorContext extends Context {
     extractor: Textractor;
 }
