@@ -30,27 +30,29 @@ jobs:
         fetch-depth: 0
 
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
+      uses: github/codeql-action/init@v3
       with:
         languages: ${{ matrix.language }}
 
     - name: Autobuild
-      uses: github/codeql-action/autobuild@v2
+      uses: github/codeql-action/autobuild@v3
       if: ${{ matrix.language == 'javascript' }}
 
-    - name: Setup
+    - name: Use Node.js 20.x
       if: ${{ matrix.language == 'cpp' }}
-      run: |
-        yarn global add node-gyp
-        yarn global bin | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
 
     - name: Build
       if: ${{ matrix.language == 'cpp' }}
       run: |
-        node-gyp -C native/cli configure --arch=ia32
-        node-gyp -C native/cli build -j max
-        node-gyp -C native/addons configure
-        node-gyp -C native/addons build -j max
+        corepack enable
+        yarn install --frozen-lockfile
+        yarn node-gyp -C native/cli configure --arch=ia32
+        yarn node-gyp -C native/cli build -j max
+        yarn node-gyp -C native/addons configure
+        yarn node-gyp -C native/addons build -j max
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
+      uses: github/codeql-action/analyze@v3
