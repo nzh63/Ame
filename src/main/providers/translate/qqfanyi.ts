@@ -13,7 +13,7 @@ export default defineTranslateProvider({
     defaultOptions: {
         enable: true,
         fromLanguage: '日语',
-        toLanguage: '中文'
+        toLanguage: '简体中文'
     },
     optionsDescription: {
         enable: '启用',
@@ -30,32 +30,37 @@ export default defineTranslateProvider({
         if (!this.enable) return;
         await app.whenReady();
         const browserWindow = new InsecureRemoteBrowserWindow();
-        browserWindow.webContents.loadURL('https://fanyi.qq.com/');
-        await new Promise(resolve => browserWindow.on('ready-to-show', resolve));
-        browserWindow.webContents.reload();
-        await new Promise(resolve => browserWindow.webContents.on('dom-ready', resolve));
-        await browserWindow.webContents.executeJavaScriptInIsolatedWorld(1,
-            [{
-                code:
-                    '(async function() {' +
-                    "    document.querySelector('#language-button-group-source .language-button').click();" +
-                    '    await new Promise(resolve => setTimeout(resolve, 0));' +
-                    `    let node = Array.from(document.querySelectorAll('[node-type="source_language_list"] li')).find(i => i.innerText === ${JSON.stringify(this.fromLanguage)});` +
-                    '    node?.click();' +
-                    '' +
-                    '    await new Promise(resolve => setTimeout(resolve, 0));' +
-                    '' +
-                    "    document.querySelector('#language-button-group-target .language-button').click();" +
-                    '    await new Promise(resolve => setTimeout(resolve, 0));' +
-                    `    node = Array.from(document.querySelectorAll('[node-type="target_language_list"] li')).find(i => i.innerText === ${JSON.stringify(this.toLanguage)});` +
-                    '    node?.click();' +
-                    '})();'
-            }]
-        );
-        if (!this.isDestroyed()) {
-            this.browserWindow = browserWindow;
-        } else {
+        try {
+            browserWindow.webContents.loadURL('https://fanyi.qq.com/');
+            await new Promise(resolve => browserWindow.on('ready-to-show', resolve));
+            browserWindow.webContents.reload();
+            await new Promise(resolve => browserWindow.webContents.on('dom-ready', resolve));
+            await browserWindow.webContents.executeJavaScriptInIsolatedWorld(1,
+                [{
+                    code:
+                        '(async function() {' +
+                        "    document.querySelector('.translate-content .content-left .tea-dropdown').click();" +
+                        '    await new Promise(resolve => setTimeout(resolve, 1000));' +
+                        `    let node = Array.from(document.querySelectorAll('#tea-overlay-root li')).find(i => i.innerText === ${JSON.stringify(this.fromLanguage)});` +
+                        '    node?.click();' +
+                        '' +
+                        '    await new Promise(resolve => setTimeout(resolve, 1000));' +
+                        '' +
+                        "    document.querySelector('.translate-content .content-right .tea-dropdown').click();" +
+                        '    await new Promise(resolve => setTimeout(resolve, 1000));' +
+                        `    node = Array.from(document.querySelectorAll('#tea-overlay-root li')).find(i => i.innerText === ${JSON.stringify(this.toLanguage)});` +
+                        '    node?.click();' +
+                        '})();'
+                }]
+            );
+            if (!this.isDestroyed()) {
+                this.browserWindow = browserWindow;
+            } else {
+                browserWindow.destroy();
+            }
+        } catch (e) {
             browserWindow.destroy();
+            throw e;
         }
     },
     isReady() { return this.enable && !!this.browserWindow; },
@@ -65,13 +70,15 @@ export default defineTranslateProvider({
             [{
                 code:
                     'new Promise(resolve => {' +
-                    `    document.querySelector('[node-type="source-textarea"]').value = ${JSON.stringify(t)};` +
-                    "    document.querySelector('[node-type=\"translate_button\"]').click();" +
+                    '    const textarea = document.querySelector(".translate-content .content-left .tea-textarea");' +
+                    `    textarea.value = ${JSON.stringify(t)};` +
                     '    var observar = new MutationObserver(function (record) {' +
                     '        observar.disconnect();' +
-                    "        resolve(Array.from(document.querySelectorAll('[node-type=\"textpanel-target-textblock\"] .text-dst')).map(i => i.innerText).join(''));" +
+                    "        resolve(Array.from(document.querySelectorAll('.translate-content .content-right  .target-text-box')).map(i => i.innerText).join(''));" +
                     '    });' +
-                    "    observar.observe(document.querySelector('[node-type=\"textpanel-target-textblock\"]'), {childList: true,characterData: true, subtree: true});" +
+                    "    observar.observe(document.querySelector('.translate-content .content-right  .target-text-box'), {childList: true,characterData: true, subtree: true});" +
+                    "    textarea.dispatchEvent(new Event('compositionstart', { bubbles: true }));" +
+                    "    textarea.dispatchEvent(new Event('compositionend', { bubbles: true }));" +
                     '})'
             }]
         );

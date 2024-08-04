@@ -31,23 +31,28 @@ export default defineTranslateProvider({
         if (!this.enable) return;
         await app.whenReady();
         const browserWindow = new InsecureRemoteBrowserWindow();
-        browserWindow.webContents.loadURL('https://fanyi.youdao.com/');
-        await new Promise(resolve => browserWindow.webContents.on('dom-ready', resolve));
-        await browserWindow.webContents.executeJavaScriptInIsolatedWorld(1,
-            [{
-                code:
-                    '(async function() {' +
-                    "    document.querySelector('.select-text').click();" +
-                    '    await new Promise(resolve => setTimeout(resolve, 0));' +
-                    `    let node = Array.from(document.querySelectorAll('#languageSelect li a')).find(i => new RegExp(${JSON.stringify(this.fromLanguage)} + '.*' + ${JSON.stringify(this.toLanguage)}).test(i.innerText));` +
-                    '    node?.click();' +
-                    '})();'
-            }]
-        );
-        if (!this.isDestroyed()) {
-            this.browserWindow = browserWindow;
-        } else {
+        try {
+            browserWindow.webContents.loadURL('https://fanyi.youdao.com/');
+            await new Promise(resolve => browserWindow.webContents.on('dom-ready', resolve));
+            await browserWindow.webContents.executeJavaScriptInIsolatedWorld(1,
+                [{
+                    code:
+                        '(async function() {' +
+                        "    document.querySelector('.select-text').click();" +
+                        '    await new Promise(resolve => setTimeout(resolve, 0));' +
+                        `    let node = Array.from(document.querySelectorAll('#languageSelect li a')).find(i => new RegExp(${JSON.stringify(this.fromLanguage)} + '.*' + ${JSON.stringify(this.toLanguage)}).test(i.innerText));` +
+                        '    node?.click();' +
+                        '})();'
+                }]
+            );
+            if (!this.isDestroyed()) {
+                this.browserWindow = browserWindow;
+            } else {
+                browserWindow.destroy();
+            }
+        } catch (e) {
             browserWindow.destroy();
+            throw e;
         }
     },
     isReady() { return this.enable && !!this.browserWindow; },

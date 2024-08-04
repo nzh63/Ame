@@ -5,5 +5,5 @@ import { buildTest } from '.';
 buildTest(qqfanyi, {
     enable: true,
     fromLanguage: '日语',
-    toLanguage: '中文'
+    toLanguage: '简体中文'
 }, !process.env.TEST_WEB);
