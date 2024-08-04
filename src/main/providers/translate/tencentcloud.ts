@@ -75,7 +75,7 @@ export default defineTranslateProvider({
                 secretId: this.apiConfig.credential.secretId,
                 secretKey: this.apiConfig.credential.secretKey
             },
-            region: 'ap-guangzhou',
+            region: this.apiConfig.region,
             profile: {
                 httpProfile: {
                     endpoint: 'tmt.tencentcloudapi.com'

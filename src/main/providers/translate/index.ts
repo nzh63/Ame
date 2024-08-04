@@ -4,6 +4,7 @@ import type { TranslateProviderConfig, TranslateProviderMethods } from '@main/pr
 import type { BaseProviderOptions, Methods } from '@main/providers/BaseProvider';
 import echo from './echo';
 import openai from './openai';
+import hunyuan from './hunyuan';
 import tencentcloud from './tencentcloud';
 import baiduAi from './baiduAi';
 import qqfanyi from './qqfanyi';
@@ -25,5 +26,5 @@ export function defineTranslateProvider<
     return { ...arg, ...methods };
 }
 
-export const availableTranslateConfigs = [...(import.meta.env.DEV ? [echo] : []), openai, tencentcloud, baiduAi, qqfanyi, youdaofanyi, baidufanyi, googleTranslate, JBeijing, DrEye] as const;
+export const availableTranslateConfigs = [...(import.meta.env.DEV ? [echo] : []), openai, hunyuan, tencentcloud, baiduAi, qqfanyi, youdaofanyi, baidufanyi, googleTranslate, JBeijing, DrEye] as const;
 export type AvailableTranslateConfigs = typeof availableTranslateConfigs;

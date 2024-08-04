@@ -83,7 +83,7 @@
     "rollup-plugin-typescript2": "^0.31.2",
     "shell-quote": "^1.7.4",
     "source-map-support": "^0.5.19",
-    "tencentcloud-sdk-nodejs": "^4.0.333",
+    "tencentcloud-sdk-nodejs": "^4.0.909",
     "tesseract.js": "^5.0.2",
     "tesseract.js-core": "^5.0.0",
     "ts-node": "^10.7.0",

@@ -15,7 +15,8 @@ export default defineTranslateProvider({
         },
         chatConfig: {
             model: String,
-            maxHistory: Number
+            maxHistory: Number,
+            systemPrompt: String
         }
     },
     optionsDescription: {
@@ -27,7 +28,8 @@ export default defineTranslateProvider({
         },
         chatConfig: {
             model: '模型',
-            maxHistory: '最长历史大小'
+            maxHistory: '最长历史大小',
+            systemPrompt: 'System Prompt'
         }
     },
     defaultOptions: {
@@ -39,7 +41,8 @@ export default defineTranslateProvider({
         },
         chatConfig: {
             model: 'gpt-4',
-            maxHistory: 100
+            maxHistory: 100,
+            systemPrompt: '请将用户输入的日文翻译为中文'
         }
     },
     data() {
@@ -65,8 +68,10 @@ export default defineTranslateProvider({
             cur = { role: 'assistant', content: '' };
             this.history.push(cur);
         }
-        if (this.history.length > this.chatConfig.maxHistory) {
-            this.history = this.history.splice(1, this.history.length - this.chatConfig.maxHistory);
+        while (this.history.length > this.chatConfig.maxHistory) {
+            while (this.history[1].role !== 'user' || this.history.length > this.chatConfig.maxHistory) {
+                this.history.splice(1, 1);
+            }
         }
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const stream = await this.openai!.chat.completions.create({

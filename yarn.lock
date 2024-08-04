@@ -1305,7 +1305,7 @@ __metadata:
     sharp: "npm:^0.32.6"
     shell-quote: "npm:^1.7.4"
     source-map-support: "npm:^0.5.19"
-    tencentcloud-sdk-nodejs: "npm:^4.0.333"
+    tencentcloud-sdk-nodejs: "npm:^4.0.909"
     tesseract.js: "npm:^5.0.2"
     tesseract.js-core: "npm:^5.0.0"
     ts-node: "npm:^10.7.0"
@@ -7077,9 +7077,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tencentcloud-sdk-nodejs@npm:^4.0.333":
-  version: 4.0.836
-  resolution: "tencentcloud-sdk-nodejs@npm:4.0.836"
+"tencentcloud-sdk-nodejs@npm:^4.0.909":
+  version: 4.0.909
+  resolution: "tencentcloud-sdk-nodejs@npm:4.0.909"
   dependencies:
     form-data: "npm:^3.0.0"
     get-stream: "npm:^6.0.0"
@@ -7089,7 +7089,7 @@ __metadata:
     node-fetch: "npm:^2.2.0"
     tslib: "npm:1.13.0"
     uuid: "npm:^9.0.1"
-  checksum: 10c0/bdda517950182a3a6e9486c70b74ce1f552c9998428d7b902ed15576a2ce2fba49c5e293b8071f941800196b0ed3bab25cdafdb9a9dce1f6e3499c4408c801a1
+  checksum: 10c0/ded079357431e7251bffca296ef43e65cd02280fdec8cb5623fb8af85ab3fff19a8dd2fcb564e740ee058109b5b6ea6873ca1689ed0a2de0680c9bf6b6edc8fd
   languageName: node
   linkType: hard
 

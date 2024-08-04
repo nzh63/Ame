@@ -18,16 +18,25 @@ export function buildTest<C extends TranslateProviderConfig<string, any, unknown
 
     suite.addTest(new Test('translate', async function(this: Mocha.Context) {
         this.timeout(60000);
-        let result = await provider.translate('こんにちは。');
-        if (typeof result !== 'string') {
-            const chunks = [];
-            for await (const chunk of result) {
-                chunks.push(chunk);
+        const cases = [{
+            from: 'こんにちは。',
+            to: /[你您]好[.。!！]?/
+        }, {
+            from: 'またね。',
+            to: /再见[.。!！]?/
+        }];
+        for (const { from, to } of cases) {
+            let result = await provider.translate(from);
+            if (typeof result !== 'string') {
+                const chunks = [];
+                for await (const chunk of result) {
+                    chunks.push(chunk);
+                }
+                result = Buffer.concat(chunks).toString();
             }
-            result = Buffer.concat(chunks).toString();
+            expect(result).to.be.a('string').and.not.to.be.empty;
+            expect(result).to.match(to);
         }
-        expect(result).to.be.a('string').and.not.to.be.empty;
-        expect(result).to.match(/[你您]好[.。!！]?/);
     }));
 
     suite.afterAll(function() {
