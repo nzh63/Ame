@@ -248,13 +248,17 @@ function startElectron() {
     args = args.concat(process.argv.slice(3));
 
     electronProcess = child_process.spawn(electron, args, {
-        stdio: 'inherit',
+        stdio: 'pipe',
         env: {
             DEBUG: 'ame:*',
             DEBUG_COLORS: 'yes',
             DEBUG_DEPTH: 'Infinity'
         }
     });
+
+    process.stdin.pipe(electronProcess.stdin);
+    electronProcess.stdout.pipe(process.stdout);
+    electronProcess.stderr.pipe(process.stderr);
 
     electronProcess.on('close', () => {
         if (!manualRestart) process.exit();

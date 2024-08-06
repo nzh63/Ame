@@ -1,5 +1,11 @@
+enum Result {
+    Finished,
+    Canceled,
+}
+
 export class TaskQueue {
-    private abort?: (err: Error) => void;
+    private running?: Promise<Result>;
+    private abort?: () => void;
 
     public async dispatch<T>(task: (() => Promise<T>) | (() => T)): Promise<T> {
         const lock = await this.acquire();
@@ -10,23 +16,35 @@ export class TaskQueue {
         }
     }
 
-    public async acquire(): Promise<Lock> {
-        if (this.abort) {
-            this.abort(new Error('acquire new task'));
+    public async acquire(): Promise<Readonly<Lock>> {
+        this.abort?.();
+        this.abort = undefined;
+
+        const waiting = new Promise<Result>((resolve, reject) => {
+            this.abort = () => resolve(Result.Canceled);
+        });
+
+        const result = await Promise.any([this.running ?? Promise.resolve(Result.Finished), waiting]);
+
+        if (result === Result.Canceled) {
+            throw new Error('Canceled');
         }
-        let task: Lock;
-        // eslint-disable-next-line no-new
-        new Promise<void>((resolve, reject) => {
-            this.abort = reject;
+
+        // @ts-expect-error microsoft/TypeScript#9998
+        this.abort?.();
+        this.abort = undefined;
+
+        let task!: Lock;
+        this.running = new Promise<Result>((resolve, reject) => {
             task = {
                 release: () => {
-                    this.abort = undefined;
-                    resolve();
+                    this.running = undefined;
+                    task.release = () => { };
+                    resolve(Result.Finished);
                 }
             };
         });
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        return task!;
+        return task;
     }
 }
 

@@ -43,7 +43,7 @@ export default defineTranslateProvider({
         },
         chatConfig: {
             model: 'hunyuan-lite',
-            maxHistory: 100,
+            maxHistory: 30,
             systemPrompt: '请将用户输入的日文翻译为中文'
         }
     },

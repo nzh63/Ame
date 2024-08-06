@@ -21,7 +21,7 @@ export abstract class IExtractor extends EventEmitter {
 
     protected update(key: string, text: string) {
         logger('Extractor update { %s: %s }', key, text);
-        if (text !== this.#text[key]) {
+        if (text !== this.#text[key] && text.trim().length) {
             this.#text[key] = text;
             this.emit(`update:${key}`, { key, text });
             this.emit('update:any', { key, text });
