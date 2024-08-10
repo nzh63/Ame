@@ -1,6 +1,6 @@
-import { Readable } from 'stream';
+import type { SSEResponseModel } from 'tencentcloud-sdk-nodejs/tencentcloud/common/sse_response_model';
+import type { Message, ChatCompletionsResponse } from 'tencentcloud-sdk-nodejs/tencentcloud/services/hunyuan/v20230901/hunyuan_models';
 import { Client } from 'tencentcloud-sdk-nodejs/tencentcloud/services/hunyuan/v20230901/hunyuan_client';
-import { Message, Choice } from 'tencentcloud-sdk-nodejs/tencentcloud/services/hunyuan/v20230901/hunyuan_models';
 import { defineTranslateProvider } from '@main/providers/translate';
 import { TaskQueue } from '@main/utils';
 
@@ -94,7 +94,7 @@ export default defineTranslateProvider({
             this.apiConfig.credential.secretKey !== null &&
             !!this.client;
     },
-    async translate(t) {
+    async * translate(t) {
         if (!this.client) throw new Error('client have not been init');
         const lock = await this.taskQueue.acquire();
         try {
@@ -106,40 +106,22 @@ export default defineTranslateProvider({
                     this.history.splice(1, 1);
                 }
             }
-            const res = await this.client.ChatCompletions({
+            const stream = await this.client.ChatCompletions({
                 Model: this.chatConfig.model,
                 Stream: true,
                 StreamModeration: true,
                 Messages: this.history.slice(0, -1)
-            }) as any;
-            const iter: AsyncIterator<any> = res[Symbol.asyncIterator]();
-            const readable = new Readable({
-                read: async () => {
-                    try {
-                        const { value, done } = await iter.next();
-                        if (done) {
-                            readable.push(null);
-                            lock.release();
-                            return;
-                        }
-                        const v = JSON.parse(value.data);
-                        if (v.Choices?.length) {
-                            const content = v.Choices.map((i: Choice) => i.Delta?.Content ?? '').join('');
-                            readable.push(content);
-                            cur.Content += content;
-                        }
-                    } catch (e) {
-                        readable.destroy(e as Error);
-                    }
-                },
-                destroy: () => {
-                    lock.release();
+            }) as SSEResponseModel;
+            for await (const chunk of stream) {
+                const v: ChatCompletionsResponse = JSON.parse(chunk.data);
+                if (!v.Choices) continue;
+                for (const choice of v.Choices) {
+                    if (!choice.Delta?.Content) continue;
+                    yield choice.Delta.Content;
                 }
-            });
-            return readable;
-        } catch (e) {
+            }
+        } finally {
             lock.release();
-            throw e;
         }
     }
 });

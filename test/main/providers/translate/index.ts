@@ -32,7 +32,7 @@ export function buildTest<C extends TranslateProviderConfig<string, any, unknown
                 for await (const chunk of result) {
                     chunks.push(chunk);
                 }
-                result = Buffer.concat(chunks).toString();
+                result = chunks.join('');
             }
             expect(result).to.be.a('string').and.not.to.be.empty;
             expect(result).to.match(to);

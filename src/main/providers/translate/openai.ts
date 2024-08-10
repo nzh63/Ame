@@ -1,7 +1,7 @@
-import type { ChatCompletionMessageParam, ChatCompletionChunk } from 'openai/resources';
-import { Readable } from 'stream';
+import type { ChatCompletionMessageParam } from 'openai/resources';
 import OpenAI from 'openai';
 import { defineTranslateProvider } from '@main/providers/translate';
+import { TaskQueue } from '@main/utils';
 
 export default defineTranslateProvider({
     id: 'OpenAI-Compatible API',
@@ -48,6 +48,7 @@ export default defineTranslateProvider({
     data() {
         return {
             openai: null as OpenAI | null,
+            taskQueue: new TaskQueue(),
             history: [{
                 role: 'system',
                 content: '请将用户输入的日文翻译为中文'
@@ -59,47 +60,32 @@ export default defineTranslateProvider({
         this.openai = new OpenAI(this.apiConfig);
     },
     isReady() { return this.enable && !!this.openai; },
-    async translate(t) {
-        this.history.push({ role: 'user', content: t });
-        let cur: ChatCompletionMessageParam;
-        if (this.history.length && this.history[this.history.length - 1].role === 'assistant') {
-            cur = this.history[this.history.length - 1];
-        } else {
-            cur = { role: 'assistant', content: '' };
+    async * translate(t) {
+        const lock = await this.taskQueue.acquire();
+        try {
+            this.history.push({ role: 'user', content: t });
+            const cur = { role: 'assistant' as const, content: '' };
             this.history.push(cur);
-        }
-        while (this.history.length > this.chatConfig.maxHistory) {
-            while (this.history[1].role !== 'user' || this.history.length > this.chatConfig.maxHistory) {
-                this.history.splice(1, 1);
-            }
-        }
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const stream = await this.openai!.chat.completions.create({
-            model: this.chatConfig.model,
-            messages: this.history,
-            stream: true
-        });
-        const iter: AsyncIterator<ChatCompletionChunk> = stream[Symbol.asyncIterator]();
-        const readable = new Readable({
-            read: async () => {
-                try {
-                    const { value, done } = await iter.next();
-                    if (done) {
-                        readable.push(null);
-                        return;
-                    }
-                    const content = value.choices[0]?.delta?.content ?? '';
-                    readable.push(content);
-                    cur.content += content;
-                } catch (e) {
-                    readable.destroy(e as Error);
+            while (this.history.length > this.chatConfig.maxHistory) {
+                while (this.history[1].role !== 'user' || this.history.length > this.chatConfig.maxHistory) {
+                    this.history.splice(1, 1);
                 }
-            },
-            destroy: () => {
-                stream.controller.abort();
             }
-        });
-        return readable;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const stream = await this.openai!.chat.completions.create({
+                model: this.chatConfig.model,
+                messages: this.history,
+                stream: true
+            });
+            for await (const chunk of stream) {
+                for (const choice of chunk.choices) {
+                    if (!choice.delta.content) continue;
+                    yield choice.delta.content;
+                }
+            }
+        } finally {
+            lock.release();
+        }
     }
 
 });

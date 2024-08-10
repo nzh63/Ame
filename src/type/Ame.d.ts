@@ -18,6 +18,7 @@ declare namespace Ame {
         };
     };
     export type IpcRet<T> = { err: any } | { value: T };
+    export type Awaitable<T> = T | PromiseLike<T>;
 
     namespace Extractor {
         export type ExtractorType = 'textractor' | 'ocr';

@@ -11,19 +11,15 @@ export class TranslateManager extends BaseManager<TranslateProvider> {
         for (const provider of this.providers) {
             if (!provider.isReady()) continue;
             provider.translate(originalText)
-                .then(output => {
+                .then(async output => {
                     if (typeof output === 'string') {
                         callback(undefined, { providerId: provider.$id, key, originalText, translateText: output });
                     } else {
-                        return new Promise<void>((resolve, reject) => {
-                            let text = Buffer.alloc(0);
-                            output.on('data', chunk => {
-                                text = Buffer.concat([text, chunk]);
-                                callback(undefined, { providerId: provider.$id, key, originalText, translateText: text.toString('utf-8') });
-                            });
-                            output.on('end', () => { resolve(); });
-                            output.on('error', (err) => { reject(err); });
-                        });
+                        let text = '';
+                        for await (const chunk of output) {
+                            text += chunk;
+                            callback(undefined, { providerId: provider.$id, key, originalText, translateText: text });
+                        }
                     }
                 })
                 .catch((e) => callback(e, { providerId: provider.$id, key, originalText, translateText: '' }));
