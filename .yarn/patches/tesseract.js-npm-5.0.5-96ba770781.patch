@@ -1,0 +1,15 @@
+diff --git a/src/utils/getEnvironment.js b/src/utils/getEnvironment.js
+index 0971d99ca77847606cb49966d596bddc6bbdf5d8..d54a84643ad6c66eb95c5437774abb3b31e394e6 100644
+--- a/src/utils/getEnvironment.js
++++ b/src/utils/getEnvironment.js
+@@ -5,8 +5,8 @@ module.exports = (key) => {
+ 
+   if (typeof WorkerGlobalScope !== 'undefined') {
+     env.type = 'webworker';
+-  } else if (isElectron()) {
+-    env.type = 'electron';
++  // } else if (isElectron()) {
++  //   env.type = 'electron';
+   } else if (typeof document === 'object') {
+     env.type = 'browser';
+   } else if (typeof process === 'object' && typeof require === 'function') {
