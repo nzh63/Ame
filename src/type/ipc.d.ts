@@ -13,6 +13,7 @@ declare namespace Electron {
         handle(channel: 'unwatch-original', listener: (event: IpcMainInvokeEvent, key: Ame.Extractor.Key) => Ame.IpcRet<void>): void;
         handle(channel: 'watch-translate', listener: (event: IpcMainInvokeEvent, key: Ame.Extractor.Key) => Ame.IpcRet<void>): void;
         handle(channel: 'unwatch-translate', listener: (event: IpcMainInvokeEvent, key: Ame.Extractor.Key) => Ame.IpcRet<void>): void;
+        handle(channel: 'find-window-by-click', listener: (event: IpcMainInvokeEvent) => Ame.IpcRet<number|undefined>): void;
     }
 
     interface IpcRenderer {
@@ -36,6 +37,7 @@ declare namespace Electron {
         invoke<T extends Ame.Provider.type>(channel: `get-${T}-providers-ids`): Promise<Ame.IpcRet<string[]>>;
         invoke<T extends Ame.Provider.type>(channel: `get-${T}-provider-options-meta`, id: string): Promise<Ame.IpcRet<Ame.Provider.meta>>;
         invoke(channel: 'segment', text: string): Promise<Ame.IpcRet<import('@main/manager/SegmentManager').SegmentWord[] | void>>;
+        invoke(channel: 'find-window-by-click'): Promise<Ame.IpcRet<number|undefined>>;
         on(channel: 'original-watch-list-update', listener: (event: IpcRendererEvent, arg: Ame.Translator.OriginalText) => void): void;
         on(channel: 'translate-watch-list-update', listener: (event: IpcRendererEvent, arg: Ame.Translator.TranslateResult) => void): void;
         on(channel: 'window-focus', listener: (event: IpcRendererEvent) => void): void;

@@ -46,12 +46,22 @@
         title="通过PID启动"
         @ok="start"
       >
-        请输入PID
-        <a-input-number
-          v-model:value="pid"
-          :min="0"
-          @keyup.enter="start"
-        />
+        <a-form>
+          <a-form-item label="请输入PID">
+            <a-input
+              v-model:value="pid"
+              :min="0"
+              type="number"
+              @keyup.enter="start"
+            >
+              <template #suffix>
+                <a-tooltip title="通过点击选取窗口">
+                  <monitor-outlined @click="findWindowByClick" />
+                </a-tooltip>
+              </template>
+            </a-input>
+          </a-form-item>
+        </a-form>
       </a-modal>
     </div>
   </div>
@@ -61,10 +71,11 @@
 import { v4 as uuidv4 } from 'uuid';
 import { quote } from 'shell-quote';
 import { defineComponent, toRaw } from 'vue';
+import { message } from 'ant-design-vue';
 
 import GameCard from '@render/component/GameCard.vue';
 import store from '@render/store';
-import { startExtract } from '@render/remote';
+import { findWindowByClick, startExtract } from '@render/remote';
 
 export default defineComponent({
     components: {
@@ -124,6 +135,14 @@ export default defineComponent({
             }
             await store.set('games', [...await store.get('games', []), ...newGames]);
             await this.reloadGames();
+        },
+        async findWindowByClick() {
+            const pid = await findWindowByClick();
+            if (pid === undefined) {
+                message.error('无法找到窗口');
+            } else {
+                this.pid = pid;
+            }
         }
     }
 });

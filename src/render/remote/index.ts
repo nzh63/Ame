@@ -10,3 +10,4 @@ export * from './textractor';
 export * from './ocr';
 export * from './segment';
 export * from './dict';
+export * from './findWindow';

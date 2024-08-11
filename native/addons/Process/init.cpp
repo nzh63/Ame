@@ -133,10 +133,39 @@ err:
     return throwError(env);
 }
 
+napi_value getPidFromPoint(napi_env env, napi_callback_info info) {
+    size_t argc = 2;
+    napi_value argv[2];
+    int64_t x, y;
+    NAPI_CALL_EXPECT(napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr), argc == 2, "expect 2 argument.", env);
+    NAPI_CALL(napi_get_value_int64(env, argv[0], &x));
+    NAPI_CALL(napi_get_value_int64(env, argv[1], &y));
+
+    POINT pt;
+    pt.x = x;
+    pt.y = y;
+    auto hwnd = WindowFromPoint(pt);
+    if (hwnd == nullptr) {
+        napi_value undefined;
+        NAPI_CALL(napi_get_undefined(env, &undefined));
+        return undefined;
+    }
+
+    PID windowPid;
+    GetWindowThreadProcessId(hwnd, &windowPid);
+    napi_value result;
+    NAPI_CALL(napi_create_uint32(env, windowPid, &result));
+    return result;
+
+err:
+    return throwError(env);
+}
+
 NAPI_MODULE_INIT() {
     napi_property_descriptor desc[] = {
         {"isWow64", nullptr, isWow64, nullptr, nullptr, nullptr, napi_enumerable, nullptr},
-        {"waitProcessForExit", nullptr, waitProcessForExit, nullptr, nullptr, nullptr, napi_enumerable, nullptr}};
-    napi_define_properties(env, exports, 2, desc);
+        {"waitProcessForExit", nullptr, waitProcessForExit, nullptr, nullptr, nullptr, napi_enumerable, nullptr},
+        {"getPidFromPoint", nullptr, getPidFromPoint, nullptr, nullptr, nullptr, napi_enumerable, nullptr}};
+    napi_define_properties(env, exports, 3, desc);
     return exports;
 }
