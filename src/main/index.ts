@@ -23,6 +23,8 @@ export function createMainWindow() {
    */
     mainWindow = new BrowserWindow({
         show: false,
+        titleBarStyle: 'hidden',
+        titleBarOverlay: { height: 30, color: '#f0f2f5' },
         useContentSize: true,
         width: 1280,
         height: 720,
@@ -34,6 +36,7 @@ export function createMainWindow() {
             contextIsolation: false
         }
     });
+    Menu.setApplicationMenu(null);
 
     mainWindow.loadURL(mainWindowURL);
 

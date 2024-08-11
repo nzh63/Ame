@@ -9,9 +9,12 @@
     >
       <aside-menu />
     </a-layout-sider>
-    <a-layout-content id="main-content">
-      <router-view />
-    </a-layout-content>
+    <a-layout>
+      <a-layout-header id="draggable" />
+      <a-layout-content id="main-content">
+        <router-view />
+      </a-layout-content>
+    </a-layout>
   </a-layout>
 </template>
 
@@ -57,8 +60,14 @@ body,
     color: #1890ff;
 }
 
+#draggable {
+    width: 100%;
+    height: 30px;
+    background: #f0f2f5;
+    -webkit-app-region: drag;
+}
+
 #main-content {
-    margin: 24px 16px;
     padding: 24px;
     background: #fff;
     min-height: 280px;

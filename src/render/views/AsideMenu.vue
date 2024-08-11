@@ -174,6 +174,7 @@ export default defineComponent({
     text-decoration: none;
     margin: 0.5em 1em;
     color: #fff;
+    -webkit-app-region: drag;
 }
 .logo img {
     width: 3em;

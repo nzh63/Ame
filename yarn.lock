@@ -743,7 +743,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^16.11.2, @types/node@npm:^16.11.26":
+"@types/node@npm:^16.11.2":
   version: 16.18.96
   resolution: "@types/node@npm:16.18.96"
   checksum: 10c0/05ac1c80c8d075086863f7640fd3e75c3912c4ed067bb38bb8fd5377f4e64de7a81d5be3ceae5448dc90d9802a0c7b0d3376538759b91ea652d16cc6dc7de767
@@ -756,6 +756,15 @@ __metadata:
   dependencies:
     undici-types: "npm:~5.26.4"
   checksum: 10c0/bfebae8389220c0188492c82eaf328f4ba15e6e9b4abee33d6bf36d3b13f188c2f53eb695d427feb882fff09834f467405e2ed9be6aeb6ad4705509822d2ea08
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^20.9.0":
+  version: 20.14.15
+  resolution: "@types/node@npm:20.14.15"
+  dependencies:
+    undici-types: "npm:~5.26.4"
+  checksum: 10c0/093713db52dc544f3931a3dec9d7d8ef661f323e57becd083a7918c778cef1eb6ec32d1017bf5ade06bb06dc5c7551f4f4d749a14e40868cce44d51e54acd8ed
   languageName: node
   linkType: hard
 
@@ -1287,7 +1296,7 @@ __metadata:
     chai-as-promised: "npm:^8.0.0"
     debug: "npm:^4.3.2"
     dotenv: "npm:^10.0.0"
-    electron: "npm:^22.3.25"
+    electron: "npm:^31.3.1"
     electron-builder: "npm:^24.6.4"
     electron-debug: "npm:^3.2.0"
     electron-fetch: "npm:^1.7.3"
@@ -2800,16 +2809,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"electron@npm:^22.3.25":
-  version: 22.3.27
-  resolution: "electron@npm:22.3.27"
+"electron@npm:^31.3.1":
+  version: 31.3.1
+  resolution: "electron@npm:31.3.1"
   dependencies:
     "@electron/get": "npm:^2.0.0"
-    "@types/node": "npm:^16.11.26"
+    "@types/node": "npm:^20.9.0"
     extract-zip: "npm:^2.0.1"
   bin:
     electron: cli.js
-  checksum: 10c0/4ec1bbdc04686a2c778151ecc989cbe19f26d776c3ac7efc1aebb08c91cc2a4d32ed80f8d1cdea3e9acf22bdbd62ea473dc685201212328491cad6147b7aa3d3
+  checksum: 10c0/71437947b8a6aa7230dc31fcc424632b29f877e672dc64c60b48b2ba37f86c40886dda48d584b8bfec1514b37c1483eaa6bf87c224a09bbf8c495a3f81538377
   languageName: node
   linkType: hard
 
