@@ -227,7 +227,7 @@ export default defineComponent({
                 if (newValue === '<null>') {
                     newValue = null;
                 } else if (!isUnion) {
-                    i.help = key.join('.') + ' 应当位null（输入<null>）';
+                    i.help = key.join('.') + ' 应当为null（输入<null>）';
                 }
             }
             if (isNumber) {

@@ -6,7 +6,6 @@
   <span
     v-else
     class="original-text-line"
-    title
   >
     <original-text-word
       v-for="(s, index) of splitText"
@@ -19,7 +18,7 @@
 </template>
 
 <script lang="ts">
-import type { SegmentWord } from '@main/manager/SegmentManager';
+import type { SegmentWord } from '@main/providers/SegmentProvider';
 import { defineComponent, getCurrentInstance, ref, watch } from 'vue';
 import { dictQuery, segment as segmentText } from '@render/remote';
 import OriginalTextWord from './OriginalTextWord.vue';

@@ -8,9 +8,9 @@
       title="原文"
       @click.right="onRightClick(original, 'original')"
       @touchstart="e => onTouchstart(e, original, 'original')"
-      @touchend="onTouchend()"
-      @touchmove="onTouchend()"
-      @touchcancel="onTouchend()"
+      @touchend="onTouchend"
+      @touchmove="onTouchmove"
+      @touchcancel="onTouchend"
     >
       <original-text :text="original" />
     </div>
@@ -30,9 +30,9 @@
         i.err ? i.err?.message ?? i.err : i.text,
         'translate'
       )"
-      @touchend="onTouchend()"
-      @touchmove="onTouchend()"
-      @touchcancel="onTouchend()"
+      @touchend="onTouchend"
+      @touchmove="onTouchmove"
+      @touchcancel="onTouchend"
     >
       <span
         v-if="i.err"
@@ -67,11 +67,16 @@ export default defineComponent({
         'tts-speak': (s: string, t: 'original' | 'translate', x?: number, y?: number) => true
     },
     setup(props, context) {
+        const _fontSize = inject<Ref<number>>('fontSize');
+        const fontSize = computed(() => (_fontSize?.value ?? 16) + 'px');
+
         const onRightClick = (s: string, t: 'original' | 'translate') => {
             context.emit('tts-speak', s, t);
         };
 
         let timer: ReturnType<typeof setTimeout> | null = null;
+        let touchX = 0;
+        let touchY = 0;
         const onTouchend = () => {
             if (timer) {
                 clearTimeout(timer);
@@ -80,18 +85,25 @@ export default defineComponent({
         };
         const onTouchstart = (e: TouchEvent, s: string, t: 'original' | 'translate') => {
             onTouchend();
+            touchX = e.changedTouches[0].screenX;
+            touchY = e.changedTouches[0].screenY;
             timer = setTimeout(() => {
                 timer = null;
-                context.emit('tts-speak', s, t, e.changedTouches[0].screenX, e.changedTouches[0].screenY);
+                context.emit('tts-speak', s, t, touchX, touchY);
             }, 750);
         };
-
-        const _fontSize = inject<Ref<number>>('fontSize');
-        const fontSize = computed(() => (_fontSize?.value ?? 16) + 'px');
+        const onTouchmove = (e: TouchEvent) => {
+            const diffX = Math.abs(touchX - e.changedTouches[0].screenX);
+            const diffY = Math.abs(touchY - e.changedTouches[0].screenY);
+            if (diffX + diffY > (_fontSize?.value ?? 16)) {
+                onTouchend();
+            }
+        };
 
         return {
             onRightClick,
             onTouchstart,
+            onTouchmove,
             onTouchend,
             fontSize
         };

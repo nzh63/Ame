@@ -39,7 +39,7 @@
       </a-list-item-meta>
       <template #actions>
         <a-button
-          v-if="hookCodes.includes(key)"
+          v-if="hookCodes.includes('' + key)"
           class="sucess"
           type="primary"
           shape="round"

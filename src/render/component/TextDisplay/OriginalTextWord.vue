@@ -38,7 +38,7 @@
 </template>
 
 <script lang="ts">
-import type { SegmentWord } from '@main/manager/SegmentManager';
+import type { SegmentWord } from '@main/providers/SegmentProvider';
 import { computed, defineComponent, PropType } from 'vue';
 
 export default defineComponent({
