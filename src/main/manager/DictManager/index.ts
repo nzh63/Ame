@@ -1,4 +1,4 @@
-import { availableDictConfigs } from '@main/providers/Dict';
+import { availableDictConfigs } from '@main/providers/dict';
 import { DictProvider } from '@main/providers';
 import { DictManagerOptions } from '@main/manager/DictManager/options';
 import { BaseManager } from '@main/manager/BaseManager';

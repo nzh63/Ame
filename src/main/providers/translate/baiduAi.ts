@@ -1,6 +1,5 @@
 import { defineTranslateProvider } from '@main/providers/translate';
 import crypto from 'crypto';
-import fetch from 'electron-fetch';
 
 export default defineTranslateProvider({
     id: '百度AI开放平台',

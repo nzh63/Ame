@@ -19,7 +19,7 @@
 * 图形化的、易于配置的设置界面。
 
 ## 编译与运行
-1. 首先安装[node.js](https://nodejs.org/en/)(v18+)，安装过程中请勾选“Tools for Native Modules”。
+1. 首先安装[node.js](https://nodejs.org/en/)(v20+)，安装过程中请勾选“Tools for Native Modules”。
 2. 启用[corepack](https://yarnpkg.com/corepack)。
 3. 执行以下命令即可进行开发与调试。
     ```cmd

@@ -1,116 +1,122 @@
 <template>
-  <a-layout class="option-layout">
-    <a-layout-content class="option-content">
-      <a-typography-title
+  <t-layout class="option-layout">
+    <t-content class="option-content">
+      <div
         v-if="id"
-        :level="4"
         class="title"
       >
         {{ id }}
-      </a-typography-title>
+      </div>
       <div
         v-if="description"
         class="description"
       >
-        <a-typography-text type="secondary">
-          {{ description }}
-        </a-typography-text>
+        {{ description }}
       </div>
-      <a-form
+
+      <t-form
         v-if="optionsEditList.length !== 0"
-        layout="vertical"
+        label-align="top"
       >
-        <a-form-item
+        <t-form-item
           v-for="i in optionsEditList"
-          :key="i.key"
+          :key="i.key.join('.')"
         >
           <template #label>
-            <a-space>
-              {{ i.readableName }}
-              <a-typography-text
-                v-if="i.readableName !== i.key.join('.')"
-                type="secondary"
-              >
+            <t-space size="small">
+              <span>
+                {{ i.readableName }}
+              </span>
+              <span class="key">
                 {{ i.key.join(".") }}
-              </a-typography-text>
-            </a-space>
+              </span>
+            </t-space>
           </template>
-          <a-select
+          <t-select
             v-if="
               i.enum !== undefined && i.enumSelectId !== undefined
             "
             ref="select"
-            v-model:value="i.enumSelectId"
-            @change="onUpdateEnum(i.enumSelectId, i.key, i)"
+            :value="i.enumSelectId"
+            @change="(v: any) => onUpdateEnum(v, i.key, i)"
           >
-            <a-select-option
+            <t-option
               v-for="(value, index) in i.enum"
               :key="index"
               :value="index"
-              :title="stringify(value)"
+              :label="stringify(value)"
             >
               {{ stringify(value) }}
-            </a-select-option>
-          </a-select>
-          <a-input
+            </t-option>
+          </t-select>
+          <t-input
             v-else
-            v-model:value="i.optionsValueString"
-            @press-enter="onUpdate(i.optionsValueString, i.key, i)"
-            @blur="onUpdate(i.optionsValueString, i.key, i)"
+            :value="i.optionsValueString"
+            @change="(v: any) => onUpdate(v, i.key, i)"
           >
             <template #suffix>
-              <a-space>
-                <a-badge
+              <t-space size="small">
+                <t-tag
                   v-for="j in i.typeInfo"
                   :key="j"
-                  :count="j"
-                  :number-style="{
-                    backgroundColor: 'rgba(0,0,0,0.45)',
-                  }"
-                />
-              </a-space>
+                >
+                  {{ j }}
+                </t-tag>
+              </t-space>
             </template>
-          </a-input>
-          <template
-            v-if="i.help"
-            #help
-          >
-            <span class="warning-message">{{ i.help }}</span>
+          </t-input>
+          <template #help>
+            <span
+              v-if="i.help"
+              class="error-message"
+            >
+              {{ i.help }}
+            </span>
+            <span v-else-if="i.description">{{ i.description }}</span>
           </template>
-          <template
-            v-if="i.description"
-            #extra
-          >
-            {{ i.description }}
-          </template>
-        </a-form-item>
-      </a-form>
-      <a-skeleton v-else-if="updating" />
-      <a-empty v-else />
-    </a-layout-content>
-    <a-layout-footer
+        </t-form-item>
+        <div />
+      </t-form>
+      <t-skeleton
+        v-else-if="updating"
+        :delay="200"
+      />
+      <t-space
+        v-else
+        direction="vertical"
+        align="center"
+        style="display: flex; margin-top: var(--td-comp-margin-xxl);"
+      >
+        <adjustment-icon class="empty" />
+        <span>没有可以调整的选项哦</span>
+      </t-space>
+    </t-content>
+    <t-footer
       v-if="optionsEditList.length !== 0"
       class="option-footer"
     >
-      <a-space>
-        <a-button
-          type="primary"
+      <t-space>
+        <t-button
+          theme="primary"
           @click="save"
         >
           保存并应用
-        </a-button>
-        <a-button @click="$router.push('/')">
+        </t-button>
+        <t-button
+          theme="default"
+          @click="$router.push('/')"
+        >
           放弃
-        </a-button>
-      </a-space>
-    </a-layout-footer>
-  </a-layout>
+        </t-button>
+      </t-space>
+    </t-footer>
+  </t-layout>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref, toRaw, watch, nextTick } from 'vue';
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRouter } from 'vue-router';
-import message from 'ant-design-vue/es/message';
+import { MessagePlugin } from 'tdesign-vue-next';
 
 import type { JSONSchema } from '@main/schema';
 import {
@@ -216,6 +222,7 @@ export default defineComponent({
         const hasUnsavedChange = ref(false);
 
         const onUpdate = (newValueString: string, key: (string | number)[], i: ListItem) => {
+            console.log(newValueString, key, i);
             delete i.help;
             let newValue: any = newValueString;
             const nullable = i.typeInfo.some(i => i === 'null');
@@ -250,11 +257,12 @@ export default defineComponent({
                 c = c[key[i]];
             }
             if (key.length) {
-                hasUnsavedChange.value = c[key[key.length - 1]] !== newValue;
+                hasUnsavedChange.value ||= c[key[key.length - 1]] !== newValue;
                 c[key[key.length - 1]] = newValue;
             } else {
-                hasUnsavedChange.value = options.value !== newValue;
+                hasUnsavedChange.value ||= options.value !== newValue;
                 options.value = newValue;
+                console.log(newValue);
             }
 
             i.optionsValueString = newValue === null ? '<null>' : typeof newValue === 'string' ? newValue : JSON.stringify(newValue);
@@ -267,10 +275,10 @@ export default defineComponent({
                 c = c[key[i]];
             }
             if (key.length) {
-                hasUnsavedChange.value = c[key[key.length - 1]] !== newValue;
+                hasUnsavedChange.value ||= c[key[key.length - 1]] !== newValue;
                 c[key[key.length - 1]] = newValue;
             } else {
-                hasUnsavedChange.value = options.value !== newValue;
+                hasUnsavedChange.value ||= options.value !== newValue;
                 options.value = newValue;
             }
             i.optionsValueString = newValue === null ? '<null>' : typeof newValue === 'string' ? newValue : JSON.stringify(newValue);
@@ -278,12 +286,12 @@ export default defineComponent({
 
         const save = () => {
             props.setOptions(props.providerId, toRaw(options.value))
-                .then(() => { message.success('已成功保存'); hasUnsavedChange.value = false; })
-                .catch((e: any) => message.error(e.message ?? e));
+                .then(() => { MessagePlugin.success('已成功保存'); hasUnsavedChange.value = false; })
+                .catch((e: any) => MessagePlugin.error(e.message ?? e));
         };
 
         const router = useRouter();
-        const check = checkIfUnsaved(() => hasUnsavedChange.value, router);
+        const check = checkIfUnsaved(hasUnsavedChange, router);
         onBeforeRouteLeave(check);
         onBeforeRouteUpdate(check);
 
@@ -318,16 +326,28 @@ export default defineComponent({
     padding: 12px 0 0 0;
 }
 .title {
-    margin-bottom: 0;
+    color: var(--td-text-color-primary);
+    font: var(--td-font-title-large);
 }
 .description {
+    color: var(--td-text-color-secondary);
+    font: var(--td-font-body-medium);
     white-space: pre-line;
     margin-bottom: 8px;
 }
 .title + :not(.description) {
     margin-top: 8px;
 }
-.warning-message {
-    color: #ff4d4f;
+.key {
+    color: var(--td-text-color-secondary);
+    font: var(--td-font-body-small);
+}
+.error-message {
+    color: var(--td-error-color);
+}
+.empty {
+    display: block;
+    color: var(--td-gray-color-7);
+    font: var(--td-font-headline-large);
 }
 </style>

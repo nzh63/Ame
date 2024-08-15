@@ -6,13 +6,13 @@ import json from '@rollup/plugin-json';
 import alias from '@rollup/plugin-alias';
 import { wasm } from '@rollup/plugin-wasm';
 import esbuild from 'rollup-plugin-esbuild';
-import log from './LogPlugin';
-import native from './NativePlugin';
-import devSpeedup from './DevSpeedupPlugin';
+import license from 'rollup-plugin-license';
+import log from './LogPlugin.mts';
+import native from './NativePlugin.mts';
+import devSpeedup from './DevSpeedupPlugin.mts';
 
-import builtinModules from 'builtin-modules/static';
-import { dependencies } from '../package.json';
-const license = require('rollup-plugin-license');
+import builtinModules from 'builtin-modules';
+import packageJson from '../package.json' with {type: 'json'};
 
 const externalPackages = [
     'electron',
@@ -20,7 +20,7 @@ const externalPackages = [
     'electron/common',
     'electron/renderer',
     ...builtinModules,
-    ...Object.keys(dependencies)
+    ...Object.keys(packageJson.dependencies)
 ];
 const resolve = nodeResolve({ extensions: ['.js', '.ts'], browser: false, exportConditions: ['import', 'module', 'node', 'require', 'files', 'default'] });
 
@@ -28,8 +28,8 @@ export default (mode = 'production') => ({
     plugins: [
         log({
             include: [
-                path.join(__dirname, '../src/main/*.*').replace(/\\/g, '/'),
-                path.join(__dirname, '../src/main/**/*.*').replace(/\\/g, '/')
+                path.join(import.meta.dirname, '../src/main/*.*').replace(/\\/g, '/'),
+                path.join(import.meta.dirname, '../src/main/**/*.*').replace(/\\/g, '/')
             ],
             loggerPath: '@main/logger',
             logFunction: { logger: 'logger' },
@@ -39,10 +39,10 @@ export default (mode = 'production') => ({
         alias({
             customResolver: resolve as any,
             entries: {
-                '@main': path.join(__dirname, '../src/main'),
-                '@render': path.join(__dirname, '../src/render'),
-                '@static': path.join(__dirname, '../static'),
-                '@assets': path.join(__dirname, '../assets')
+                '@main': path.join(import.meta.dirname, '../src/main'),
+                '@render': path.join(import.meta.dirname, '../src/render'),
+                '@static': path.join(import.meta.dirname, '../static'),
+                '@assets': path.join(import.meta.dirname, '../assets')
             }
         }),
         esbuild({
@@ -64,7 +64,7 @@ export default (mode = 'production') => ({
                 thirdParty: {
                     includePrivate: false,
                     output: {
-                        file: path.join(__dirname, '../dist/license.dependencies.main.json'),
+                        file: path.join(import.meta.dirname, '../dist/license.dependencies.main.json'),
                         template(dependencies: any) {
                             return JSON.stringify(dependencies);
                         }
@@ -73,9 +73,9 @@ export default (mode = 'production') => ({
             })
             : null
     ],
-    input: path.join(__dirname, mode === 'production' ? '../src/main/index.ts' : '../src/main/index.dev.ts'),
+    input: path.join(import.meta.dirname, mode === 'production' ? '../src/main/index.ts' : '../src/main/index.dev.ts'),
     output: {
-        dir: path.join(__dirname, '../dist/main'),
+        dir: path.join(import.meta.dirname, '../dist/main'),
         entryFileNames: 'index.js',
         format: 'commonjs',
         sourcemap: mode !== 'production'

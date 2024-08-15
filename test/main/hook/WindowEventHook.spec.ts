@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import EventEmitter from 'events';
-import { WindowEventHook } from '@main/hook/windowEventHook';
+import { WindowEventHook } from '@main/hook/WindowEventHook';
 import { SimpleWindow } from '../../SimpleWindow';
 
 describe('WindowEventHook', function() {

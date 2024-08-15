@@ -1,6 +1,6 @@
 import EventEmitter from 'events';
 import { waitProcessForExit } from '@main/win32';
-import { WindowEventHook } from './windowEventHook';
+import { WindowEventHook } from './WindowEventHook';
 import { GlobalKeyboardEventHook } from './GlobalKeyboardEventHook';
 import { GlobalMouseEventHook } from './GlobalMouseEventHook';
 import logger from '@logger/hook';
@@ -41,7 +41,7 @@ export declare interface Hook extends NodeJS.EventEmitter {
 }
 
 export class Hook extends EventEmitter {
-    private windowEventHook?: WindowEventHook;
+    private WindowEventHook?: WindowEventHook;
     private keyboardEventHook?: GlobalKeyboardEventHook;
     private mouseEventHook?: GlobalMouseEventHook;
 
@@ -55,7 +55,7 @@ export class Hook extends EventEmitter {
 
     public static async create(gamePids: number[]) {
         const hook = new Hook(gamePids);
-        hook.windowEventHook = await WindowEventHook.create(hook, gamePids);
+        hook.WindowEventHook = await WindowEventHook.create(hook, gamePids);
         return hook;
     }
 
@@ -73,7 +73,7 @@ export class Hook extends EventEmitter {
 
     public destroy() {
         logger('end hook for pids %O', this.gamePids);
-        this.windowEventHook?.destroy();
+        this.WindowEventHook?.destroy();
         this.unregisterKeyboardAndMouseHook();
     }
 }

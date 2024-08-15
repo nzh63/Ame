@@ -1,4 +1,4 @@
-type Ret<T> = Ame.IpcRet<T>;
+type Ret<T> = Ame.IpcResult<T>;
 type Await<T> = T extends Promise<infer R> ? R : T;
 
 export function handleError<

@@ -3,7 +3,8 @@ import { createApp } from 'vue';
 import router from '@render/router/TranslatorWindow';
 import TranslatorWindow from '@render/TranslatorWindow.vue';
 
-import 'ant-design-vue/dist/antd.dark.css';
+import 'tdesign-vue-next/es/style/index.css';
+import 'tdesign-vue-next/dist/reset.css';
 
 const app = createApp(TranslatorWindow);
 app.use(router);

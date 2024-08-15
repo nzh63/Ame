@@ -3,16 +3,18 @@ import { Plugin } from 'rollup';
 export default function devSpeedup() {
     return {
         name: 'dev-speedup',
-        resolveId(id) {
+        async resolveId(id) {
             if (id === 'lodash-es') id = 'lodash';
-            if (id.trim().startsWith('.')) return null;
+            if (/^(\.|@main|@render|@static|@assets)/.test(id.trim())) return null;
             if (id.includes('web-streams-polyfill')) return null;
             let tryId = id;
             while (tryId) {
                 try {
                     const tryPackage = tryId + '/package.json';
-                    if (require.resolve('../package.json') === require.resolve(tryPackage)) { throw new Error(); }
-                    const packageJson = require(tryPackage);
+                    if (import.meta.resolve('../package.json') === import.meta.resolve(tryPackage)) {
+                        throw new Error();
+                    }
+                    const packageJson = await import(tryPackage, { with: { type: 'json' } });
                     if (packageJson.type !== 'module') {
                         return {
                             id,

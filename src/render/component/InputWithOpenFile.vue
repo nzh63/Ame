@@ -1,19 +1,21 @@
 <template>
-  <a-input
+  <t-input
     :value="value"
     :placeholder="placeholder"
     @update:value="update"
   >
     <template #suffix>
-      <a-tooltip title="打开...">
-        <more-outlined
-          class="open"
-          :rotate="90"
+      <t-tooltip content="打开...">
+        <t-button
+          size="small"
+          variant="text"
           @click="open"
-        />
-      </a-tooltip>
+        >
+          <ellipsis-icon />
+        </t-button>
+      </t-tooltip>
     </template>
-  </a-input>
+  </t-input>
 </template>
 
 <script lang="ts">

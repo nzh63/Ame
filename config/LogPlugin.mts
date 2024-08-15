@@ -41,9 +41,9 @@ export default function replace(options: Options = { logFunction: {} }) {
 
     function codeReplace(code: string, id: string, magicString: MagicString) {
         let result = false;
-        let match: RegExpExecArray;
+        let match: RegExpExecArray | null;
 
-        const fileName = path.relative(path.join(__dirname, '..'), id);
+        const fileName = path.relative(path.join(import.meta.dirname, '..'), id);
         let codeSplit: string[] | null = null;
 
         while ((match = pattern.exec(code))) {

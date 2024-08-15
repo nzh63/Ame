@@ -9,6 +9,8 @@ export class TranslatorWindow extends WindowWithGeneral {
         useContentSize: true,
         width: 800,
         height: 300,
+        minWidth: 350,
+        minheight: 50,
         transparent: true,
         backgroundColor: '#00000000',
         frame: false,

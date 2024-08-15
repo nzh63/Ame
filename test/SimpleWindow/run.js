@@ -11,7 +11,6 @@ app.on('ready', async () => {
     window = new BrowserWindow({ minimizable: false, alwaysOnTop: true, backgroundThrottling: false });
     window.loadURL('about:blank');
     const http = require('http');
-    const { default: fetch } = require('electron-fetch');
     const server = http.createServer(async (req, resp) => {
         if (req.socket.remoteAddress === '127.0.0.1') {
             let msg = '';

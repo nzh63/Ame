@@ -1,5 +1,4 @@
 /* eslint-disable camelcase */
-require('ts-node/register');
 const os = require('os');
 const fs = require('fs');
 const fsPromise = require('fs').promises;
@@ -12,9 +11,13 @@ const yauzl = require('yauzl');
 const got = require('got');
 const glob = require('glob');
 
-const vite = require('vite');
 const rollup = require('rollup');
 const { build: electronBuilder } = require('electron-builder');
+
+const { register } = require('module');
+const { pathToFileURL } = require('url');
+require('ts-node/register');
+register('ts-node/esm', pathToFileURL('./'));
 
 function extract(zipPath, files, dst) {
     return new Promise((resolve, reject) => {
@@ -169,8 +172,9 @@ async function buildNative(arch = 'x64', configureOnly = false) {
 
 async function buildRender(mode = 'production') {
     process.type = 'renderer';
+    const vite = await import('vite');
     await vite.build({
-        configFile: path.join(__dirname, './vite.render.config.ts'),
+        ...(await import('./vite.render.config.mts')).default({ mode }),
         mode
     });
 }
@@ -182,7 +186,7 @@ async function clear(type) {
 async function build(type, mode = 'production') {
     console.log(`building ${type} for ${mode}...`);
     await clear(type);
-    const config = require(`./rollup.${type}.config`).default(mode);
+    const config = (await import(`./rollup.${type}.config.mts`)).default(mode);
     const bundle = await rollup.rollup(config);
     const { output } = await bundle.generate(config.output);
     for (const chunkOrAsset of output) {
@@ -207,8 +211,9 @@ async function buildTest(mode = 'development') {
 
 async function devRender(mode = 'development') {
     process.type = 'renderer';
+    const vite = await import('vite');
     const server = await vite.createServer({
-        configFile: path.join(__dirname, './vite.render.config.ts'),
+        configFile: path.join(__dirname, './vite.render.config.mts'),
         mode
     });
     await server.listen(9090);
@@ -220,8 +225,8 @@ async function devRender(mode = 'development') {
 async function devMainAndWorkers(mode = 'development') {
     process.type = 'main';
     await clear('main');
-    const configMain = require('./rollup.main.config').default(mode);
-    const configWorkers = require('./rollup.workers.config').default(mode);
+    const configMain = (await import('./rollup.main.config.mts')).default(mode);
+    const configWorkers = (await import('./rollup.workers.config.mts')).default(mode);
     const watcher = rollup.watch([configMain, configWorkers]);
     watcher.on('event', ev => {
         if (ev.code === 'END') {
@@ -248,7 +253,7 @@ function startElectron() {
     args = args.concat(process.argv.slice(3));
 
     electronProcess = child_process.spawn(electron, args, {
-        stdio: 'pipe',
+        stdio: ['inherit', 'pipe', 'pipe'],
         env: {
             DEBUG: 'ame:*',
             DEBUG_COLORS: 'yes',
@@ -256,7 +261,6 @@ function startElectron() {
         }
     });
 
-    process.stdin.pipe(electronProcess.stdin);
     electronProcess.stdout.pipe(process.stdout);
     electronProcess.stderr.pipe(process.stderr);
 
@@ -268,7 +272,7 @@ function startElectron() {
 function restartElectron() {
     if (electronProcess && electronProcess.kill) {
         manualRestart = true;
-        process.kill(electronProcess.pid);
+        electronProcess.kill();
         electronProcess = null;
         startElectron();
 
@@ -279,7 +283,7 @@ function restartElectron() {
 function killElectron() {
     if (electronProcess && electronProcess.kill) {
         manualRestart = true;
-        process.kill(electronProcess.pid);
+        electronProcess.kill();
         electronProcess = null;
 
         setTimeout(() => { manualRestart = false; }, 1000);
@@ -390,7 +394,8 @@ function clean() {
     console.error(e);
     process.exit(1);
 });
-process.once('SIGINT', () => {
+
+process.on('SIGINT', () => {
     if (electronProcess) electronProcess.kill();
     electronProcess = null;
 });

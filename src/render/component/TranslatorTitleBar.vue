@@ -3,66 +3,57 @@
     class="title-bar"
     :class="{ hidden: hideTitleBar }"
   >
-    <a-radio-group
+    <t-radio-group
       :value="$router.currentRoute.value.path"
+      variant="default-filled"
       size="small"
-      @change="navigation"
+      @change="v => navigation(v as string)"
     >
-      <a-radio-button value="/translator">
+      <t-radio-button value="/translator">
         翻译
-      </a-radio-button>
-      <a-radio-button value="/hook-select">
+      </t-radio-button>
+      <t-radio-button value="/hook-select">
         文本选择
-      </a-radio-button>
-      <a-radio-button value="/extract-setting">
+      </t-radio-button>
+      <t-radio-button value="/extract-setting">
         提取设置
-      </a-radio-button>
-    </a-radio-group>
+      </t-radio-button>
+    </t-radio-group>
     <span class="drag" />
-    <a-radio-group
+    <t-radio-group
       value="null"
+      variant="default-filled"
       size="small"
     >
-      <a-radio-button
-        value="a"
-        @click="minimizeWindow"
+      <t-radio-button @click="minimizeWindow">
+        <minus-icon class="icon" />
+      </t-radio-button>
+      <t-radio-button @click="setRunning(!running)">
+        <pause-icon
+          v-if="running"
+          class="icon"
+        />
+        <play-icon
+          v-else
+          class="icon"
+        />
+      </t-radio-button>
+      <t-radio-button
+        @click="setWindowAlwaysOnTop(!alwaysOnTop)"
       >
-        <line-outlined />
-      </a-radio-button>
-      <a-radio-button
-        v-if="running"
-        value="b"
-        @click="setRunning(false)"
-      >
-        <pause-outlined />
-      </a-radio-button>
-      <a-radio-button
-        v-else
-        value="b"
-        @click="setRunning(true)"
-      >
-        <caret-right-outlined />
-      </a-radio-button>
-      <a-radio-button
-        v-if="alwaysOnTop"
-        value="c"
-        @click="setWindowAlwaysOnTop(false)"
-      >
-        <unlock-outlined />
-      </a-radio-button>
-      <a-radio-button
-        v-else
-        @click="setWindowAlwaysOnTop(true)"
-      >
-        <lock-outlined />
-      </a-radio-button>
-    </a-radio-group>
+        <pin-filled-icon
+          class="icon pin"
+          :style="{
+            transform: alwaysOnTop ? 'rotate(-45deg)' : ''
+          }"
+        />
+      </t-radio-button>
+    </t-radio-group>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref, inject, Ref, nextTick } from 'vue';
-import type { RadioChangeEvent } from 'ant-design-vue/lib/radio/interface';
 import { useRouter } from 'vue-router';
 
 import * as remote from '@render/remote';
@@ -79,8 +70,8 @@ export default defineComponent({
         const alwaysOnTop = ref(false);
 
         const router = useRouter();
-        const navigation = (event: RadioChangeEvent) => {
-            router.push(event.target.value);
+        const navigation = (value: string) => {
+            router.push(value);
         };
 
         const running = inject<Ref<boolean>>('running') ?? ref(true);
@@ -115,12 +106,20 @@ export default defineComponent({
     height: 24px;
     background: rgba(0, 0, 0, 0.8);
     display: flex;
+    --td-bg-color-component: transparent;
 }
 .title-bar .drag {
     -webkit-app-region: drag;
     flex-grow: 1;
 }
 .hidden {
+    opacity: 0;
     visibility: hidden;
+}
+.icon {
+  font-size: 24px;
+}
+.icon.pin {
+  padding: 6px 0;
 }
 </style>

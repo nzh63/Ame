@@ -1,132 +1,107 @@
 <template>
-  <div>
-    <a-steps :current="current">
-      <a-step
-        v-for="item in steps"
-        :key="item"
-        :title="item"
-      />
-    </a-steps>
-    <div
+  <t-layout>
+    <t-header>
+      <t-steps :current="current">
+        <t-step-item
+          v-for="item in steps"
+          :key="item"
+          :title="item"
+        />
+      </t-steps>
+    </t-header>
+    <t-content
       v-if="current === 0"
       class="steps-content"
     >
-      <div class="screen-wrapper">
-        <a-typography-title :level="4">
-          滑动滑块调整识别区域
-          <a-button
-            shape="round"
-            type="primary"
-            @click="reload(true)"
-          >
-            <template #icon>
-              <reload-outlined />
-            </template>
-            重新加载截图
-          </a-button>
-        </a-typography-title>
-        <div>
-          <div class="left" />
-          <div class="center">
-            <a-slider
-              v-model:value="width"
-              range
-              :tip-formatter="null"
-              :max="size[0]"
-            />
-          </div>
-          <div class="right" />
-        </div>
-        <div>
-          <div class="left">
-            <a-slider
-              v-model:value="height"
-              range
-              vertical
-              :tip-formatter="null"
-              :max="size[1]"
-            />
-          </div>
-          <div
-            class="center"
-            style="position: relative"
-          >
-            <div
-              :style="{
-                position: 'absolute',
-                left: (width[0] / size[0]) * 100 + '%',
-                bottom: (height[0] / size[1]) * 100 + '%',
-                width:
-                  ((width[1] - width[0]) / size[0]) * 100 +
-                  '%',
-                height:
-                  ((height[1] - height[0]) / size[1]) * 100 +
-                  '%',
-                border: 'red 1px solid',
-              }"
-            />
-            <img
-              v-if="screen"
-              :src="screen"
-              style="width: 100%"
-            >
-          </div>
-          <div class="right">
-            <a-slider
-              v-model:value="height"
-              range
-              vertical
-              :tip-formatter="null"
-              :max="size[1]"
-            />
-          </div>
-        </div>
-        <div>
-          <div class="left" />
-          <div class="center">
-            <a-slider
-              v-model:value="width"
-              range
-              :tip-formatter="null"
-              :max="size[0]"
-            />
-          </div>
-          <div class="right" />
-        </div>
-      </div>
-      <a-space>
-        <a-button
-          type="primary"
-          @click="next"
-        >
-          下一步
-        </a-button>
-      </a-space>
-    </div>
-    <div
-      v-if="current === 1"
-      class="steps-content"
-    >
-      <a-typography-title :level="4">
-        预处理
-        <a-button
+      <h1>
+        滑动滑块调整识别区域
+        <t-button
           shape="round"
-          type="primary"
+          theme="primary"
           @click="reload(true)"
         >
           <template #icon>
-            <reload-outlined />
+            <refresh-icon />
           </template>
           重新加载截图
-        </a-button>
-      </a-typography-title>
-      <a-form
-        layout="horizontal"
-        :label-col="{ span: 4 }"
-        :wrapper-col="{ span: 20 }"
-      >
-        <a-form-item label="颜色">
-          <a-radio-group
+        </t-button>
+      </h1>
+      <div class="screen">
+        <t-slider
+          v-model:value="width"
+          range
+          :tip-formatter="null"
+          :max="size[0]"
+          style="grid-area: top"
+        />
+        <t-slider
+          v-model:value="height"
+          range
+          layout="vertical"
+          :tip-formatter="null"
+          :max="size[1]"
+          style="grid-area: left"
+        />
+        <div
+          style="grid-area: center; position: relative"
+        >
+          <div
+            :style="{
+              position: 'absolute',
+              left: (width[0] / size[0]) * 100 + '%',
+              bottom: (height[0] / size[1]) * 100 + '%',
+              width:
+                ((width[1] - width[0]) / size[0]) * 100 +
+                '%',
+              height:
+                ((height[1] - height[0]) / size[1]) * 100 +
+                '%',
+              border: 'red 1px solid',
+            }"
+          />
+          <img
+            v-if="screen"
+            :src="screen"
+            style="max-width: 100%; max-height: 500px;"
+          >
+        </div>
+        <t-slider
+          v-model:value="height"
+          range
+          layout="vertical"
+          :tip-formatter="null"
+          :max="size[1]"
+          style="grid-area: right"
+        />
+        <t-slider
+          v-model:value="width"
+          range
+          :tip-formatter="null"
+          :max="size[0]"
+          style="grid-area: bottom"
+        />
+      </div>
+    </t-content>
+    <t-content
+      v-if="current === 1"
+      class="steps-content"
+    >
+      <h1>
+        预处理
+        <t-button
+          shape="round"
+          theme="primary"
+          @click="reload(true)"
+        >
+          <template #icon>
+            <refresh-icon />
+          </template>
+          重新加载截图
+        </t-button>
+      </h1>
+      <t-form>
+        <t-form-item label="颜色">
+          <t-radio-group
             v-model:value="color"
             :options="[
               { label: '彩色', value: 'colorful' },
@@ -136,39 +111,53 @@
               { label: '仅B通道', value: 'blue' },
             ]"
           />
-        </a-form-item>
-        <a-form-item>
+        </t-form-item>
+        <t-form-item>
           <template #label>
-            <a-checkbox v-model:checked="thresholdEnable">
+            <t-checkbox v-model:checked="thresholdEnable">
               二值化
-            </a-checkbox>
+            </t-checkbox>
           </template>
-          <a-slider
+          <t-slider
             v-model:value="threshold"
             :max="255"
           />
-        </a-form-item>
-        <a-form-item label="预览">
+        </t-form-item>
+        <t-form-item label="预览">
           <img
             v-if="preprocess"
             :src="preprocess"
-            style="width: 100%"
+            style="max-width: 100%; max-height: 500px;"
           >
-        </a-form-item>
-      </a-form>
-      <a-space>
-        <a-button
-          type="primary"
+        </t-form-item>
+      </t-form>
+    </t-content>
+    <t-footer>
+      <t-space>
+        <t-button
+          v-if="current === 1"
+          theme="primary"
           @click="next"
         >
           完成
-        </a-button>
-        <a-button @click="prev">
+        </t-button>
+        <t-button
+          v-if="current < 1"
+          theme="primary"
+          @click="next"
+        >
+          下一步
+        </t-button>
+        <t-button
+          v-if="current > 0"
+          theme="default"
+          @click="prev"
+        >
           上一步
-        </a-button>
-      </a-space>
-    </div>
-  </div>
+        </t-button>
+      </t-space>
+    </t-footer>
+  </t-layout>
 </template>
 
 <script lang="ts">
@@ -227,10 +216,8 @@ export default defineComponent({
                 height: size.value[1]
             }))
             .then(v => {
-                width.value[0] = v.left;
-                width.value[1] = v.left + v.width;
-                height.value[0] = size.value[1] - v.top - v.height;
-                height.value[1] = size.value[1] - v.top;
+                width.value = [v.left, v.left + v.width];
+                height.value = [size.value[1] - v.top - v.height, size.value[1] - v.top];
                 screenReady = true;
                 return getScreenCapturePreprocessOption();
             })
@@ -312,32 +299,40 @@ export default defineComponent({
 
 <style>
 body {
-    padding: 16px;
+    padding: var(--td-comp-paddingTB-l) var(--td-comp-paddingLR-l);
+    --td-bg-color-page: transparent;
 }
 </style>
 
 <style scoped>
 .steps-content {
-    margin-top: 16px;
-    margin-left: 30px;
-    margin-right: 30px;
+    padding: 0 var(--td-comp-paddingLR-l);
 }
-.screen-wrapper {
-    display: flex;
-    flex-direction: column;
+.screen {
+    display: grid;
+    grid-template-rows: 20px 1fr 20px;
+    grid-template-columns: 0fr 20px auto 20px 1fr;
+    grid-template-areas:
+      ". . top . ."
+      ". left center right ."
+      ". . bottom . .";
+    grid-gap: 10px;
 }
-.screen-wrapper > div {
-    display: flex;
-    flex-direction: row;
+</style>
+
+<style>
+::-webkit-scrollbar {
+    width: 12px !important;
+    height: 12px !important;
 }
-.screen-wrapper .left,
-.screen-wrapper .right {
-    width: 40px;
+::-webkit-scrollbar-thumb {
+    border: 4px solid transparent !important;
+    background-clip: content-box !important;
+    background-color: var(--td-scrollbar-color) !important;
+    border-radius: 6px !important;
 }
-.screen-wrapper .center {
-    flex-grow: 1;
-}
-.screen-wrapper img {
-    max-width: 100%;
+::-webkit-scrollbar-thumb:vertical:hover,
+::-webkit-scrollbar-thumb:horizontal:hover {
+    background-color: var(--td-scrollbar-hover-color) !important;
 }
 </style>

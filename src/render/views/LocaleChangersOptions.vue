@@ -1,84 +1,108 @@
 <template>
-  <a-layout class="option-layout">
-    <a-layout-content class="option-content">
-      <a-skeleton v-if="updating" />
-      <a-form
-        v-else
-        layout="vertical"
+  <t-layout class="option-layout">
+    <t-content class="option-content">
+      <t-space
+        class="option-content"
+        direction="vertical"
       >
-        <a-form-item
-          v-for="i in options"
-          :key="i.name"
+        <t-skeleton v-if="updating" />
+        <t-form
+          v-else
+          label-align="top"
         >
-          <template #label>
-            <a-input
-              v-if="i.editingName"
-              :value="i.name"
-              @change="hasUnsavedChange = true"
-              @blur="i.editingName = false"
-            />
-            <a-space v-else>
-              <span>{{ i.name }}</span>
-              <edit-outlined @click="i.editingName = true" />
-              <a-popconfirm
-                title="确认删除？"
-                ok-text="是"
-                cancel-text="否"
-                @confirm="del(i)"
+          <t-form-item
+            v-for="i in options"
+            :key="i.name"
+          >
+            <template #label>
+              <t-input
+                v-if="i.editingName"
+                :value="i.name"
+                @change="hasUnsavedChange = true"
+                @blur="i.editingName = false"
+              />
+              <t-space
+                v-else
+                size="small"
               >
-                <delete-outlined />
-              </a-popconfirm>
-            </a-space>
-          </template>
-          <input-with-open-file
-            :value="i.execShell"
-            :path-transform="pathTransform"
-            :placeholder="i.placeholder"
-            @update:value="
-              (v) => {
-                hasUnsavedChange = true;
-                if (v) {
-                  i.execShell = v;
-                } else {
-                  i.execShell = '';
+                <span>{{ i.name }}</span>
+                <t-button
+                  size="small"
+                  variant="text"
+                  @click="i.editingName = true"
+                >
+                  <edit-icon />
+                </t-button>
+                <t-popconfirm
+                  content="确认删除？"
+                  @confirm="del(i)"
+                >
+                  <t-button
+                    size="small"
+                    variant="text"
+                  >
+                    <delete-1-icon />
+                  </t-button>
+                </t-popconfirm>
+              </t-space>
+            </template>
+            <input-with-open-file
+              :value="i.execShell"
+              :path-transform="pathTransform"
+              :placeholder="i.placeholder"
+              @update:value="
+                (v) => {
+                  hasUnsavedChange = true;
+                  if (v) {
+                    i.execShell = v;
+                  } else {
+                    i.execShell = '';
+                  }
                 }
-              }
-            "
-          />
-        </a-form-item>
-      </a-form>
-      <a-button
-        type="dashed"
-        class="add"
-        @click="add"
-      >
-        <plus-outlined /> 新建
-      </a-button>
-    </a-layout-content>
-    <a-layout-footer
+              "
+            />
+          </t-form-item>
+        </t-form>
+        <t-button
+          variant="dashed"
+          class="add"
+          @click="add"
+        >
+          <template #icon>
+            <add-icon />
+          </template>
+          新建
+        </t-button>
+      </t-space>
+    </t-content>
+    <t-footer
       v-if="options.length !== 0"
       class="option-footer"
     >
-      <a-space>
-        <a-button
-          type="primary"
+      <t-space>
+        <t-button
+          theme="primary"
           @click="save"
         >
           保存并应用
-        </a-button>
-        <a-button @click="$router.push('/')">
+        </t-button>
+        <t-button
+          theme="default"
+          @click="$router.push('/')"
+        >
           放弃
-        </a-button>
-      </a-space>
-    </a-layout-footer>
-  </a-layout>
+        </t-button>
+      </t-space>
+    </t-footer>
+  </t-layout>
 </template>
 
 <script lang="ts">
 import { quote } from 'shell-quote';
 import { defineComponent, ref } from 'vue';
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRouter } from 'vue-router';
-import message from 'ant-design-vue/es/message';
+import { MessagePlugin } from 'tdesign-vue-next';
+import { Delete1Icon } from 'tdesign-icons-vue-next';
 
 import { checkIfUnsaved } from '@render/utils';
 import InputWithOpenFile from '@render/component/InputWithOpenFile.vue';
@@ -86,6 +110,7 @@ import store from '@render/store';
 
 export default defineComponent({
     components: {
+        Delete1Icon,
         InputWithOpenFile
     },
     setup() {
@@ -117,7 +142,7 @@ export default defineComponent({
         const hasUnsavedChange = ref(false);
 
         const router = useRouter();
-        const check = checkIfUnsaved(() => hasUnsavedChange.value, router);
+        const check = checkIfUnsaved(hasUnsavedChange, router);
         onBeforeRouteLeave(check);
         onBeforeRouteUpdate(check);
 
@@ -138,8 +163,8 @@ export default defineComponent({
                     .map(i => { delete i.placeholder; return i; })
                     .map(i => { i.enable = !!i.execShell.trim(); return i; })
             ))
-                .then(() => { message.success('已成功保存'); hasUnsavedChange.value = false; })
-                .catch((e: any) => message.error(e.message ?? e));
+                .then(() => { MessagePlugin.success('已成功保存'); hasUnsavedChange.value = false; })
+                .catch((e: any) => MessagePlugin.error(e.message ?? e));
         };
 
         const pathTransform = (p: string) => `& ${quote([p])} %GAME%`;
@@ -167,6 +192,7 @@ export default defineComponent({
     height: 100%;
 }
 .option-content {
+    width: 100%;
     overflow: auto;
 }
 .option-footer {

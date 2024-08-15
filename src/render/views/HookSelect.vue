@@ -1,68 +1,65 @@
 <template>
-  <a-space>
-    <a-button
+  <t-space>
+    <t-button
+      theme="default"
       shape="circle"
       @click="clear"
     >
       <template #icon>
-        <delete-outlined />
+        <delete-icon />
       </template>
-    </a-button>
-    <a-radio-group
+    </t-button>
+    <t-radio-group
       v-model:value="multiselect"
       name="mode"
     >
-      <a-radio :value="false">
+      <t-radio :value="false">
         单选模式
-      </a-radio>
-      <a-radio :value="true">
+      </t-radio>
+      <t-radio :value="true">
         多选模式
-      </a-radio>
-    </a-radio-group>
-  </a-space>
-  <a-list
-    item-layout="horizontal"
-    :data-source="Object.keys(texts)"
-    v-bind="$attrs"
-  >
-    <a-list-item
+      </t-radio>
+    </t-radio-group>
+  </t-space>
+  <t-list>
+    <t-list-item
       v-for="(text, key) of texts"
       :key="key"
     >
-      <a-list-item-meta>
+      <t-list-item-meta>
         <template #title>
-          <span class="break-all">{{ text }}</span>
+          <span class="text">{{ text }}</span>
         </template>
         <template #description>
-          {{ key }}
+          <span class="key">{{ key }}</span>
         </template>
-      </a-list-item-meta>
-      <template #actions>
-        <a-button
+      </t-list-item-meta>
+      <template #action>
+        <t-button
           v-if="hookCodes.includes('' + key)"
           class="sucess"
-          type="primary"
+          theme="primary"
           shape="round"
         >
           <template #icon>
-            <check-outlined />
+            <check-icon />
           </template>
           使用中
-        </a-button>
-        <a-button
+        </t-button>
+        <t-button
           v-else
-          type="primary"
+          theme="primary"
           shape="round"
           @click="setHookCode(key)"
         >
           <template #icon>
-            <select-outlined />
+            <rocket-icon />
           </template>
           使用
-        </a-button>
+        </t-button>
       </template>
-    </a-list-item>
-  </a-list>
+    </t-list-item>
+  </t-list>
 </template>
 
 <script lang="ts">
@@ -125,7 +122,12 @@ export default defineComponent({
     background: #52c41a;
     border-color: #52c41a;
 }
-.break-all {
+.text {
+    font-size: var(--td-font-size-link-medium);
+    word-break: break-all;
+}
+.key {
+  color: var(--td-gray-color-8);
     word-break: break-all;
 }
 </style>

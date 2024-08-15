@@ -1,5 +1,5 @@
 import type { SchemaType, SchemaDescription } from '@main/schema';
-import { availableDictConfigs } from '@main/providers/Dict';
+import { availableDictConfigs } from '@main/providers/dict';
 
 export const dictManagerOptionsSchema = {
     defaultProvider: {

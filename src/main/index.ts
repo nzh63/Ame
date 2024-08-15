@@ -1,6 +1,5 @@
 import { BrowserWindow, Menu, Tray, app, dialog, shell } from 'electron';
 import { join } from 'path';
-import fetch from 'electron-fetch';
 import { description, name } from '../../package.json';
 import { __assets } from '@main/paths';
 import { Context } from '@main/Context';
@@ -24,7 +23,7 @@ export function createMainWindow() {
     mainWindow = new BrowserWindow({
         show: false,
         titleBarStyle: 'hidden',
-        titleBarOverlay: { height: 30, color: '#f0f2f5' },
+        titleBarOverlay: { height: 30, color: '#00000000' },
         useContentSize: true,
         width: 1280,
         height: 720,

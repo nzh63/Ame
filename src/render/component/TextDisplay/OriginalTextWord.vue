@@ -1,16 +1,13 @@
 <template>
-  <a-tooltip
+  <t-tooltip
     v-if="word.extraInfo"
-    placement="bottomRight"
-    arrow-point-at-center
-    overlay-class-name="ant-tooltip-placement-bottomRight"
-    :get-popup-container="getPopupContainer"
+    placement="mouse"
     :align="{
       targetOffset: [0, 8],
       overflow: { adjustX: true, adjustY: false },
     }"
   >
-    <template #title>
+    <template #content>
       <div class="extra-info">
         <template
           v-for="(line, index) of extraInfoSpilt"
@@ -27,7 +24,7 @@
     >
       {{ word.word }}
     </span>
-  </a-tooltip>
+  </t-tooltip>
   <span
     v-else
     class="word"
@@ -64,8 +61,7 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.word:hover,
-.word.ant-tooltip-open {
+.word:hover {
     background: rgba(255, 255, 255, 0.2);
 }
 .word {

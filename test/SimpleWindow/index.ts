@@ -3,7 +3,6 @@ import EventEmitter from 'events';
 import http from 'http';
 import path from 'path';
 import { execPowerShell, findProcess } from '@main/win32';
-import fetch from 'electron-fetch';
 import logger from '@logger/test/SimpleWindow';
 import { spawn } from 'child_process';
 

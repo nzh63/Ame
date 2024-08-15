@@ -1,37 +1,24 @@
 <template>
-  <a-layout id="top-layout">
-    <a-layout-sider
-      v-model="collapsed"
-      :trigger="null"
-      :width="225"
-      collapsible
-      class="aside"
-    >
+  <t-layout id="top-layout">
+    <t-aside>
       <aside-menu />
-    </a-layout-sider>
-    <a-layout>
-      <a-layout-header id="draggable" />
-      <a-layout-content id="main-content">
+    </t-aside>
+    <t-layout>
+      <t-header id="draggable" />
+      <t-content id="main-content">
         <router-view />
-      </a-layout-content>
-    </a-layout>
-  </a-layout>
+      </t-content>
+    </t-layout>
+  </t-layout>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent } from 'vue';
 import AsideMenu from '@render/views/AsideMenu.vue';
 
 export default defineComponent({
     components: {
         AsideMenu
-    },
-    setup() {
-        const collapsed = ref(false);
-
-        return {
-            collapsed
-        };
     }
 });
 </script>
@@ -47,37 +34,41 @@ body,
 #top-layout {
     height: 100%;
 }
-
-#top-layout .trigger {
-    font-size: 18px;
-    line-height: 64px;
-    padding: 0 24px;
-    cursor: pointer;
-    transition: color 0.3s;
-}
-
-#top-layout .trigger:hover {
-    color: #1890ff;
-}
-
 #draggable {
     width: 100%;
     height: 30px;
-    background: #f0f2f5;
+    min-height: 30px;
+    background: var(--td-bg-color-page);
     -webkit-app-region: drag;
 }
 
 #main-content {
-    padding: 24px;
+    padding: var(--td-comp-paddingTB-xl) var(--td-comp-paddingLR-xl);
     background: #fff;
     min-height: 280px;
     overflow-y: auto;
     overflow-x: hidden;
 }
-.aside {
-    overflow: hidden;
+</style>
+
+<style>
+html,
+body {
+    width: 100%;
+    height: 100%;
 }
-.aside:hover {
-    overflow: auto;
+::-webkit-scrollbar {
+    width: 12px !important;
+    height: 12px !important;
+}
+::-webkit-scrollbar-thumb {
+    border: 4px solid transparent !important;
+    background-clip: content-box !important;
+    background-color: var(--td-scrollbar-color) !important;
+    border-radius: 6px !important;
+}
+::-webkit-scrollbar-thumb:vertical:hover,
+::-webkit-scrollbar-thumb:horizontal:hover {
+    background-color: var(--td-scrollbar-hover-color) !important;
 }
 </style>

@@ -1,52 +1,51 @@
 <template>
   <div>
-    <a-form
-      :label-col="{ span: 3 }"
-      :wrapper-col="{ span: 21 }"
-    >
-      <a-form-item label="文本大小">
-        <a-slider
-          v-model:value="fontSize"
+    <t-form>
+      <t-form-item label="文本大小">
+        <t-slider
+          :value="fontSize"
           :min="6"
           :max="100"
           tooltip-placement="bottom"
-          @after-change="changeFontSize"
+          @change-end="v => changeFontSize(v as number)"
         />
-      </a-form-item>
-      <a-form-item label="提取方法">
-        <a-select
+      </t-form-item>
+      <t-form-item label="提取方法">
+        <t-select
           :value="type"
-          @change="changeType"
+          @change="v => changeType(v as Ame.Extractor.ExtractorType)"
         >
-          <a-select-option value="textractor">
-            Textractor
-          </a-select-option>
-          <a-select-option value="ocr">
-            OCR
-          </a-select-option>
-        </a-select>
-      </a-form-item>
-      <a-form-item
+          <t-option
+            value="textractor"
+            label="Textractor"
+          />
+          <t-option
+            value="ocr"
+            label="OCR"
+          />
+        </t-select>
+      </t-form-item>
+      <t-form-item
         v-if="type === 'textractor'"
         label="详细设置"
       >
         <textractor-setting />
-      </a-form-item>
-      <a-form-item
+      </t-form-item>
+      <t-form-item
         v-if="type === 'ocr'"
         label=""
       >
-        <a-button
-          type="primary"
+        <t-button
+          theme="primary"
           @click="openOcrGuideWindow"
         >
           <template #icon>
-            <reload-outlined />
+            <refresh-icon />
           </template>
           再次启动Ocr引导界面
-        </a-button>
-      </a-form-item>
-    </a-form>
+        </t-button>
+      </t-form-item>
+    </t-form>
   </div>
 </template>
 
@@ -73,6 +72,7 @@ export default defineComponent({
         const fontSize = ref(_fontSize?.value);
 
         const changeFontSize = async (value: number) => {
+            fontSize.value = value;
             if (_fontSize) _fontSize.value = value;
             await store.set('ui.fontSize', value);
         };

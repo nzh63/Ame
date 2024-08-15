@@ -3,7 +3,7 @@ import WindowsEventHookAddons from '@addons/WindowEventHook';
 import logger from '@logger/hook/windowEvent';
 
 export class WindowEventHook {
-    private windowEventHookHandles: WindowsEventHookAddons.HWINEVENTHOOK[] = [];
+    private WindowEventHookHandles: WindowsEventHookAddons.HWINEVENTHOOK[] = [];
     // eslint-disable-next-line no-useless-constructor
     private constructor(
         public event: EventEmitter,
@@ -21,7 +21,7 @@ export class WindowEventHook {
         logger('WindowEvent hook for pids %O', this.gamePids);
         const moveHookHandles = await this.startWindowMoveHook();
         const minimizeHookHandles = await this.startWindowMinimizeHook();
-        this.windowEventHookHandles = [...moveHookHandles, ...minimizeHookHandles];
+        this.WindowEventHookHandles = [...moveHookHandles, ...minimizeHookHandles];
     }
 
     private startWindowMoveHook() {
@@ -43,8 +43,8 @@ export class WindowEventHook {
 
     private stopHook() {
         logger('stop WindowMove hook for pids %O', this.gamePids);
-        WindowsEventHookAddons.stopWindowEventHook(this.windowEventHookHandles);
-        this.windowEventHookHandles = [];
+        WindowsEventHookAddons.stopWindowEventHook(this.WindowEventHookHandles);
+        this.WindowEventHookHandles = [];
     }
 
     public destroy() {

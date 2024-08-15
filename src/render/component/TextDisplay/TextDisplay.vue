@@ -5,7 +5,6 @@
   >
     <div
       class="line"
-      title="原文"
       @click.right="onRightClick(original, 'original')"
       @touchstart="e => onTouchstart(e, original, 'original')"
       @touchend="onTouchend"

@@ -1,160 +1,157 @@
 <template>
-  <div>
-    <a-steps :current="current">
-      <a-step
-        v-for="item in steps"
-        :key="item"
-        :title="item"
-      />
-    </a-steps>
-    <div
-      v-if="current === 0"
-      class="steps-content"
-    >
-      <a-form
-        layout="horizontal"
-        :model="formState"
-        :label-col="{ span: 4 }"
-        :wrapper-col="{ span: 14 }"
-      >
-        <a-form-item label="标题">
-          <a-input
-            v-model:value="formState.name"
-            placeholder="标题"
-          />
-        </a-form-item>
-        <a-form-item label="路径">
-          <input-with-open-file
-            v-model:value="formState.path"
-            placeholder="路径"
-          />
-        </a-form-item>
-        <a-form-item
-          class="form-buttons"
-          :wrapper-col="{ span: 14, offset: 4 }"
+  <t-steps
+    readonly
+    :current="current"
+  >
+    <t-step-item
+      v-for="item in steps"
+      :key="item"
+      :title="item"
+    />
+  </t-steps>
+  <div
+    v-if="current === 0"
+    class="steps-content"
+  >
+    <t-form :model="formState">
+      <t-form-item label="标题">
+        <t-input
+          v-model:value="formState.name"
+          placeholder="标题"
+        />
+      </t-form-item>
+      <t-form-item label="路径">
+        <input-with-open-file
+          v-model:value="formState.path"
+          placeholder="路径"
+        />
+      </t-form-item>
+      <t-form-item class="form-buttons">
+        <t-button
+          theme="primary"
+          @click="next"
         >
-          <a-button
-            type="primary"
-            @click="next"
-          >
-            下一步
-          </a-button>
-        </a-form-item>
-      </a-form>
-    </div>
-    <div
-      v-if="current === 1"
-      class="steps-content"
-    >
-      <a-form
-        layout="horizontal"
-        :model="formState"
-        :label-col="{ span: 4 }"
-        :wrapper-col="{ span: 14 }"
-      >
-        <a-form-item label="区域转换器">
-          <a-select
-            v-model:value="formState.localeChanger"
-            @change="updateExecShell"
-          >
-            <a-select-option
-              v-for="i in localeChangers"
-              :key="i.name"
-              :disabled="!i.enable"
-            >
-              {{ i.name }}
-            </a-select-option>
-          </a-select>
-        </a-form-item>
-        <a-form-item label="启动参数">
-          <a-textarea
-            v-model:value="formState.execShell"
-            auto-size
-            class="exec-shell"
-            :disabled="formState.localeChanger !== '自定义启动参数'"
-          />
-        </a-form-item>
-        <a-form-item label="提取方法">
-          <a-select v-model:value="formState.type">
-            <a-select-option value="textractor">
-              Textractor
-            </a-select-option>
-            <a-select-option value="ocr">
-              OCR
-            </a-select-option>
-          </a-select>
-        </a-form-item>
-        <a-form-item label="HookCode">
-          <a-input
-            v-model:value="formState.hookCode"
-            :disabled="formState.type !== 'textractor'"
-            placeholder="可以留空"
-          />
-        </a-form-item>
-        <a-form-item
-          class="form-buttons"
-          :wrapper-col="{ span: 14, offset: 4 }"
+          下一步
+        </t-button>
+      </t-form-item>
+    </t-form>
+  </div>
+  <div
+    v-if="current === 1"
+    class="steps-content"
+  >
+    <t-form :model="formState">
+      <t-form-item label="区域转换器">
+        <t-select
+          v-model:value="formState.localeChanger"
+          @change="updateExecShell"
         >
-          <a-button
-            type="primary"
-            @click="next"
+          <t-option
+            v-for="i in localeChangers"
+            :key="i.name"
+            :value="i.name"
+            :disabled="!i.enable"
           >
-            下一步
-          </a-button>
-          <a-button @click="prev">
-            上一步
-          </a-button>
-        </a-form-item>
-      </a-form>
+            {{ i.name }}
+          </t-option>
+        </t-select>
+      </t-form-item>
+      <t-form-item label="启动参数">
+        <t-textarea
+          v-model:value="formState.execShell"
+          auto-size
+          class="exec-shell"
+          :disabled="formState.localeChanger !== '自定义启动参数'"
+        />
+      </t-form-item>
+      <t-form-item label="提取方法">
+        <t-select v-model:value="formState.type">
+          <t-option value="textractor">
+            Textractor
+          </t-option>
+          <t-option value="ocr">
+            OCR
+          </t-option>
+        </t-select>
+      </t-form-item>
+      <t-form-item label="HookCode">
+        <t-input
+          v-model:value="formState.hookCode"
+          :disabled="formState.type !== 'textractor'"
+          placeholder="可以留空"
+        />
+      </t-form-item>
+      <t-form-item class="form-buttons">
+        <t-button
+          theme="primary"
+          @click="next"
+        >
+          下一步
+        </t-button>
+        <t-button
+          theme="default"
+          @click="prev"
+        >
+          上一步
+        </t-button>
+      </t-form-item>
+    </t-form>
+  </div>
+  <div
+    v-if="current === 2"
+    class="steps-content"
+  >
+    <t-loading
+      size="large"
+      text="加载中..."
+      class="spin"
+    />
+  </div>
+  <div
+    v-if="current === 3"
+    class="result"
+    :class="{
+      result: true,
+      [result]: true,
+    }"
+  >
+    <check-circle-icon
+      v-if="result === 'success'"
+      class="icon"
+    />
+    <error-circle-icon
+      v-else
+      class="icon"
+    />
+    <div class="title">
+      添加{{ result === 'success' ? '成功' : '失败' }}
     </div>
-    <div
-      v-if="current === 2"
-      class="steps-content"
+    <div class="describe">
+      {{ resultInfo }}
+    </div>
+    <t-button
+      v-if="result === 'success'"
+      theme="primary"
+      @click="$router.push('/')"
     >
-      <spin
-        size="large"
-        tip="正在检查"
-        class="spin"
-      />
-    </div>
-    <div
-      v-if="current === 3"
-      class="steps-content"
-    >
-      <a-result
-        v-if="result === 'success'"
-        status="success"
-        :title="resultInfo"
-      >
-        <template #extra>
-          <a-button
-            type="primary"
-            @click="$router.push('/')"
-          >
-            完成
-          </a-button>
-        </template>
-      </a-result>
-      <a-result
-        v-if="result === 'error'"
-        status="error"
-        :title="resultInfo"
-      >
-        <template #extra>
-          <div class="form-buttons">
-            <a-button
-              type="primary"
-              @click="current = 0"
-            >
-              重新添加
-            </a-button>
-            <a-button @click="done(); $router.push('/')">
-              仍然使用当前配置
-            </a-button>
-          </div>
-        </template>
-      </a-result>
-    </div>
+      完成
+    </t-button>
+    <t-space v-else>
+      <div class="form-buttons">
+        <t-button
+          theme="primary"
+          @click="current = 0"
+        >
+          重新添加
+        </t-button>
+        <t-button
+          theme="default"
+          @click="done(); $router.push('/')"
+        >
+          仍然使用当前配置
+        </t-button>
+      </div>
+    </t-space>
   </div>
 </template>
 
@@ -165,7 +162,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { quote } from 'shell-quote';
 import InputWithOpenFile from '@render/component/InputWithOpenFile.vue';
 import type { PlatformPath } from 'path';
-import Spin from '@render/component/Spin';
 import store from '@render/store';
 import { startGame } from '@render/remote';
 
@@ -173,8 +169,7 @@ const path: PlatformPath = require('path');
 
 export default defineComponent({
     components: {
-        InputWithOpenFile,
-        Spin
+        InputWithOpenFile
     },
     data() {
         return {
@@ -249,18 +244,42 @@ export default defineComponent({
 
 <style scoped>
 .steps-content {
-    margin-top: 16px;
-    margin-left: 30px;
-    margin-right: 30px;
+    padding-top: var(--td-comp-paddingTB-xl);
+    width: 100%;
 }
 .form-buttons button:not(:first-child) {
     margin-left: 10px;
 }
 .spin {
-    margin: 60px auto;
-    display: block;
+  margin: auto;
+  display: flex;
 }
 .exec-shell {
     word-break: break-all;
+}
+.result {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: var(--td-comp-margin-xxl)
+}
+.result .title {
+    margin-top: var(--td-comp-margin-xxl);
+    font: var(--td-font-title-large);
+}
+.result .describe  {
+    margin: var(--td-comp-margin-s) 0 var(--td-comp-margin-xxxl);
+    font: var(--td-font-body-medium);
+    color: var(--td-text-color-secondary);
+}
+.result .icon {
+    display: block;
+    font-size: var(--td-comp-size-xxxxl);
+}
+.result.success .icon {
+    color: var(--td-success-color)
+}
+.result.error .icon {
+    color: var(--td-error-color)
 }
 </style>

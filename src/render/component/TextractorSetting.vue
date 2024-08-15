@@ -1,7 +1,7 @@
 <template>
-  <a-checkbox v-model:checked="option.removeDuplication">
+  <t-checkbox v-model:checked="option.removeDuplication">
     移除重复字符
-  </a-checkbox>
+  </t-checkbox>
 </template>
 
 <script lang="ts">

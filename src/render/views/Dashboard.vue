@@ -8,12 +8,12 @@
     @dragleave="dragleave"
     @dragover.prevent
   >
-    <a-typography-title
+    <h1
       v-if="draging"
       class="tip"
     >
       松开以添加
-    </a-typography-title>
+    </h1>
     <div class="dash-board">
       <game-card
         v-for="(game, index) of games"
@@ -29,40 +29,46 @@
         @save="save"
         @del="del"
       />
-      <a-button
+      <t-button
         class="pid"
-        type="dashed"
+        variant="dashed"
         @click="visible = true"
       >
         通过PID启动
-      </a-button>
+      </t-button>
       <div
         v-for="i in 10"
         :key="i"
         class="placeholder"
       />
-      <a-modal
+      <t-dialog
         v-model:visible="visible"
-        title="通过PID启动"
+        header="通过PID启动"
         @ok="start"
       >
-        <a-form>
-          <a-form-item label="请输入PID">
-            <a-input
+        <t-form>
+          <t-form-item label="游戏进程PID">
+            <t-input
               v-model:value="pid"
               :min="0"
               type="number"
               @keyup.enter="start"
             >
               <template #suffix>
-                <a-tooltip title="通过点击选取窗口">
-                  <monitor-outlined @click="findWindowByClick" />
-                </a-tooltip>
+                <t-tooltip content="通过点击选取窗口">
+                  <t-button
+                    size="small"
+                    variant="text"
+                    @click="findWindowByClick"
+                  >
+                    <focus-icon />
+                  </t-button>
+                </t-tooltip>
               </template>
-            </a-input>
-          </a-form-item>
-        </a-form>
-      </a-modal>
+            </t-input>
+          </t-form-item>
+        </t-form>
+      </t-dialog>
     </div>
   </div>
 </template>
@@ -71,7 +77,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { quote } from 'shell-quote';
 import { defineComponent, toRaw } from 'vue';
-import { message } from 'ant-design-vue';
+import { MessagePlugin } from 'tdesign-vue-next';
 
 import GameCard from '@render/component/GameCard.vue';
 import store from '@render/store';
@@ -112,6 +118,7 @@ export default defineComponent({
             this.visible = false;
         },
         dragenter(e: DragEvent) {
+            if (!e.dataTransfer?.types.includes('Files')) return;
             this.draging = true;
         },
         dragleave(e: DragEvent) {
@@ -121,7 +128,7 @@ export default defineComponent({
         async drop(e: DragEvent) {
             e.preventDefault();
             this.draging = false;
-            const files = Array.from(e.dataTransfer?.files ?? []).filter(i => /\.exe/.test(i.path));
+            const files = Array.from(e.dataTransfer?.files ?? []).filter(i => /\.exe$/.test(i.path));
             const newGames: Ame.GameSetting[] = [];
             for (const { path, name } of files) {
                 newGames.push({
@@ -139,7 +146,7 @@ export default defineComponent({
         async findWindowByClick() {
             const pid = await findWindowByClick();
             if (pid === undefined) {
-                message.error('无法找到窗口');
+                MessagePlugin.error('无法找到窗口');
             } else {
                 this.pid = pid;
             }
@@ -160,7 +167,8 @@ export default defineComponent({
     top: 50%;
     z-index: 999;
     text-align: center;
-    color: rgba(0, 0, 0, 0.65);
+    color: var(--td-font-gray-2);
+    font: var(--td-font-headline-large);
 }
 .draging > *:not(.tip) {
     opacity: 0.2;
@@ -169,7 +177,7 @@ export default defineComponent({
     pointer-events: none;
 }
 .draging {
-    border: rgba(0, 0, 0, 0.85) dashed 2.5px;
+    border: var(--td-font-gray-2) dashed 2.5px;
     margin: -2.5px;
 }
 .dash-board {
@@ -191,6 +199,6 @@ export default defineComponent({
 }
 .pid,
 .game-card {
-    min-height: 175px;
+    min-height: 125px;
 }
 </style>

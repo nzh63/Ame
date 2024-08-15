@@ -1,5 +1,4 @@
 import querystring from 'querystring';
-import fetch from 'electron-fetch';
 import { defineOcrProvider } from '@main/providers/ocr';
 
 export default defineOcrProvider({
@@ -39,7 +38,7 @@ export default defineOcrProvider({
 }, {
     async init() {
         if (!this.apiConfig.apiKey || !this.apiConfig.secretKey) return;
-        fetch(`https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=${this.apiConfig.apiKey}&client_secret=${this.apiConfig.secretKey}`, { method: 'POST', timeout: 3000 })
+        fetch(`https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=${this.apiConfig.apiKey}&client_secret=${this.apiConfig.secretKey}`, { method: 'POST' })
             .then(res => res.json())
             .then(json => {
                 this.accessToken = '' + json.access_token;
@@ -50,7 +49,6 @@ export default defineOcrProvider({
         if (!this.accessToken) throw new Error('no access token');
         const json = await fetch(`https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic?access_token=${this.accessToken}`, {
             method: 'POST',
-            timeout: 3000,
             body: querystring.stringify({
                 image: (await img.png().toBuffer()).toString('base64'),
                 language_type: this.apiConfig.language

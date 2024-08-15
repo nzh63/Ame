@@ -7,15 +7,15 @@ import json from '@rollup/plugin-json';
 import alias from '@rollup/plugin-alias';
 import { wasm } from '@rollup/plugin-wasm';
 import esbuild from 'rollup-plugin-esbuild';
-import log from './LogPlugin';
-import native from './NativePlugin';
-import devSpeedup from './DevSpeedupPlugin';
+import log from './LogPlugin.mts';
+import native from './NativePlugin.mts';
+import devSpeedup from './DevSpeedupPlugin.mts';
 
-import builtinModules from 'builtin-modules/static';
-import { dependencies } from '../package.json';
+import builtinModules from 'builtin-modules';
+import packageJson from '../package.json' with {type: 'json'};
 
 const resolve = nodeResolve({ extensions: ['.js', '.ts'], browser: false, exportConditions: ['import', 'module', 'node', 'require', 'files', 'default'] });
-const testEntries = glob.sync(path.join(__dirname, '../test') + '/**/*.spec.ts');
+const testEntries = glob.sync(path.join(import.meta.dirname, '../test') + '/**/*.spec.ts');
 
 const externalPackages = [
     'electron',
@@ -24,15 +24,15 @@ const externalPackages = [
     'electron/renderer',
     'mocha',
     ...builtinModules,
-    ...Object.keys(dependencies)
+    ...Object.keys(packageJson.dependencies)
 ];
 
 export default (mode = 'production') => ({
     plugins: [
         log({
             include: [
-                path.join(__dirname, '../src/main/*.*').replace(/\\/g, '/'),
-                path.join(__dirname, '../src/main/**/*.*').replace(/\\/g, '/')
+                path.join(import.meta.dirname, '../src/main/*.*').replace(/\\/g, '/'),
+                path.join(import.meta.dirname, '../src/main/**/*.*').replace(/\\/g, '/')
             ],
             loggerPath: '@main/logger',
             logFunction: { logger: 'logger' },
@@ -42,10 +42,10 @@ export default (mode = 'production') => ({
         alias({
             customResolver: resolve as any,
             entries: {
-                '@main': path.join(__dirname, '../src/main'),
-                '@render': path.join(__dirname, '../src/render'),
-                '@static': path.join(__dirname, '../static'),
-                '@assets': path.join(__dirname, '../assets')
+                '@main': path.join(import.meta.dirname, '../src/main'),
+                '@render': path.join(import.meta.dirname, '../src/render'),
+                '@static': path.join(import.meta.dirname, '../static'),
+                '@assets': path.join(import.meta.dirname, '../assets')
             }
         }),
         esbuild({
@@ -64,7 +64,7 @@ export default (mode = 'production') => ({
         commonjs()],
     input: testEntries,
     output: {
-        dir: path.join(__dirname, '../dist/test'),
+        dir: path.join(import.meta.dirname, '../dist/test'),
         entryFileNames: '[name].js',
         format: 'commonjs',
         sourcemap: mode !== 'production'
