@@ -75,7 +75,7 @@
     "node-gyp": "^9.0.0",
     "openai": "^4.33.1",
     "remove": "^0.1.5",
-    "rollup": "^4.20.0",
+    "rollup": "^4.22.4",
     "rollup-plugin-copy": "^3.5.0",
     "rollup-plugin-esbuild": "^6.1.1",
     "rollup-plugin-license": "^3.5.2",
