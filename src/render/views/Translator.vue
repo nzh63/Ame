@@ -91,7 +91,7 @@ export default defineComponent({
             scrollToTop?.();
             nextTick(() => {
                 if (currentTextElement.value) {
-                    const titleBarHeight = 24;
+                    const titleBarHeight = document.documentElement.getAttribute('tablet-mode') === 'true' ? 32 : 24;
                     const height: number = titleBarHeight + currentTextElement.value.$el.offsetHeight;
                     resizeWindow(height);
                 }
@@ -99,7 +99,7 @@ export default defineComponent({
         };
 
         onBeforeRouteLeave(() => {
-            const titleBarHeight = 24;
+            const titleBarHeight = document.documentElement.getAttribute('tablet-mode') === 'true' ? 32 : 24;
             const height: number = titleBarHeight + (currentTextElement.value?.$el.offsetHeight ?? 0);
             if (height < 300) {
                 resizeWindow(300);

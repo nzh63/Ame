@@ -1,5 +1,5 @@
 <template>
-  <t-space>
+  <t-space class="header">
     <t-button
       theme="default"
       shape="circle"
@@ -118,6 +118,10 @@ export default defineComponent({
 </script>
 
 <style scoped>
+.header {
+  display: flex;
+  align-items: center;
+}
 .sucess {
     background: #52c41a;
     border-color: #52c41a;

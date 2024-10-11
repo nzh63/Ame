@@ -103,7 +103,6 @@ export default defineComponent({
 <style scoped>
 .title-bar {
     width: 100%;
-    height: 24px;
     background: rgba(0, 0, 0, 0.8);
     display: flex;
     --td-bg-color-component: transparent;

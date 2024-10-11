@@ -5,6 +5,7 @@ import TranslatorWindow from '@render/TranslatorWindow.vue';
 
 import 'tdesign-vue-next/es/style/index.css';
 import 'tdesign-vue-next/dist/reset.css';
+import './tablet-mode.css';
 
 const app = createApp(TranslatorWindow);
 app.use(router);

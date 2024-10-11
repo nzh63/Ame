@@ -62,6 +62,9 @@ export class TranslatorWindow extends WindowWithGeneral {
             logger('windows blur');
             this.webContents.send('window-blur');
         });
+
+        this.checkTabletMode();
+        this.on('resize', () => this.checkTabletMode());
     }
 
     public showContextMenu(x?: number, y?: number) {
@@ -69,5 +72,13 @@ export class TranslatorWindow extends WindowWithGeneral {
         if (x !== undefined) option.x = Math.round(x);
         if (y !== undefined) option.y = Math.round(y);
         this.contextMenu.popup(option);
+    }
+
+    private checkTabletMode() {
+        if (this.isTabletMode()) {
+            this.webContents.executeJavaScript("document.documentElement.setAttribute('tablet-mode', 'true')");
+        } else {
+            this.webContents.executeJavaScript("document.documentElement.setAttribute('tablet-mode', 'false')");
+        }
     }
 }
