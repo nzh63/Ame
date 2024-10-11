@@ -32,9 +32,9 @@ export default defineTranslateProvider({
         const browserWindow = new InsecureRemoteBrowserWindow();
         try {
             browserWindow.webContents.loadURL('https://fanyi.baidu.com/');
-            await new Promise(resolve => browserWindow.on('ready-to-show', resolve));
+            await new Promise<void>(resolve => browserWindow.on('ready-to-show', () => resolve()));
             browserWindow.webContents.reload();
-            await new Promise(resolve => browserWindow.webContents.on('dom-ready', resolve));
+            await new Promise<void>(resolve => browserWindow.webContents.on('dom-ready', () => resolve()));
             await browserWindow.webContents.executeJavaScriptInIsolatedWorld(1,
                 [{
                     code:

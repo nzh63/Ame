@@ -33,7 +33,7 @@ export default defineTranslateProvider({
         const browserWindow = new InsecureRemoteBrowserWindow();
         try {
             browserWindow.webContents.loadURL('https://fanyi.youdao.com/');
-            await new Promise(resolve => browserWindow.webContents.on('dom-ready', resolve));
+            await new Promise<void>(resolve => browserWindow.webContents.on('dom-ready', () => resolve()));
             await browserWindow.webContents.executeJavaScriptInIsolatedWorld(1,
                 [{
                     code:
