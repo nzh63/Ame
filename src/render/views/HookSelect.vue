@@ -41,7 +41,7 @@
 <script lang="ts">
 import { watchOriginal, unwatchOriginal, getAllExtractText } from '@remote';
 import type { Ref, VNode } from 'vue';
-import { defineComponent, inject, onUnmounted, ref, onMounted } from 'vue';
+import { defineComponent, inject, onUnmounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 export default defineComponent({
@@ -82,9 +82,6 @@ export default defineComponent({
     };
 
     const top = ref<VNode>();
-    onMounted(() => {
-      console.log(top.value);
-    });
 
     return {
       hookCodes,

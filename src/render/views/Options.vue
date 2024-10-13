@@ -175,7 +175,6 @@ export default defineComponent({
     const hasUnsavedChange = ref(false);
 
     const onUpdate = (newValueString: string, key: (string | number)[], i: ListItem) => {
-      console.log(newValueString, key, i);
       delete i.help;
       let newValue: any = newValueString;
       const nullable = i.typeInfo.some((i) => i === 'null');
@@ -215,7 +214,6 @@ export default defineComponent({
       } else {
         hasUnsavedChange.value ||= options.value !== newValue;
         options.value = newValue;
-        console.log(newValue);
       }
 
       i.optionsValueString =
