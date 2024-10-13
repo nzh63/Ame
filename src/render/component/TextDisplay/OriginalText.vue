@@ -1,12 +1,6 @@
 <template>
-  <span
-    v-if="!segmented"
-    @mouseenter="segment"
-  >{{ text }}</span>
-  <span
-    v-else
-    class="original-text-line"
-  >
+  <span v-if="!segmented" @mouseenter="segment">{{ text }}</span>
+  <span v-else class="original-text-line">
     <original-text-word
       v-for="(s, index) of splitText"
       :key="index"
@@ -18,62 +12,66 @@
 </template>
 
 <script lang="ts">
-import type { SegmentWord } from '@main/providers/SegmentProvider';
-import { defineComponent, getCurrentInstance, ref, watch } from 'vue';
-import { dictQuery, segment as segmentText } from '@remote';
 import OriginalTextWord from './OriginalTextWord.vue';
+import type { SegmentWord } from '@main/providers/SegmentProvider';
+import { dictQuery, segment as segmentText } from '@remote';
+import { defineComponent, getCurrentInstance, ref, watch } from 'vue';
 
 export default defineComponent({
-    components: {
-        OriginalTextWord
+  components: {
+    OriginalTextWord,
+  },
+  props: {
+    text: {
+      type: String,
+      required: true,
     },
-    props: {
-        text: {
-            type: String,
-            required: true
-        }
-    },
-    setup(props) {
-        const splitText = ref<SegmentWord[]>([]);
-        const segmented = ref(false);
-        let segmenting = false;
+  },
+  setup(props) {
+    const splitText = ref<SegmentWord[]>([]);
+    const segmented = ref(false);
+    let segmenting = false;
 
-        const segment = async () => {
-            if (segmenting || segmented.value) return;
-            segmenting = true;
-            const result = await segmentText(props.text);
-            if (result) {
-                splitText.value = result;
-                segmented.value = true;
-            }
-            segmenting = false;
-        };
+    const segment = async () => {
+      if (segmenting || segmented.value) return;
+      segmenting = true;
+      const result = await segmentText(props.text);
+      if (result) {
+        splitText.value = result;
+        segmented.value = true;
+      }
+      segmenting = false;
+    };
 
-        watch(props, () => {
-            splitText.value = [];
-            segmented.value = false;
-            segmenting = false;
-        }, { deep: true });
+    watch(
+      props,
+      () => {
+        splitText.value = [];
+        segmented.value = false;
+        segmenting = false;
+      },
+      { deep: true },
+    );
 
-        const query = (word: string) => {
-            dictQuery(word);
-        };
+    const query = (word: string) => {
+      dictQuery(word);
+    };
 
-        const internalInstance = getCurrentInstance();
+    const internalInstance = getCurrentInstance();
 
-        return {
-            splitText,
-            segmented,
-            segment,
-            query,
-            internalInstance
-        };
-    }
+    return {
+      splitText,
+      segmented,
+      segment,
+      query,
+      internalInstance,
+    };
+  },
 });
 </script>
 
 <style scoped>
 .original-text-line {
-    position: relative;
+  position: relative;
 }
 </style>

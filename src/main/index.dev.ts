@@ -6,10 +6,9 @@
  */
 
 /* eslint-disable */
-
 // Install `electron-debug` with `devtron`
-import electronDebug from 'electron-debug';
-electronDebug({ showDevTools: true })
-
 // Require `main` process to boot app
-import './index'
+import './index';
+import electronDebug from 'electron-debug';
+
+electronDebug({ showDevTools: true });

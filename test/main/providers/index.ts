@@ -1,1 +1,1 @@
-export const providerSuite = describe('Provider', function() { });
+export const providerSuite = describe('Provider', () => {});

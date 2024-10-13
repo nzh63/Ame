@@ -10,41 +10,19 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "noImplicitOverride": true,
-    "lib": [
-      "esnext",
-      "dom"
-    ],
+    "lib": ["esnext", "dom"],
     "baseUrl": ".",
     "paths": {
-      "@main/*": [
-        "./src/main/*"
-      ],
-      "@render/*": [
-        "./src/render/*"
-      ],
-      "@remote/*": [
-        "./src/remote/*"
-      ],
-      "@remote": [
-        "./src/remote/index"
-      ],
-      "@type/*": [
-        "./src/type/*"
-      ],
-      "@static/*": [
-        "./static/*"
-      ]
-    },
+      "@main/*": ["./src/main/*"],
+      "@render/*": ["./src/render/*"],
+      "@remote/*": ["./src/remote/*"],
+      "@remote": ["./src/remote/index"],
+      "@type/*": ["./src/type/*"],
+      "@static/*": ["./static/*"]
+    }
   },
-  "include": [
-    "src/**/*",
-    "src/**/*.vue",
-    "test/**/*.ts"
-  ],
-  "exclude": [
-    "**/node_modules",
-    "**/.*/"
-  ],
+  "include": ["src/**/*", "src/**/*.vue", "test/**/*.ts"],
+  "exclude": ["**/node_modules", "**/.*/"],
   "ts-node": {
     "transpileOnly": true,
     "compilerOptions": {

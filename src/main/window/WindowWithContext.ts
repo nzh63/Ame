@@ -1,11 +1,12 @@
 import type { Context } from '@main/Context';
-import { BrowserWindow, BrowserWindowConstructorOptions } from 'electron';
+import type { BrowserWindowConstructorOptions } from 'electron';
+import { BrowserWindow } from 'electron';
 
 export class WindowWithContext extends BrowserWindow {
-    constructor(
-        public context: Context,
-        options?: BrowserWindowConstructorOptions
-    ) {
-        super(options);
-    }
+  public constructor(
+    public context: Context,
+    options?: BrowserWindowConstructorOptions,
+  ) {
+    super(options);
+  }
 }

@@ -1,0 +1,3 @@
+yarn style
+yarn lint
+yarn type-check

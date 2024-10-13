@@ -3,34 +3,34 @@ appId: nzh63.ame
 directories:
   output: build
 files:
-  - "dist/main/**/*"
-  - "dist/workers/**/*"
-  - "dist/render/**/*"
-  - "dist/build/**/*.node"
-  - "assets/*"
-  - "!**/node_modules/**/*.md"
-  - "!**/node_modules/**/{test,__tests__,tests,powered-test,example,examples}"
-  - "!**/node_modules/**/{docs,dic,website,img,image,assets}"
-  - "!**/node_modules/**/*.d.ts"
-  - "!**/node_modules/**/*.ts"
-  - "!**/node_modules/.bin"
-  - "!**/node_modules/**/{Makefile,Gulpfile.js,Gruntfile.js}"
-  - "!**/node_modules/**/*.{h,hpp,c,cc,cpp}"
-  - "!**/node_modules/**/*.{lib,obj,exp,iobj,ipdb,pdb,tlog}"
-  - "!**/node_modules/**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj,vcxproj,vcxproj.filters,gypi}"
-  - "!**/._*"
-  - "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}"
-  - "!**/{__pycache__,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}"
-  - "!**/{appveyor.yml,.travis.yml,circle.yml}"
-  - "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}"
-  - "!node_modules/sharp/vendor"
+  - 'dist/main/**/*'
+  - 'dist/workers/**/*'
+  - 'dist/render/**/*'
+  - 'dist/build/**/*.node'
+  - 'assets/*'
+  - '!**/node_modules/**/*.md'
+  - '!**/node_modules/**/{test,__tests__,tests,powered-test,example,examples}'
+  - '!**/node_modules/**/{docs,dic,website,img,image,assets}'
+  - '!**/node_modules/**/*.d.ts'
+  - '!**/node_modules/**/*.ts'
+  - '!**/node_modules/.bin'
+  - '!**/node_modules/**/{Makefile,Gulpfile.js,Gruntfile.js}'
+  - '!**/node_modules/**/*.{h,hpp,c,cc,cpp}'
+  - '!**/node_modules/**/*.{lib,obj,exp,iobj,ipdb,pdb,tlog}'
+  - '!**/node_modules/**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj,vcxproj,vcxproj.filters,gypi}'
+  - '!**/._*'
+  - '!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}'
+  - '!**/{__pycache__,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}'
+  - '!**/{appveyor.yml,.travis.yml,circle.yml}'
+  - '!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}'
+  - '!node_modules/sharp/vendor'
 buildDependenciesFromSource: true
 extraResources:
   - from: ./static
     to: static
     filter:
-      - "**/*"
-      - "!static/native/bin/GPS.txt"
+      - '**/*'
+      - '!static/native/bin/GPS.txt'
   - from: ./dist
     to: ..
     filter:
@@ -38,7 +38,7 @@ extraResources:
   - from: ./dist/build/Release
     to: ..
     filter:
-      - "*.dll"
+      - '*.dll'
 icon: ./assets/icon.png
 nsis:
   deleteAppDataOnUninstall: true

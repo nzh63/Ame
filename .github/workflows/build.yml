@@ -2,9 +2,9 @@ name: Build
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 jobs:
   build:
@@ -15,41 +15,41 @@ jobs:
         arch: [x64, ia32]
 
     env:
-        npm_config_arch: ${{ matrix.arch }}
+      npm_config_arch: ${{ matrix.arch }}
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Use Node.js 20.x
-      uses: actions/setup-node@v4
-      with:
-        node-version: 20
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-    - name: Enable Corepack
-      run: corepack enable
+      - name: Enable Corepack
+        run: corepack enable
 
-    - name: Use Node.js 20.x
-      uses: actions/setup-node@v4
-      with:
-        node-version: 20
-        cache: yarn
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
 
-    - run: yarn install --frozen-lockfile
+      - run: yarn install --frozen-lockfile
 
-    - run: yarn lint
+      - run: yarn lint
 
-    - run: yarn type-check
+      - run: yarn type-check
 
-    - run: yarn download:dep
+      - run: yarn download:dep
 
-    - run: yarn test
-      env:
-        DEBUG: ame:*
-        DEBUG_COLORS: "1"
+      - run: yarn test
+        env:
+          DEBUG: ame:*
+          DEBUG_COLORS: '1'
 
-    - run: yarn build --arch=${{ matrix.arch }} --publish=never
+      - run: yarn build --arch=${{ matrix.arch }} --publish=never
 
-    - uses: actions/upload-artifact@v4
-      with:
-        name: build-${{ matrix.arch }} 
-        path: build/*.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.arch }}
+          path: build/*.exe

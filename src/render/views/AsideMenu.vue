@@ -1,20 +1,11 @@
 <template>
-  <t-menu
-    theme="dark"
-    :value="selectedKeys"
-    class="menu"
-    @change="v => onClick(v as string)"
-  >
+  <t-menu theme="dark" :value="selectedKeys" class="menu" @change="(v) => onClick(v as string)">
     <template #logo>
       <div class="logo">
-        <img src="@assets/icon.svg">
+        <img src="@assets/icon.svg" />
         <div class="text">
-          <div class="title">
-            Ame
-          </div>
-          <div class="description">
-            Visual Novel Translator
-          </div>
+          <div class="title">Ame</div>
+          <div class="description">Visual Novel Translator</div>
         </div>
       </div>
     </template>
@@ -47,9 +38,7 @@
           <span>TTS设置</span>
         </span>
       </template>
-      <t-menu-item value="/options/tts-manager">
-        通用设置
-      </t-menu-item>
+      <t-menu-item value="/options/tts-manager"> 通用设置 </t-menu-item>
       <t-menu-item
         v-for="id in ttsProvidersIDs"
         :key="`/options/tts-provider/${id}`"
@@ -64,9 +53,7 @@
           <span>OCR设置</span>
         </span>
       </template>
-      <t-menu-item value="/options/ocr-extractor">
-        通用设置
-      </t-menu-item>
+      <t-menu-item value="/options/ocr-extractor"> 通用设置 </t-menu-item>
       <t-menu-item
         v-for="id in ocrProvidersIDs"
         :key="`/options/ocr-provider/${id}`"
@@ -81,9 +68,7 @@
           <span>分词设置</span>
         </span>
       </template>
-      <t-menu-item value="/options/segment-manager">
-        通用设置
-      </t-menu-item>
+      <t-menu-item value="/options/segment-manager"> 通用设置 </t-menu-item>
       <t-menu-item
         v-for="id in segmentProvidersIDs"
         :key="`/options/segment-provider/${id}`"
@@ -98,9 +83,7 @@
           <span>词典设置</span>
         </span>
       </template>
-      <t-menu-item value="/options/dict-manager">
-        通用设置
-      </t-menu-item>
+      <t-menu-item value="/options/dict-manager"> 通用设置 </t-menu-item>
       <t-menu-item
         v-for="id in dictProvidersIDs"
         :key="`/options/dict-provider/${id}`"
@@ -113,94 +96,94 @@
 </template>
 
 <script lang="ts">
-import { useRouter } from 'vue-router';
-import { computed, defineComponent, ref } from 'vue';
 import { getProvidersIDs } from '@remote';
+import { computed, defineComponent, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 export default defineComponent({
-    setup() {
-        const router = useRouter();
-        function onClick(item: string) {
-            router.push(item);
-        }
-        const selectedKeys = computed(() => router.currentRoute.value.path);
-
-        const translateProvidersIDs = ref<string[]>([]);
-        getProvidersIDs('translate').then(value => {
-            translateProvidersIDs.value = value;
-        });
-
-        const ttsProvidersIDs = ref<string[]>([]);
-        getProvidersIDs('tts').then(value => {
-            ttsProvidersIDs.value = value;
-        });
-
-        const ocrProvidersIDs = ref<string[]>([]);
-        getProvidersIDs('ocr').then(value => {
-            ocrProvidersIDs.value = value;
-        });
-
-        const segmentProvidersIDs = ref<string[]>([]);
-        getProvidersIDs('segment').then(value => {
-            segmentProvidersIDs.value = value;
-        });
-
-        const dictProvidersIDs = ref<string[]>([]);
-        getProvidersIDs('dict').then(value => {
-            dictProvidersIDs.value = value;
-        });
-
-        return {
-            onClick,
-            selectedKeys,
-            translateProvidersIDs,
-            ttsProvidersIDs,
-            ocrProvidersIDs,
-            segmentProvidersIDs,
-            dictProvidersIDs
-        };
+  setup() {
+    const router = useRouter();
+    function onClick(item: string) {
+      router.push(item);
     }
+    const selectedKeys = computed(() => router.currentRoute.value.path);
+
+    const translateProvidersIDs = ref<string[]>([]);
+    getProvidersIDs('translate').then((value) => {
+      translateProvidersIDs.value = value;
+    });
+
+    const ttsProvidersIDs = ref<string[]>([]);
+    getProvidersIDs('tts').then((value) => {
+      ttsProvidersIDs.value = value;
+    });
+
+    const ocrProvidersIDs = ref<string[]>([]);
+    getProvidersIDs('ocr').then((value) => {
+      ocrProvidersIDs.value = value;
+    });
+
+    const segmentProvidersIDs = ref<string[]>([]);
+    getProvidersIDs('segment').then((value) => {
+      segmentProvidersIDs.value = value;
+    });
+
+    const dictProvidersIDs = ref<string[]>([]);
+    getProvidersIDs('dict').then((value) => {
+      dictProvidersIDs.value = value;
+    });
+
+    return {
+      onClick,
+      selectedKeys,
+      translateProvidersIDs,
+      ttsProvidersIDs,
+      ocrProvidersIDs,
+      segmentProvidersIDs,
+      dictProvidersIDs,
+    };
+  },
 });
 </script>
 
 <style scoped>
 .menu :deep(.t-menu--scroll) {
-    scrollbar-gutter: stable both-edges;
-    padding: var(--td-comp-paddingTB-l) 0;
+  scrollbar-gutter: stable both-edges;
+  padding: var(--td-comp-paddingTB-l) 0;
 }
 .logo {
-    align-items: center;
-    display: flex;
-    flex: 1 1 100%;
-    letter-spacing: normal;
-    min-height: 48px;
-    outline: none;
-    position: relative;
-    text-decoration: none;
-    margin: 0.5em 1em;
-    -webkit-app-region: drag;
+  align-items: center;
+  display: flex;
+  flex: 1 1 100%;
+  letter-spacing: normal;
+  min-height: 48px;
+  outline: none;
+  position: relative;
+  text-decoration: none;
+  margin: 0.5em 1em;
+  -webkit-app-region: drag;
 }
 .logo img {
-    width: 3em;
-    height: 3em;
+  width: 3em;
+  height: 3em;
 }
 .logo .text {
-    align-items: left;
-    align-self: center;
-    display: flex;
-    flex-wrap: wrap;
-    flex: 1 1;
-    overflow: hidden;
-    padding: 12px 0;
-    flex-direction: column;
-    margin-left: 1em;
+  align-items: left;
+  align-self: center;
+  display: flex;
+  flex-wrap: wrap;
+  flex: 1 1;
+  overflow: hidden;
+  padding: 12px 0;
+  flex-direction: column;
+  margin-left: 1em;
 }
 .logo .text .title {
-    font: var(--td-font-title-small);
-    color: var(--td-font-white-1);
+  font: var(--td-font-title-small);
+  color: var(--td-font-white-1);
 }
 .logo .text .description {
-    font: var(--td-font-body-small);
+  font: var(--td-font-body-small);
 }
 .t-menu--dark {
   --td-scrollbar-color: rgba(255, 255, 255, 10%);

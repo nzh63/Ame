@@ -1,22 +1,22 @@
-:root[tablet-mode="true"] {
-    --td-size-1: 6px;
-    --td-size-2: 8px;
-    --td-size-3: 12px;
-    --td-size-4: 16px;
-    --td-size-5: 20px;
-    --td-size-6: 24px;
-    --td-size-7: 28px;
-    --td-size-8: 32px;
-    --td-size-9: 36px;
-    --td-size-10: 40px;
-    --td-size-11: 48px;
-    --td-size-12: 56px;
-    --td-size-13: 64px;
-    --td-size-14: 72px;
-    --td-size-15: 80px;
-    --td-size-16: 88px;
+:root[tablet-mode='true'] {
+  --td-size-1: 6px;
+  --td-size-2: 8px;
+  --td-size-3: 12px;
+  --td-size-4: 16px;
+  --td-size-5: 20px;
+  --td-size-6: 24px;
+  --td-size-7: 28px;
+  --td-size-8: 32px;
+  --td-size-9: 36px;
+  --td-size-10: 40px;
+  --td-size-11: 48px;
+  --td-size-12: 56px;
+  --td-size-13: 64px;
+  --td-size-14: 72px;
+  --td-size-15: 80px;
+  --td-size-16: 88px;
 
-    --td-font-size-body-small: 14px;
-    --td-font-size-body-medium: 16px;
-    --td-font-size-body-large: 18px;
+  --td-font-size-body-small: 14px;
+  --td-font-size-body-medium: 16px;
+  --td-font-size-body-large: 18px;
 }

@@ -1,16 +1,8 @@
 <template>
-  <t-input
-    :value="value"
-    :placeholder="placeholder"
-    @update:value="update"
-  >
+  <t-input :value="value" :placeholder="placeholder" @update:value="update">
     <template #suffix>
       <t-tooltip content="打开...">
-        <t-button
-          size="small"
-          variant="text"
-          @click="open"
-        >
+        <t-button size="small" variant="text" @click="open">
           <ellipsis-icon />
         </t-button>
       </t-tooltip>
@@ -19,44 +11,44 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
 import { showOpenDialog } from '@remote';
+import { defineComponent } from 'vue';
 
 export default defineComponent({
-    props: {
-        value: {
-            type: String,
-            default: ''
-        },
-        placeholder: {
-            type: String,
-            default: ''
-        },
-        pathTransform: {
-            type: Function,
-            default: (path: string) => path
-        }
+  props: {
+    value: {
+      type: String,
+      default: '',
     },
-    emits: ['update:value'],
-    data() {
-        return {
-            showEdit: false,
-            formState: {
-                title: '',
-                path: ''
-            }
-        };
+    placeholder: {
+      type: String,
+      default: '',
     },
-    methods: {
-        async open() {
-            const path = await showOpenDialog({
-                filters: [{ name: '可执行文件', extensions: ['exe'] }]
-            });
-            if (path !== undefined) this.$emit('update:value', this.pathTransform(path));
-        },
-        update(newValue: string) {
-            this.$emit('update:value', newValue);
-        }
-    }
+    pathTransform: {
+      type: Function,
+      default: (path: string) => path,
+    },
+  },
+  emits: ['update:value'],
+  data() {
+    return {
+      showEdit: false,
+      formState: {
+        title: '',
+        path: '',
+      },
+    };
+  },
+  methods: {
+    async open() {
+      const path = await showOpenDialog({
+        filters: [{ name: '可执行文件', extensions: ['exe'] }],
+      });
+      if (path !== undefined) this.$emit('update:value', this.pathTransform(path));
+    },
+    update(newValue: string) {
+      this.$emit('update:value', newValue);
+    },
+  },
 });
 </script>

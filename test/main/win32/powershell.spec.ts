@@ -1,18 +1,15 @@
-/* eslint-disable no-unused-expressions */
-import { expect } from 'chai';
 import { execPowerShell } from '@main/win32/powershell';
+import { expect } from 'chai';
 
-describe('powershell', function() {
-    before(function() {
-    });
+describe('powershell', () => {
+  before(() => {});
 
-    after(function() {
-    });
+  after(() => {});
 
-    it('execPowerShell', async function() {
-        this.timeout(10000);
-        const ret = await execPowerShell('Write-Output foo');
-        expect(ret.stdout).to.be.a('string').and.not.to.be.empty;
-        expect(ret.stderr).to.be.a('string');
-    });
+  it('execPowerShell', async function () {
+    this.timeout(10000);
+    const ret = await execPowerShell('Write-Output foo');
+    expect(ret.stdout).to.be.a('string').and.not.to.be.empty;
+    expect(ret.stderr).to.be.a('string');
+  });
 });
