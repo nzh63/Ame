@@ -9,7 +9,7 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
-import { getTtsProviderOptionsMeta, getTtsProviderOptions, setTtsProviderOptions } from '@render/remote';
+import { getProviderOptionsMeta, getProviderOptions, setProviderOptions } from '@remote';
 import Options from '@render/views/Options.vue';
 
 export default defineComponent({
@@ -18,9 +18,9 @@ export default defineComponent({
     },
     setup() {
         const providerId = 'WebSpeechSynthesisApi';
-        const getMeta = ref(getTtsProviderOptionsMeta);
-        const getOptions = getTtsProviderOptions;
-        const setOptions = setTtsProviderOptions;
+        const getMeta = ref(getProviderOptionsMeta.bind(globalThis, 'tts'));
+        const getOptions = getProviderOptions.bind(globalThis, 'tts');
+        const setOptions = setProviderOptions.bind(globalThis, 'tts');
 
         let voices: string[] = [];
         function check() {
@@ -28,7 +28,7 @@ export default defineComponent({
                 speechSynthesis.onvoiceschanged = null;
                 voices = speechSynthesis.getVoices().map(i => i.voiceURI);
                 getMeta.value = async (id) => {
-                    const meta = await getTtsProviderOptionsMeta(id);
+                    const meta = await getProviderOptionsMeta('tts', id);
                     const voice = meta.jsonSchema.properties?.voice;
                     if (typeof voice === 'object') {
                         if (voice?.properties?.originalVoiceURI && voice?.properties?.originalVoiceURI !== true) {

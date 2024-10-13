@@ -19,7 +19,7 @@ import { defineComponent, provide, ref, ComponentPublicInstance } from 'vue';
 import { useRouter } from 'vue-router';
 
 import TranslatorTitleBar from '@render/component/TranslatorTitleBar.vue';
-import { getGameSetting, onWindowBlur, onWindowFocus, setGameSelectKeys } from './remote';
+import { getGameSetting, onWindowBlur, onWindowFocus, setGameSelectKeys } from '@remote';
 import store from '@render/store';
 import logger from '@logger/TranslatorWindow';
 

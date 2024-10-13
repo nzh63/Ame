@@ -120,10 +120,10 @@ import { MessagePlugin } from 'tdesign-vue-next';
 
 import type { JSONSchema } from '@main/schema';
 import {
-    getTranslateProviderOptionsMeta,
-    getTranslateProviderOptions,
-    setTranslateProviderOptions
-} from '@render/remote';
+    getProviderOptionsMeta,
+    getProviderOptions,
+    setProviderOptions
+} from '@remote';
 import { checkIfUnsaved } from '@render/utils';
 
 export default defineComponent({
@@ -133,16 +133,16 @@ export default defineComponent({
             required: true
         },
         getMeta: {
-            type: Function,
-            default: getTranslateProviderOptionsMeta
+            type: Function as () => any,
+            default: getProviderOptionsMeta.bind(globalThis, 'translate') as () => any
         },
         getOptions: {
-            type: Function,
-            default: getTranslateProviderOptions
+            type: Function as () => any,
+            default: getProviderOptions.bind(globalThis, 'translate') as () => any
         },
         setOptions: {
-            type: Function,
-            default: setTranslateProviderOptions
+            type: Function as () => any,
+            default: setProviderOptions.bind(globalThis, 'translate') as () => any
         }
     },
     setup(props) {
@@ -282,6 +282,7 @@ export default defineComponent({
                 options.value = newValue;
             }
             i.optionsValueString = newValue === null ? '<null>' : typeof newValue === 'string' ? newValue : JSON.stringify(newValue);
+            i.enumSelectId = index;
         };
 
         const save = () => {

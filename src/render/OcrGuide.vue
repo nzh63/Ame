@@ -161,6 +161,7 @@
 </template>
 
 <script lang="ts">
+import electron from 'electron';
 import { defineComponent, ref, watch, toRaw, computed } from 'vue';
 import {
     getScreenCapture,
@@ -169,8 +170,7 @@ import {
     getScreenCapturePreprocessOption,
     setScreenCapturePreprocessOption,
     getPreprocessedImage
-} from '@render/remote';
-const electron = require('electron');
+} from '@remote';
 
 export default defineComponent({
     setup() {

@@ -11,10 +11,8 @@ import copy from 'rollup-plugin-copy';
 import license from 'rollup-plugin-license';
 import log from './LogPlugin.mts';
 import native from './NativePlugin.mts';
-import devSpeedup from './DevSpeedupPlugin.mts';
 
 import builtinModules from 'builtin-modules';
-import packageJson from '../package.json' with { type: 'json' };
 
 const resolve = nodeResolve({ extensions: ['.js', '.ts'], browser: false, exportConditions: ['import', 'module', 'node', 'require', 'files', 'default'] });
 const workerEntries = glob.sync(path.join(import.meta.dirname, '../src/workers') + '/*/index.ts').map(i => i.replace(/\\/g, '/'));
@@ -25,8 +23,7 @@ const externalPackages = [
     'electron/common',
     'electron/renderer',
     'tesseract.js-core',
-    ...builtinModules,
-    ...Object.keys(packageJson.dependencies)
+    ...builtinModules
 ];
 
 export default (mode = 'production') => ({
@@ -40,12 +37,12 @@ export default (mode = 'production') => ({
             logFunction: { logger: 'logger' },
             disableLog: mode === 'production'
         }),
-        mode === 'development' ? devSpeedup() : null,
         alias({
             customResolver: resolve as any,
             entries: {
                 '@main': path.join(import.meta.dirname, '../src/main'),
                 '@render': path.join(import.meta.dirname, '../src/render'),
+                '@remote': path.join(import.meta.dirname, '../src/remote'),
                 '@static': path.join(import.meta.dirname, '../static'),
                 '@assets': path.join(import.meta.dirname, '../assets')
             }
@@ -56,7 +53,10 @@ export default (mode = 'production') => ({
             target: 'es2020',
             define: {
                 'import.meta.env.DEV': JSON.stringify(mode !== 'production'),
-                'import.meta.env.PROD': JSON.stringify(mode === 'production')
+                'import.meta.env.PROD': JSON.stringify(mode === 'production'),
+                'import.meta.env.IS_MAIN_PROCESS': JSON.stringify(false),
+                'import.meta.env.IS_RENDER_PROCESS': JSON.stringify(false),
+                'import.meta.env.IS_WORKER_PROCESS': JSON.stringify(true)
             }
         }),
         resolve,
@@ -64,6 +64,12 @@ export default (mode = 'production') => ({
         wasm(),
         native(),
         commonjs(),
+        copy({
+            targets: [{
+                src: 'node_modules/tesseract.js-core/tesseract-core-simd.wasm',
+                dest: path.join(import.meta.dirname, '../dist/workers')
+            }]
+        }),
         mode === 'production'
             ? license({
                 thirdParty: {
@@ -75,16 +81,6 @@ export default (mode = 'production') => ({
                         }
                     }
                 }
-            })
-            : null,
-        mode === 'production'
-            ? copy({
-                targets: [{
-                    src: [
-                        'node_modules/tesseract.js-core/tesseract-core-simd.wasm'
-                    ],
-                    dest: path.join(import.meta.dirname, '../dist/workers')
-                }]
             })
             : null
     ],

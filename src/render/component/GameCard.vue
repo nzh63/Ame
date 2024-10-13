@@ -143,7 +143,7 @@ import { defineComponent, PropType, toRaw } from 'vue';
 import { MessagePlugin } from 'tdesign-vue-next';
 import { Delete1Icon } from 'tdesign-icons-vue-next';
 import InputWithOpenFile from '@render/component/InputWithOpenFile.vue';
-import { startGame, startExtract, readIcon } from '@render/remote';
+import { startGame, startExtract, readIcon } from '@remote';
 
 export default defineComponent({
     components: {

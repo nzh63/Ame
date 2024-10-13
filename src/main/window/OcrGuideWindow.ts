@@ -1,7 +1,7 @@
 import type { Context } from '@main/Context';
-import { WindowWithGeneral } from '@main/window/WindowWithContext';
+import { WindowWithContext } from '@main/window/WindowWithContext';
 
-export class OcrGuideWindow extends WindowWithGeneral {
+export class OcrGuideWindow extends WindowWithContext {
     private static readonly windowOption = {
         show: false,
         useContentSize: true,

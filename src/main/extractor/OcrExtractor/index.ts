@@ -1,6 +1,6 @@
 import type { Hook } from '@main/hook';
 import type { OcrExtractorOptions } from '@main/extractor/OcrExtractor/options';
-import sharp from 'sharp';
+import type sharp from 'sharp';
 import store from '@main/store';
 import { IExtractor } from '@main/extractor/IExtractor';
 import { ScreenCapturer } from '@main/extractor/OcrExtractor//ScreenCapturer';

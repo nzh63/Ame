@@ -17,7 +17,6 @@ declare namespace Ame {
             preprocess?: import('@main/extractor/OcrExtractor').PreprocessOption;
         };
     };
-    export type IpcResult<T> = { err: any } | { value: T };
     export type Awaitable<T> = T | PromiseLike<T>;
 
     namespace Extractor {

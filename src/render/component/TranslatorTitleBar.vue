@@ -56,7 +56,7 @@
 import { defineComponent, ref, inject, Ref, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 
-import * as remote from '@render/remote';
+import * as remote from '@remote';
 
 export default defineComponent({
     props: {

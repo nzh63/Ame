@@ -1,0 +1,13 @@
+diff --git a/dist/source/index.js b/dist/source/index.js
+index 437532f5ec262e69a5e594a7e525013dbde130db..1b62373d3daa2fcb18a716df4ae70bb52b013316 100644
+--- a/dist/source/index.js
++++ b/dist/source/index.js
+@@ -40,7 +40,7 @@ try {
+     // Prevent caching of this module so module.parent is always accurate.
+     // Note: This trick won't work with ESM or inside a webworker
+     // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+-    delete require.cache[__filename];
++    // delete require.cache[__filename];
+     parentDir = path.dirname((_b = (_a = module.parent) === null || _a === void 0 ? void 0 : _a.filename) !== null && _b !== void 0 ? _b : '.');
+ }
+ catch (_c) { }

@@ -1,9 +1,8 @@
-import sharp from 'sharp';
+import type { Sharp } from 'sharp';
 import { findWindow, capture, CaptureResult, HWND } from '@addons/ScreenCapturer';
 import logger from '@logger/extractor/OcrExtractor/ScreenCapturer';
 
 export class ScreenCapturer {
-    private static emptyImage = () => sharp(Buffer.alloc(1, 0), { raw: { width: 1, height: 1, channels: 1 } });
     private hwnd?: HWND;
     constructor(
         public gamePids: number[],
@@ -13,11 +12,16 @@ export class ScreenCapturer {
         else this.findWindow();
     }
 
+    static async emptyImage() {
+        const { default: sharp } = await import('sharp');
+        return sharp(Buffer.alloc(1, 0), { raw: { width: 1, height: 1, channels: 1 } });
+    }
+
     private async findWindow() {
         this.hwnd = await findWindow(this.gamePids);
     }
 
-    public async capture(canRetry = true): Promise<sharp.Sharp> {
+    public async capture(canRetry = true): Promise<Sharp> {
         if (!this.hwnd) await this.findWindow();
         if (!this.hwnd) return ScreenCapturer.emptyImage();
 
@@ -31,6 +35,7 @@ export class ScreenCapturer {
         }
         const { width, height, buffer } = result;
 
+        const { default: sharp } = await import('sharp');
         const img = sharp(buffer, { raw: { width, height, channels: 4 } })
             .recomb([[0, 0, 1], [0, 1, 0], [1, 0, 0]])
             .flip();

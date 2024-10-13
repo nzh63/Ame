@@ -64,7 +64,7 @@
 
 <script lang="ts">
 import { defineComponent, inject, onUnmounted, Ref, ref, VNode, onMounted } from 'vue';
-import { watchOriginal, unwatchOriginal, getAllExtractText } from '@render/remote';
+import { watchOriginal, unwatchOriginal, getAllExtractText } from '@remote';
 import { useRouter } from 'vue-router';
 
 export default defineComponent({

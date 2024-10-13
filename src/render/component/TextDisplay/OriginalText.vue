@@ -20,7 +20,7 @@
 <script lang="ts">
 import type { SegmentWord } from '@main/providers/SegmentProvider';
 import { defineComponent, getCurrentInstance, ref, watch } from 'vue';
-import { dictQuery, segment as segmentText } from '@render/remote';
+import { dictQuery, segment as segmentText } from '@remote';
 import OriginalTextWord from './OriginalTextWord.vue';
 
 export default defineComponent({

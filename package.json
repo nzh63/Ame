@@ -23,9 +23,8 @@
     "download:dep": "node ./config/build.js download-dependencies",
     "lint": "eslint . --ignore-path .gitignore --ext .ts,.mts,.js,.vue --fix",
     "test": "yarn build:test && electron-mocha --colors --require source-map-support/register ./dist/test",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit && vue-tsc --noEmit"
   },
-  "dependencies": {},
   "devDependencies": {
     "@rollup/plugin-alias": "^5.1.0",
     "@rollup/plugin-commonjs": "^26.0.1",
@@ -87,14 +86,19 @@
     "tesseract.js": "patch:tesseract.js@npm%3A5.0.5#~/.yarn/patches/tesseract.js-npm-5.0.5-96ba770781.patch",
     "tesseract.js-core": "^5.0.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.5.4",
+    "typescript": "5.5.4",
     "unplugin-auto-import": "^0.18.2",
     "unplugin-vue-components": "^0.27.3",
     "uuid": "^8.3.2",
     "vite": "^5.4.6",
+    "vite-plugin-externals": "^0.6.2",
     "vue": "^3.2.33",
     "vue-router": "^4.0.11",
+    "vue-tsc": "^2.1.6",
     "yauzl": "^2.10.0"
   },
-  "packageManager": "yarn@4.1.1"
+  "packageManager": "yarn@4.1.1",
+  "resolutions": {
+    "conf@npm:^10.2.0": "patch:conf@npm%3A10.2.0#~/.yarn/patches/conf-npm-10.2.0-8d0cbf5589.patch"
+  }
 }

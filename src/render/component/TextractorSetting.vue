@@ -7,7 +7,7 @@
 <script lang="ts">
 import type { PostProcessOption } from '@main/extractor';
 import { defineComponent, ref, watch, toRaw } from 'vue';
-import { getTextractorPostProcessOption, setTextractorPostProcessOption } from '@render/remote';
+import { getTextractorPostProcessOption, setTextractorPostProcessOption } from '@remote';
 
 export default defineComponent({
     setup() {

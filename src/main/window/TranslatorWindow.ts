@@ -1,9 +1,9 @@
 import type { Context } from '@main/Context';
-import { WindowWithGeneral } from '@main/window/WindowWithContext';
+import { WindowWithContext } from '@main/window/WindowWithContext';
 import { Menu } from 'electron';
 import logger from '@logger/translatorWindow';
 
-export class TranslatorWindow extends WindowWithGeneral {
+export class TranslatorWindow extends WindowWithContext {
     private static readonly windowOption = {
         show: false,
         useContentSize: true,

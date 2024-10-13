@@ -52,7 +52,7 @@
 <script lang="ts">
 import { defineComponent, inject, Ref, ref } from 'vue';
 import TextractorSetting from '@render/component/TextractorSetting.vue';
-import { switchExtractorType, getExtractorType, openOcrGuideWindow } from '@render/remote';
+import { switchExtractorType, getExtractorType, openOcrGuideWindow } from '@remote';
 import store from '@render/store';
 
 export default defineComponent({

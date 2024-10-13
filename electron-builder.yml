@@ -6,7 +6,7 @@ files:
   - "dist/main/**/*"
   - "dist/workers/**/*"
   - "dist/render/**/*"
-  - "dist/build/**/*"
+  - "dist/build/**/*.node"
   - "assets/*"
   - "!**/node_modules/**/*.md"
   - "!**/node_modules/**/{test,__tests__,tests,powered-test,example,examples}"
@@ -35,7 +35,7 @@ extraResources:
     to: ..
     filter:
       - LICENSE.*.txt
-  - from: ./node_modules/sharp/build/Release
+  - from: ./dist/build/Release
     to: ..
     filter:
       - "*.dll"

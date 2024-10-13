@@ -115,7 +115,7 @@
 <script lang="ts">
 import { useRouter } from 'vue-router';
 import { computed, defineComponent, ref } from 'vue';
-import { getTranslateProvidersIDs, getTtsProvidersIDs, getOcrProvidersIDs, getSegmentProvidersIDs, getDictProvidersIDs } from '@render/remote';
+import { getProvidersIDs } from '@remote';
 
 export default defineComponent({
     setup() {
@@ -126,27 +126,27 @@ export default defineComponent({
         const selectedKeys = computed(() => router.currentRoute.value.path);
 
         const translateProvidersIDs = ref<string[]>([]);
-        getTranslateProvidersIDs().then(value => {
+        getProvidersIDs('translate').then(value => {
             translateProvidersIDs.value = value;
         });
 
         const ttsProvidersIDs = ref<string[]>([]);
-        getTtsProvidersIDs().then(value => {
+        getProvidersIDs('tts').then(value => {
             ttsProvidersIDs.value = value;
         });
 
         const ocrProvidersIDs = ref<string[]>([]);
-        getOcrProvidersIDs().then(value => {
+        getProvidersIDs('ocr').then(value => {
             ocrProvidersIDs.value = value;
         });
 
         const segmentProvidersIDs = ref<string[]>([]);
-        getSegmentProvidersIDs().then(value => {
+        getProvidersIDs('segment').then(value => {
             segmentProvidersIDs.value = value;
         });
 
         const dictProvidersIDs = ref<string[]>([]);
-        getDictProvidersIDs().then(value => {
+        getProvidersIDs('dict').then(value => {
             dictProvidersIDs.value = value;
         });
 

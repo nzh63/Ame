@@ -81,7 +81,7 @@ import { MessagePlugin } from 'tdesign-vue-next';
 
 import GameCard from '@render/component/GameCard.vue';
 import store from '@render/store';
-import { findWindowByClick, startExtract } from '@render/remote';
+import { findWindowByClick, startExtract } from '@remote';
 
 export default defineComponent({
     components: {

@@ -1,13 +1,11 @@
-import { ipcMain, IpcMainInvokeEvent } from 'electron';
-import { dirname } from 'path';
-import { findProcess, execPowerShell } from '@main/win32';
-import { handleError } from '@main/remote/handle';
+import path from 'path';
+import { defineRemoteFunction } from '@remote/common';
 import logger from '@logger/remote/startGame';
 
-ipcMain.handle('start-game', handleError(async (event: IpcMainInvokeEvent, arg: Ame.GameSetting) => {
-    logger('arg: %O', arg);
+export const startGame = defineRemoteFunction('start-game', async (event, arg: Ame.GameSetting) => {
+    const { findProcess, execPowerShell } = await import('@main/win32');
     const oldPids = await findProcess(arg.path);
-    execPowerShell(arg.execShell, dirname(arg.path));
+    execPowerShell(arg.execShell, path.dirname(arg.path));
     for (let i = 0; i < 10; i++) {
         logger('wait for game to start, retry: %d', i);
         const newPids = (await findProcess(arg.path)).filter(i => !oldPids.includes(i));
@@ -18,4 +16,4 @@ ipcMain.handle('start-game', handleError(async (event: IpcMainInvokeEvent, arg: 
         await new Promise<void>(resolve => setTimeout(resolve, 1000));
     }
     throw new Error('无法找到游戏进程');
-}));
+});

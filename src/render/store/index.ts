@@ -1,5 +1,5 @@
 import type { StoreType } from '@main/store';
-import { storeClear, storeDelete, storeGet, storeHas, storeReset, storeSet } from '@render/remote/store';
+import { storeClear, storeDelete, storeGet, storeHas, storeReset, storeSet } from '@remote/store';
 
 interface Store<T = StoreType['store']> {
     get<Key extends keyof T>(key: Key): Promise<T[Key]>;

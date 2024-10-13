@@ -17,7 +17,7 @@
 </template>
 
 <script lang="ts">
-import { watchOriginal, unwatchOriginal, watchTranslate, unwatchTranslate, resizeWindow, ttsSpeak, onTtsReply, offTtsReply, showContextMenu } from '@render/remote';
+import { watchOriginal, unwatchOriginal, watchTranslate, unwatchTranslate, resizeWindow, ttsSpeak, onTtsReply, offTtsReply, showContextMenu } from '@remote';
 import { onBeforeRouteLeave } from 'vue-router';
 import { defineComponent, ref, inject, onUnmounted, Ref, nextTick, watch, reactive, onBeforeUpdate } from 'vue';
 import TextDisplay from '@render/component/TextDisplay';
@@ -93,7 +93,7 @@ export default defineComponent({
                 if (currentTextElement.value) {
                     const titleBarHeight = document.documentElement.getAttribute('tablet-mode') === 'true' ? 32 : 24;
                     const height: number = titleBarHeight + currentTextElement.value.$el.offsetHeight;
-                    resizeWindow(height);
+                    resizeWindow({ height });
                 }
             });
         };
@@ -102,7 +102,7 @@ export default defineComponent({
             const titleBarHeight = document.documentElement.getAttribute('tablet-mode') === 'true' ? 32 : 24;
             const height: number = titleBarHeight + (currentTextElement.value?.$el.offsetHeight ?? 0);
             if (height < 300) {
-                resizeWindow(300);
+                resizeWindow({ height: 300 });
             }
         });
 

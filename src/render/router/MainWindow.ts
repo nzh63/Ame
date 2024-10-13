@@ -1,32 +1,14 @@
 import {
-    getTranslateProviderOptionsMeta,
-    getTranslateProviderOptions,
-    setTranslateProviderOptions,
-    getTtsProviderOptionsMeta,
-    getTtsProviderOptions,
-    setTtsProviderOptions,
-    getTtsManagerOptionsMeta,
-    getTtsManagerOptions,
-    setTtsManagerOptions,
-    getOcrProviderOptionsMeta,
-    getOcrProviderOptions,
-    setOcrProviderOptions,
-    getOcrExtractorOptions,
-    getOcrExtractorOptionsMeta,
-    setOcrExtractorOptions,
-    getSegmentProviderOptionsMeta,
-    getSegmentProviderOptions,
-    setSegmentProviderOptions,
-    getSegmentManagerOptionsMeta,
-    getSegmentManagerOptions,
-    setSegmentManagerOptions,
-    getDictManagerOptions,
-    getDictManagerOptionsMeta,
-    getDictProviderOptions,
-    getDictProviderOptionsMeta,
-    setDictManagerOptions,
-    setDictProviderOptions
-} from '@render/remote';
+    getProviderOptionsMeta,
+    getProviderOptions,
+    setProviderOptions,
+    getManagerOptionsMeta,
+    getManagerOptions,
+    setManagerOptions,
+    getExtractorOptionsMeta,
+    getExtractorOptions,
+    setExtractorOptions
+} from '@remote';
 import { createRouter, createWebHashHistory } from 'vue-router';
 
 export default createRouter({
@@ -49,9 +31,19 @@ export default createRouter({
             component: () => import('@render/views/Options.vue'),
             props: route => ({
                 providerId: route.params.providerId,
-                getMeta: getTranslateProviderOptionsMeta,
-                getOptions: getTranslateProviderOptions,
-                setOptions: setTranslateProviderOptions
+                getMeta: getProviderOptionsMeta.bind(globalThis, 'translate'),
+                getOptions: getProviderOptions.bind(globalThis, 'translate'),
+                setOptions: setProviderOptions.bind(globalThis, 'translate')
+            })
+        },
+        {
+            path: '/options/tts-manager',
+            component: () => import('@render/views/Options.vue'),
+            props: route => ({
+                providerId: '<none>',
+                getMeta: getManagerOptionsMeta.bind(globalThis, 'tts'),
+                getOptions: getManagerOptions.bind(globalThis, 'tts'),
+                setOptions: setManagerOptions.bind(globalThis, 'tts')
             })
         },
         {
@@ -63,19 +55,9 @@ export default createRouter({
             component: () => import('@render/views/Options.vue'),
             props: route => ({
                 providerId: route.params.providerId,
-                getMeta: getTtsProviderOptionsMeta,
-                getOptions: getTtsProviderOptions,
-                setOptions: setTtsProviderOptions
-            })
-        },
-        {
-            path: '/options/tts-manager',
-            component: () => import('@render/views/Options.vue'),
-            props: route => ({
-                providerId: '<none>',
-                getMeta: getTtsManagerOptionsMeta,
-                getOptions: getTtsManagerOptions,
-                setOptions: setTtsManagerOptions
+                getMeta: getProviderOptionsMeta.bind(globalThis, 'tts'),
+                getOptions: getProviderOptions.bind(globalThis, 'tts'),
+                setOptions: setProviderOptions.bind(globalThis, 'tts')
             })
         },
         {
@@ -83,9 +65,9 @@ export default createRouter({
             component: () => import('@render/views/Options.vue'),
             props: route => ({
                 providerId: route.params.providerId,
-                getMeta: getOcrProviderOptionsMeta,
-                getOptions: getOcrProviderOptions,
-                setOptions: setOcrProviderOptions
+                getMeta: getProviderOptionsMeta.bind(globalThis, 'ocr'),
+                getOptions: getProviderOptions.bind(globalThis, 'ocr'),
+                setOptions: setProviderOptions.bind(globalThis, 'ocr')
             })
         },
         {
@@ -93,9 +75,9 @@ export default createRouter({
             component: () => import('@render/views/Options.vue'),
             props: route => ({
                 providerId: '<none>',
-                getMeta: getOcrExtractorOptionsMeta,
-                getOptions: getOcrExtractorOptions,
-                setOptions: setOcrExtractorOptions
+                getMeta: getExtractorOptionsMeta.bind(globalThis, 'ocr'),
+                getOptions: getExtractorOptions.bind(globalThis, 'ocr'),
+                setOptions: setExtractorOptions.bind(globalThis, 'ocr')
             })
         },
         {
@@ -103,9 +85,9 @@ export default createRouter({
             component: () => import('@render/views/Options.vue'),
             props: route => ({
                 providerId: '<none>',
-                getMeta: getSegmentManagerOptionsMeta,
-                getOptions: getSegmentManagerOptions,
-                setOptions: setSegmentManagerOptions
+                getMeta: getManagerOptionsMeta.bind(globalThis, 'segment'),
+                getOptions: getManagerOptions.bind(globalThis, 'segment'),
+                setOptions: setManagerOptions.bind(globalThis, 'segment')
             })
         },
         {
@@ -113,9 +95,9 @@ export default createRouter({
             component: () => import('@render/views/Options.vue'),
             props: route => ({
                 providerId: route.params.providerId,
-                getMeta: getSegmentProviderOptionsMeta,
-                getOptions: getSegmentProviderOptions,
-                setOptions: setSegmentProviderOptions
+                getMeta: getProviderOptionsMeta.bind(globalThis, 'segment'),
+                getOptions: getProviderOptions.bind(globalThis, 'segment'),
+                setOptions: setProviderOptions.bind(globalThis, 'segment')
             })
         },
         {
@@ -123,9 +105,9 @@ export default createRouter({
             component: () => import('@render/views/Options.vue'),
             props: route => ({
                 providerId: '<none>',
-                getMeta: getDictManagerOptionsMeta,
-                getOptions: getDictManagerOptions,
-                setOptions: setDictManagerOptions
+                getMeta: getManagerOptionsMeta.bind(globalThis, 'dict'),
+                getOptions: getManagerOptions.bind(globalThis, 'dict'),
+                setOptions: setManagerOptions.bind(globalThis, 'dict')
             })
         },
         {
@@ -133,9 +115,9 @@ export default createRouter({
             component: () => import('@render/views/Options.vue'),
             props: route => ({
                 providerId: route.params.providerId,
-                getMeta: getDictProviderOptionsMeta,
-                getOptions: getDictProviderOptions,
-                setOptions: setDictProviderOptions
+                getMeta: getProviderOptionsMeta.bind(globalThis, 'dict'),
+                getOptions: getProviderOptions.bind(globalThis, 'dict'),
+                setOptions: setProviderOptions.bind(globalThis, 'dict')
             })
         },
         {

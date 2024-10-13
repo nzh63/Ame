@@ -1,18 +1,18 @@
-import { EventEmitter } from 'stream';
-import { BrowserWindow, Notification, ipcMain, IpcMainInvokeEvent } from 'electron';
-import { handleError } from '@main/remote/handle';
-import { GlobalMouseEventHook } from '@main/hook/GlobalMouseEventHook';
-import { findProcess } from '@main/win32';
+import stream from 'stream';
+import electron from 'electron';
+import { defineRemoteFunction } from '@remote/common';
 import logger from '@logger/remote/windowFinder';
 
-ipcMain.handle('find-window-by-click', handleError(async (event: IpcMainInvokeEvent) => {
-    const emitter = new EventEmitter();
+export const findWindowByClick = defineRemoteFunction('find-window-by-click', async (event) => {
+    const emitter = new stream.EventEmitter();
+    const { GlobalMouseEventHook } = await import('@main/hook/GlobalMouseEventHook');
+    const { findProcess } = await import('@main/win32');
     const hook = new GlobalMouseEventHook(emitter);
     try {
-        const window = BrowserWindow.fromWebContents(event.sender);
+        const window = electron.BrowserWindow.fromWebContents(event.sender);
         window?.minimize();
 
-        const n = new Notification({ title: '请点击游戏窗口' });
+        const n = new electron.Notification({ title: '请点击游戏窗口' });
         n.show();
 
         const pt: { x: number, y: number } = await new Promise(resolve => emitter.once('mouse-left-down', pt => resolve(pt)));
@@ -30,4 +30,4 @@ ipcMain.handle('find-window-by-click', handleError(async (event: IpcMainInvokeEv
     } finally {
         hook.destroy();
     }
-}));
+});

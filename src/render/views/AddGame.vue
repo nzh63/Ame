@@ -161,11 +161,9 @@ import { defineComponent, toRaw } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
 import { quote } from 'shell-quote';
 import InputWithOpenFile from '@render/component/InputWithOpenFile.vue';
-import type { PlatformPath } from 'path';
 import store from '@render/store';
-import { startGame } from '@render/remote';
-
-const path: PlatformPath = require('path');
+import { startGame } from '@remote';
+import path from 'path';
 
 export default defineComponent({
     components: {

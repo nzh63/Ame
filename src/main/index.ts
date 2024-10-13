@@ -3,7 +3,7 @@ import { join } from 'path';
 import { description, name } from '../../package.json';
 import { __assets } from '@main/paths';
 import { Context } from '@main/Context';
-import '@main/remote';
+import '@remote';
 import logger from '@logger';
 
 export let mainWindow: BrowserWindow | null, tray: Tray;
@@ -38,6 +38,7 @@ export function createMainWindow() {
     Menu.setApplicationMenu(null);
 
     mainWindow.loadURL(mainWindowURL);
+    mainWindow.webContents.openDevTools();
 
     mainWindow.once('ready-to-show', () => {
         if (!mainWindow) return;

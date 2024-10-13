@@ -20,7 +20,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { showOpenDialog } from '@render/remote';
+import { showOpenDialog } from '@remote';
 
 export default defineComponent({
     props: {

@@ -22,6 +22,12 @@
       "@render/*": [
         "./src/render/*"
       ],
+      "@remote/*": [
+        "./src/remote/*"
+      ],
+      "@remote": [
+        "./src/remote/index"
+      ],
       "@type/*": [
         "./src/type/*"
       ],
