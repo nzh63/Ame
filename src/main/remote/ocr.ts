@@ -1,4 +1,4 @@
-import type sharp from 'sharp';
+import sharp from 'sharp';
 import type { PreprocessOption } from '@main/extractor';
 import { ipcMain, IpcMainInvokeEvent, BrowserWindow } from 'electron';
 import { WindowWithGeneral } from '@main/window/WindowWithContext';
@@ -11,6 +11,19 @@ ipcMain.handle('get-screen-capture', handleError(async (event: IpcMainInvokeEven
             throw new Error('Not in Ocr mode');
         } else {
             return (await window.context.extractor.getLastCapture(force)).png().toBuffer();
+        }
+    } else {
+        throw new Error('You can only get extract text from a WindowWithGeneral');
+    }
+}));
+
+ipcMain.handle('get-preprocessed-image', handleError(async (event: IpcMainInvokeEvent, img: Buffer, option: PreprocessOption) => {
+    const window = BrowserWindow.fromWebContents(event.sender);
+    if (window && window instanceof WindowWithGeneral) {
+        if (!window.context.extractorTypeIs('ocr')) {
+            throw new Error('Not in Ocr mode');
+        } else {
+            return await window.context.extractor.preprocess(sharp(img), option).png().toBuffer();
         }
     } else {
         throw new Error('You can only get extract text from a WindowWithGeneral');

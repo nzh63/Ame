@@ -6,6 +6,7 @@ files:
   - "dist/main/**/*"
   - "dist/workers/**/*"
   - "dist/render/**/*"
+  - "dist/build/**/*"
   - "assets/*"
   - "!**/node_modules/**/*.md"
   - "!**/node_modules/**/{test,__tests__,tests,powered-test,example,examples}"
@@ -34,6 +35,10 @@ extraResources:
     to: ..
     filter:
       - LICENSE.*.txt
+  - from: ./node_modules/sharp/build/Release
+    to: ..
+    filter:
+      - "*.dll"
 icon: ./assets/icon.png
 nsis:
   deleteAppDataOnUninstall: true

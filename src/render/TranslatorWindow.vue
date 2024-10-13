@@ -59,7 +59,7 @@ export default defineComponent({
         });
 
         const fontSize = ref(16);
-        store.get('ui').then((value) => { fontSize.value = value.fontSize; });
+        store.get('ui').then((value) => { if (value?.fontSize) fontSize.value = value.fontSize; });
         provide('fontSize', fontSize);
 
         const router = useRouter();

@@ -7,6 +7,7 @@ declare namespace Electron {
         handle(channel: 'get-extractor-type', listener: (event: IpcMainInvokeEvent) => Promise<Ame.IpcResult<Ame.Extractor.ExtractorType>>): void;
         handle(channel: 'switch-extractor-type', listener: (event: IpcMainInvokeEvent) => Promise<Ame.IpcResult<void>>): void;
         handle(channel: 'get-screen-capture', listener: (event: IpcMainInvokeEvent) => Promise<Ame.IpcResult<Buffer>>): void;
+        handle(channel: 'get-preprocessed-image', listener: (event: IpcMainInvokeEvent, img: Buffer, option: PreprocessOption) => Promise<Ame.IpcResult<Buffer>>): void;
         handle(channel: 'get-screen-capture-crop-rect', listener: (event: IpcMainInvokeEvent) => Promise<Ame.IpcResult<import('sharp').Region | undefined>>): void;
         handle(channel: 'set-screen-capture-crop-rect', listener: (event: IpcMainInvokeEvent, rect: sharp.Region) => Promise<Ame.IpcResult<void>>): void;
         handle(channel: 'watch-original', listener: (event: IpcMainInvokeEvent, key: Ame.Extractor.Key) => Ame.IpcResult<void>): void;
@@ -27,6 +28,7 @@ declare namespace Electron {
         invoke(channel: 'get-extractor-type'): Promise<Ame.IpcResult<Ame.Extractor.ExtractorType>>;
         invoke(channel: 'switch-extractor-type', type: Ame.Extractor.ExtractorType): Promise<Ame.IpcResult<void>>;
         invoke(channel: 'get-screen-capture', force?: boolean): Promise<Ame.IpcResult<Buffer>>;
+        invoke(channel: 'get-preprocessed-image', img: Buffer, option: PreprocessOption): Promise<Ame.IpcResult<Buffer>>;
         invoke(channel: 'get-screen-capture-crop-rect'): Promise<Ame.IpcResult<import('sharp').Region | undefined>>;
         invoke(channel: 'set-screen-capture-crop-rect', rect: sharp.Region): Promise<Ame.IpcResult<void>>;
         invoke(channel: 'get-screen-capture-preprocess-option'): Promise<Ame.IpcResult<import('@main/extractor/OcrExtractor').PreprocessOption>>;

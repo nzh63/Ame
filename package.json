@@ -25,9 +25,7 @@
     "test": "yarn build:test && electron-mocha --colors --require source-map-support/register ./dist/test",
     "type-check": "tsc --noEmit"
   },
-  "dependencies": {
-    "sharp": "^0.32.6"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@rollup/plugin-alias": "^5.1.0",
     "@rollup/plugin-commonjs": "^26.0.1",
@@ -80,6 +78,7 @@
     "rollup-plugin-esbuild": "^6.1.1",
     "rollup-plugin-license": "^3.5.2",
     "rollup-plugin-typescript2": "^0.36.0",
+    "sharp": "^0.32.6",
     "shell-quote": "^1.7.4",
     "source-map-support": "^0.5.19",
     "tdesign-icons-vue-next": "^0.2.4",

@@ -6,6 +6,7 @@ import json from '@rollup/plugin-json';
 import alias from '@rollup/plugin-alias';
 import { wasm } from '@rollup/plugin-wasm';
 import esbuild from 'rollup-plugin-esbuild';
+import copy from 'rollup-plugin-copy';
 import license from 'rollup-plugin-license';
 import log from './LogPlugin.mts';
 import native from './NativePlugin.mts';
@@ -58,7 +59,19 @@ export default (mode = 'production') => ({
         json(),
         wasm(),
         native(),
-        commonjs(),
+        commonjs({
+            ignoreDynamicRequires: true
+        }),
+        mode === 'production'
+            ? copy({
+                targets: [{
+                    src: [
+                        'node_modules/sharp/build/Release/sharp-win32-x64.node'
+                    ],
+                    dest: path.join(import.meta.dirname, '../dist/build/Release')
+                }]
+            })
+            : null,
         mode === 'production'
             ? license({
                 thirdParty: {

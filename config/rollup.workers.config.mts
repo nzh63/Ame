@@ -81,7 +81,6 @@ export default (mode = 'production') => ({
             ? copy({
                 targets: [{
                     src: [
-                        'node_modules/tesseract.js-core/tesseract-core.wasm',
                         'node_modules/tesseract.js-core/tesseract-core-simd.wasm'
                     ],
                     dest: path.join(import.meta.dirname, '../dist/workers')

@@ -167,9 +167,10 @@ import {
     getScreenCaptureCropRect,
     setScreenCaptureCropRect,
     getScreenCapturePreprocessOption,
-    setScreenCapturePreprocessOption
+    setScreenCapturePreprocessOption,
+    getPreprocessedImage
 } from '@render/remote';
-const sharp = require('sharp');
+const electron = require('electron');
 
 export default defineComponent({
     setup() {
@@ -202,7 +203,7 @@ export default defineComponent({
             .then(img => {
                 imageBuffer = Buffer.from(img);
                 preprocess.value = screen.value = 'data:image/png;base64,' + imageBuffer.toString('base64');
-                return sharp(imageBuffer).metadata();
+                return electron.nativeImage.createFromBuffer(imageBuffer).getSize();
             })
             .then(meta => {
                 size.value[0] = meta.width ?? 1;
@@ -253,16 +254,11 @@ export default defineComponent({
         };
         const _updatePreprocess = async () => {
             if (!imageBuffer) return;
-            let image = sharp(imageBuffer);
-            if (color.value === 'grey') {
-                image = image.greyscale();
-            } else if (['red', 'green', 'blue'].includes(color.value)) {
-                image = image.extractChannel(color.value);
-            }
-            if (thresholdEnable.value) {
-                image = image.threshold(threshold.value, { greyscale: false });
-            }
-            preprocess.value = 'data:image/png;base64,' + (await image.png().toBuffer()).toString('base64');
+            const image = await getPreprocessedImage(imageBuffer, {
+                color: color.value,
+                threshold: thresholdEnable.value ? threshold.value : undefined
+            });
+            preprocess.value = 'data:image/png;base64,' + Buffer.from(image).toString('base64');
         };
         let timeoutId: ReturnType<typeof setTimeout> | null = null;
         const updatePreprocess = () => {

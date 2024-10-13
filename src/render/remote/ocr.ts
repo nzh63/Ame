@@ -8,6 +8,10 @@ export async function getScreenCapture(force = false) {
     return await handleError(electron.ipcRenderer.invoke('get-screen-capture', force));
 }
 
+export async function getPreprocessedImage(img: Buffer, option: PreprocessOption) {
+    return await handleError(electron.ipcRenderer.invoke('get-preprocessed-image', img, option));
+}
+
 export function getScreenCaptureCropRect() {
     return handleError(electron.ipcRenderer.invoke('get-screen-capture-crop-rect'));
 }

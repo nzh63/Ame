@@ -125,14 +125,14 @@ export class OcrExtractor extends IExtractor {
         });
     }
 
-    private preprocess(img: sharp.Sharp) {
-        if (this.preprocessOption.color === 'grey') {
+    public preprocess(img: sharp.Sharp, option = this.preprocessOption) {
+        if (option.color === 'grey') {
             img = img.clone().greyscale();
-        } else if (['red', 'green', 'blue'].includes(this.preprocessOption.color)) {
-            img = img.clone().extractChannel(this.preprocessOption.color as any);
+        } else if (['red', 'green', 'blue'].includes(option.color)) {
+            img = img.clone().extractChannel(option.color as any);
         }
-        if (this.preprocessOption.threshold) {
-            img = img.threshold(this.preprocessOption.threshold, { greyscale: false });
+        if (option.threshold) {
+            img = img.threshold(option.threshold, { greyscale: false });
         }
         return img;
     }
