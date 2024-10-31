@@ -31,23 +31,14 @@
             'WindowEventHook',
             'WindowsHook',
         ],
-        'actions': [{
-            'action_name': 'copy .node',
-            'inputs': [
+        'copies': [{
+            'files': [
                 '<(PRODUCT_DIR)/ScreenCapturer.node',
                 '<(PRODUCT_DIR)/WindowEventHook.node',
                 '<(PRODUCT_DIR)/WindowsHook.node',
+                '<(PRODUCT_DIR)/Process.node',
             ],
-            'outputs': [
-                '<(module_root_dir)/../../dist/addons/<(target_arch)/ScreenCapturer.node',
-                '<(module_root_dir)/../../dist/addons/<(target_arch)/WindowEventHook.node',
-                '<(module_root_dir)/../../dist/addons/<(target_arch)/WindowsHook.node',
-            ],
-            'action': [
-                'copy',
-                '<(PRODUCT_DIR)/*.node',
-                '<(module_root_dir)/../../dist/addons/<(target_arch)'
-            ]
+            'destination': '<(module_root_dir)/../../dist/addons/<(target_arch)'
         }]
     }]
 }

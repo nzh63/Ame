@@ -38,7 +38,6 @@ export function createMainWindow() {
   Menu.setApplicationMenu(null);
 
   mainWindow.loadURL(mainWindowURL);
-  mainWindow.webContents.openDevTools();
 
   mainWindow.once('ready-to-show', () => {
     if (!mainWindow) return;

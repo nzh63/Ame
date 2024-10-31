@@ -385,7 +385,7 @@ function dev(mode = 'development') {
 
 function clean() {
   return Promise.all(
-    ['dist', 'static/native'].map((i) => fsPromise.rm(path.join(__dirname, '..', i), { recursive: true })),
+    ['dist', 'static/native'].map((i) => fsPromise.rm(path.join(__dirname, '..', i), { recursive: true, force: true })),
   );
 }
 
