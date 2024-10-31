@@ -163,6 +163,7 @@ export default defineComponent({
   margin: 5px;
   flex-basis: 300px;
   flex-grow: 1;
+  height: unset;
 }
 .placeholder {
   margin: 0px;
