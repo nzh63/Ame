@@ -1,20 +1,12 @@
-import type { BaseProviderMethods, BaseProviderOptions, Methods } from './BaseProvider';
+import type { BaseProviderConfig, Methods } from './BaseProvider';
 import { BaseProvider } from './BaseProvider';
 import logger from '@logger/providers/dictProvider';
 import type { Schema } from '@main/schema';
 
-export type DictProviderMethods<ID extends string, S extends Schema, D, M extends Methods> = {
-  query: (word: string) => Promise<void> | void;
-} & BaseProviderMethods<ID, S, D, M, DictProvider<ID, S, D, M>>;
+export type DictProviderConfig<ID extends string, S extends Schema, D, M extends Methods> = {
+  query: (word: string) => Ame.Awaitable<void>;
+} & BaseProviderConfig<ID, S, D, M, DictProvider<ID, S, D, M>>;
 
-export type DictProviderConfig<ID extends string, S extends Schema, D, M extends Methods> = BaseProviderOptions<
-  ID,
-  S,
-  D
-> &
-  DictProviderMethods<ID, S, D, M>;
-
-// eslint-disable-next-line @typescript-eslint/ban-types
 export class DictProvider<
   ID extends string = string,
   S extends Schema = any,

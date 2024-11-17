@@ -2,10 +2,7 @@ import { availableSegmentConfigs } from '@main/providers/segment';
 import type { SchemaType, SchemaDescription } from '@main/schema';
 
 export const segmentManagerOptionsSchema = {
-  defaultProvider: {
-    type: String,
-    enum: [...availableSegmentConfigs.map((i) => i.id)],
-  },
+  defaultProvider: [...availableSegmentConfigs.map((i) => i.id)],
 };
 
 export type SegmentManagerOptions = SchemaType<typeof segmentManagerOptionsSchema>;

@@ -1,25 +1,17 @@
-import type { BaseProviderMethods, BaseProviderOptions, Methods } from './BaseProvider';
+import type { BaseProviderConfig, Methods } from './BaseProvider';
 import { BaseProvider } from './BaseProvider';
 import logger from '@logger/providers/SegmentProvider';
 import type { Schema } from '@main/schema';
 
-export type SegmentProviderMethods<ID extends string, S extends Schema, D, M extends Methods> = {
-  segment: (text: string) => Promise<(string | SegmentWord)[]> | (string | SegmentWord)[];
-} & BaseProviderMethods<ID, S, D, M, SegmentProvider<ID, S, D, M>>;
-
-export type SegmentProviderConfig<ID extends string, S extends Schema, D, M extends Methods> = BaseProviderOptions<
-  ID,
-  S,
-  D
-> &
-  SegmentProviderMethods<ID, S, D, M>;
+export type SegmentProviderConfig<ID extends string, S extends Schema, D, M extends Methods> = {
+  segment: (text: string) => Ame.Awaitable<(string | SegmentWord)[]>;
+} & BaseProviderConfig<ID, S, D, M, SegmentProvider<ID, S, D, M>>;
 
 export interface SegmentWord {
   word: string;
   extraInfo?: string;
 }
 
-// eslint-disable-next-line @typescript-eslint/ban-types
 export class SegmentProvider<
   ID extends string = string,
   S extends Schema = any,

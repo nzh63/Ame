@@ -1,21 +1,13 @@
-import type { BaseProviderMethods, BaseProviderOptions, Methods } from './BaseProvider';
+import type { BaseProviderConfig, Methods } from './BaseProvider';
 import { BaseProvider } from './BaseProvider';
 import logger from '@logger/providers/ocrProvider';
 import type { Schema } from '@main/schema';
 import type sharp from 'sharp';
 
-export type OcrProviderMethods<ID extends string, S extends Schema, D, M extends Methods> = {
-  recognize: (img: sharp.Sharp) => Promise<string> | string;
-} & BaseProviderMethods<ID, S, D, M, OcrProvider<ID, S, D, M>>;
+export type OcrProviderConfig<ID extends string, S extends Schema, D, M extends Methods> = {
+  recognize: (img: sharp.Sharp) => Ame.Awaitable<string>;
+} & BaseProviderConfig<ID, S, D, M, OcrProvider<ID, S, D, M>>;
 
-export type OcrProviderConfig<ID extends string, S extends Schema, D, M extends Methods> = BaseProviderOptions<
-  ID,
-  S,
-  D
-> &
-  OcrProviderMethods<ID, S, D, M>;
-
-// eslint-disable-next-line @typescript-eslint/ban-types
 export class OcrProvider<
   ID extends string = string,
   S extends Schema = any,

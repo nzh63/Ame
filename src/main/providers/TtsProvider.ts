@@ -1,20 +1,12 @@
-import type { BaseProviderMethods, BaseProviderOptions, Methods } from './BaseProvider';
+import type { BaseProviderConfig, Methods } from './BaseProvider';
 import { BaseProvider } from './BaseProvider';
 import logger from '@logger/providers/ttsProvider';
 import type { Schema } from '@main/schema';
 
-export type TtsProviderMethods<ID extends string, S extends Schema, D, M extends Methods> = {
-  speak: (text: string, type: 'original' | 'translate') => Promise<void> | void;
-} & BaseProviderMethods<ID, S, D, M, TtsProvider<ID, S, D, M>>;
+export type TtsProviderConfig<ID extends string, S extends Schema, D, M extends Methods> = {
+  speak: (text: string, type: 'original' | 'translate') => Ame.Awaitable<void>;
+} & BaseProviderConfig<ID, S, D, M, TtsProvider<ID, S, D, M>>;
 
-export type TtsProviderConfig<ID extends string, S extends Schema, D, M extends Methods> = BaseProviderOptions<
-  ID,
-  S,
-  D
-> &
-  TtsProviderMethods<ID, S, D, M>;
-
-// eslint-disable-next-line @typescript-eslint/ban-types
 export class TtsProvider<
   ID extends string = string,
   S extends Schema = any,

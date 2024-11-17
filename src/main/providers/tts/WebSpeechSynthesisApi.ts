@@ -2,57 +2,54 @@ import logger from '@logger/providers/WebSpeechSynthesisApi';
 import { defineTtsProvider } from '@main/providers/tts';
 import { app, BrowserWindow } from 'electron';
 
-export default defineTtsProvider(
-  {
-    id: 'WebSpeechSynthesisApi',
-    description:
-      '使用 Web SpeechSynthesis Api，所支持的语音基于机器上已安装的语音包，请参考 https://go.microsoft.com/fwlink/?linkid=2043241 获取更多信息',
-    optionsSchema: {
-      enable: Boolean,
-      voice: {
-        originalVoiceURI: [String, null] as const,
-        translateVoiceURI: [String, null] as const,
-      },
-    },
-    defaultOptions: {
-      enable: true,
-      voice: {
-        originalVoiceURI: null,
-        translateVoiceURI: null,
-      },
-    },
-    optionsDescription: {
-      enable: '启用',
-      voice: {
-        originalVoiceURI: '源语言语音',
-        translateVoiceURI: '翻译语言语音',
-      },
-    },
-    data() {
-      return {
-        browserWindow: null as BrowserWindow | null,
-      };
+export default defineTtsProvider({
+  id: 'WebSpeechSynthesisApi',
+  description:
+    '使用 Web SpeechSynthesis Api，所支持的语音基于机器上已安装的语音包，请参考 https://go.microsoft.com/fwlink/?linkid=2043241 获取更多信息',
+  optionsSchema: {
+    enable: Boolean,
+    voice: {
+      originalVoiceURI: [String, null],
+      translateVoiceURI: [String, null],
     },
   },
-  {
-    async init() {
-      if (!this.enable) return;
-      await app.whenReady();
-      const browserWindow = new BrowserWindow({ show: false });
-      browserWindow.webContents.loadURL('about:black');
-      browserWindow.webContents.executeJavaScript('speechSynthesis.getVoices()');
-      if (!this.isDestroyed()) {
-        this.browserWindow = browserWindow;
-      } else {
-        browserWindow.destroy();
-      }
+  defaultOptions: {
+    enable: true,
+    voice: {
+      originalVoiceURI: null,
+      translateVoiceURI: null,
     },
-    isReady() {
-      return this.enable && !!this.browserWindow;
+  },
+  optionsDescription: {
+    enable: '启用',
+    voice: {
+      originalVoiceURI: '源语言语音',
+      translateVoiceURI: '翻译语言语音',
     },
-    speak(text, type) {
-      if (!this.browserWindow) return;
-      const execCode = `
+  },
+  data() {
+    return {
+      browserWindow: null as BrowserWindow | null,
+    };
+  },
+  async init() {
+    if (!this.enable) return;
+    await app.whenReady();
+    const browserWindow = new BrowserWindow({ show: false });
+    browserWindow.webContents.loadURL('about:black');
+    browserWindow.webContents.executeJavaScript('speechSynthesis.getVoices()');
+    if (!this.isDestroyed()) {
+      this.browserWindow = browserWindow;
+    } else {
+      browserWindow.destroy();
+    }
+  },
+  isReady() {
+    return this.enable && !!this.browserWindow;
+  },
+  speak(text, type) {
+    if (!this.browserWindow) return;
+    const execCode = `
         (function() {
             speechSynthesis.cancel();
             const utter = new SpeechSynthesisUtterance(${JSON.stringify(text)});
@@ -71,12 +68,11 @@ export default defineTtsProvider(
     })()}
             speechSynthesis.speak(utter);
         })()`;
-      logger('execCode: %s', execCode);
-      this.browserWindow.webContents.executeJavaScript(execCode, true);
-    },
-    destroy() {
-      this.browserWindow?.destroy();
-      this.browserWindow = null;
-    },
+    logger('execCode: %s', execCode);
+    this.browserWindow.webContents.executeJavaScript(execCode, true);
   },
-);
+  destroy() {
+    this.browserWindow?.destroy();
+    this.browserWindow = null;
+  },
+});

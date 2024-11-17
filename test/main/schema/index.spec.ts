@@ -103,7 +103,7 @@ describe('Schema', () => {
   });
 
   it('enum', () => {
-    const schema = { type: String, enum: ['foo', 'bar'] as const };
+    const schema = ['foo', 'bar'];
     'foo' satisfies SchemaType<typeof schema>;
     const jsonSchema = toJSONSchema(schema);
     const validate = ajv.compile(jsonSchema);

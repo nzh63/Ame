@@ -1,20 +1,12 @@
-import type { BaseProviderMethods, BaseProviderOptions, Methods } from './BaseProvider';
+import type { BaseProviderConfig, Methods } from './BaseProvider';
 import { BaseProvider } from './BaseProvider';
 import logger from '@logger/providers/translateProvider';
 import type { Schema } from '@main/schema';
 
-export type TranslateProviderMethods<ID extends string, S extends Schema, D, M extends Methods> = {
+export type TranslateProviderConfig<ID extends string, S extends Schema, D, M extends Methods> = {
   translate: (text: string) => Ame.Awaitable<string | Generator<string> | AsyncGenerator<string>>;
-} & BaseProviderMethods<ID, S, D, M, TranslateProvider<ID, S, D, M>>;
+} & BaseProviderConfig<ID, S, D, M, TranslateProvider<ID, S, D, M>>;
 
-export type TranslateProviderConfig<ID extends string, S extends Schema, D, M extends Methods> = BaseProviderOptions<
-  ID,
-  S,
-  D
-> &
-  TranslateProviderMethods<ID, S, D, M>;
-
-// eslint-disable-next-line @typescript-eslint/ban-types
 export class TranslateProvider<
   ID extends string = string,
   S extends Schema = any,

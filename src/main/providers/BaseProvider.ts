@@ -1,39 +1,30 @@
-/* eslint-disable @typescript-eslint/ban-types */
 import logger from '@logger/providers/baseProvider';
 import type { Schema, SchemaDescription, SchemaType, JSONSchema } from '@main/schema';
 import { toJSONSchema } from '@main/schema';
 import store from '@main/store';
 import { defaultsDeep } from 'lodash-es';
 
-export interface BaseProviderOptions<ID extends string = string, S extends Schema = any, D = unknown> {
-  id: ID;
-  optionsSchema: S;
-  defaultOptions: SchemaType<S>;
-  optionsDescription?: SchemaDescription<S>;
-  description?: string;
-  data: (this: undefined) => D;
-}
 export interface Methods {
   readonly [name: string]: () => unknown;
 }
-export type BaseProviderMethods<
-  ID extends string,
-  S extends Schema,
-  D,
-  M extends Methods,
-  P extends BaseProvider<ID, S, D, M>,
-> = {
-  init?: () => void | Promise<void>;
-  isReady?: () => boolean;
-  destroy?: () => void;
-  methods?: M & ProviderThisType<P>;
-} & ProviderThisType<P>;
 export type BaseProviderConfig<
   ID extends string = string,
   S extends Schema = any,
   D = unknown,
   M extends Methods = {},
-> = BaseProviderOptions<ID, S, D> & BaseProviderMethods<ID, S, D, M, BaseProvider<ID, S, D, M>>;
+  P extends BaseProvider<ID, S, D, M> = any,
+> = {
+  id: ID;
+  optionsSchema: S;
+  defaultOptions: NoInfer<SchemaType<S>>;
+  optionsDescription?: NoInfer<SchemaDescription<S>>;
+  description?: string;
+  data: (this: undefined) => D;
+  init?: () => void | Promise<void>;
+  isReady?: () => boolean;
+  destroy?: () => void;
+  methods?: M & ProviderThisType<P>;
+} & ProviderThisType<P>;
 
 export type ProviderThisType<P extends BaseProvider> = ThisType<
   P &
@@ -41,6 +32,7 @@ export type ProviderThisType<P extends BaseProvider> = ThisType<
     Omit<P['$data'], keyof P | keyof P['$options']> &
     Omit<P['$methods'], keyof P | keyof P['$options'] | keyof P['$data']>
 >;
+
 export class BaseProvider<
   ID extends string = string,
   S extends Schema = any,

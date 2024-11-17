@@ -1,17 +1,13 @@
 import { defineTranslateProvider } from '@main/providers/translate';
 
-export default defineTranslateProvider(
-  {
-    id: 'echo',
-    optionsSchema: null,
-    defaultOptions: null,
-    data() {
-      return null;
-    },
+export default defineTranslateProvider({
+  id: 'echo',
+  optionsSchema: null,
+  defaultOptions: null,
+  data() {
+    return null;
   },
-  {
-    translate(t) {
-      return t;
-    },
+  translate(t) {
+    return t;
   },
-);
+});

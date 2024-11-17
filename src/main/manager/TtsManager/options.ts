@@ -2,10 +2,7 @@ import { availableTtsConfigs } from '@main/providers/tts';
 import type { SchemaType, SchemaDescription } from '@main/schema';
 
 export const ttsManagerOptionsSchema = {
-  defaultProvider: {
-    type: String,
-    enum: [...availableTtsConfigs.map((i) => i.id)],
-  },
+  defaultProvider: [...availableTtsConfigs.map((i) => i.id)],
 };
 
 export type TtsManagerOptions = SchemaType<typeof ttsManagerOptionsSchema>;
