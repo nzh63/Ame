@@ -86,12 +86,13 @@ export default defineTranslateProvider({
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const stream = await this.openai!.chat.completions.create({
         model: this.chatConfig.model,
-        messages: this.history,
+        messages: this.history.slice(0, -1),
         stream: true,
       });
       for await (const chunk of stream) {
         for (const choice of chunk.choices) {
           if (!choice.delta.content) continue;
+          cur.content += choice.delta.content;
           yield choice.delta.content;
         }
       }

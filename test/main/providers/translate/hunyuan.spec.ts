@@ -14,7 +14,7 @@ buildTest(
     },
     chatConfig: {
       model: 'hunyuan-lite',
-      maxHistory: 3,
+      maxHistory: 100,
       systemPrompt: '请将用户输入的日文翻译为中文',
     },
   },

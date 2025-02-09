@@ -119,6 +119,7 @@ export default defineTranslateProvider({
         if (!v.Choices) continue;
         for (const choice of v.Choices) {
           if (!choice.Delta?.Content) continue;
+          cur.Content += choice.Delta.Content;
           yield choice.Delta.Content;
         }
       }
