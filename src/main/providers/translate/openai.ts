@@ -18,6 +18,7 @@ export default defineTranslateProvider({
       model: String,
       maxHistory: Number,
       systemPrompt: String,
+      showReasoning: Boolean,
     },
   },
   optionsDescription: {
@@ -39,6 +40,7 @@ export default defineTranslateProvider({
       model: '模型',
       maxHistory: '最长历史大小',
       systemPrompt: 'System Prompt',
+      showReasoning: '显示思考过程',
     },
   },
   defaultOptions: {
@@ -52,6 +54,7 @@ export default defineTranslateProvider({
       model: 'gpt-4',
       maxHistory: 30,
       systemPrompt: '请将用户输入的日文翻译为中文',
+      showReasoning: false,
     },
   },
   data() {
@@ -91,9 +94,16 @@ export default defineTranslateProvider({
       });
       for await (const chunk of stream) {
         for (const choice of chunk.choices) {
-          if (!choice.delta.content) continue;
-          cur.content += choice.delta.content;
-          yield choice.delta.content;
+          if (choice.delta.content) {
+            cur.content += choice.delta.content;
+            yield choice.delta.content;
+          }
+          // @ts-expect-error for deepseek-r1
+          if (choice.delta.reasoning_content) {
+            // 思考过程不要放到下次的上下文里面
+            // @ts-expect-error for deepseek-r1
+            yield choice.delta.reasoning_content;
+          }
         }
       }
     } finally {
