@@ -48,6 +48,7 @@
 import { findWindowByClick, startExtract } from '@remote';
 import GameCard from '@render/component/GameCard.vue';
 import store from '@render/store';
+import electron from 'electron';
 import { quote } from 'shell-quote';
 import { MessagePlugin } from 'tdesign-vue-next';
 import { v4 as uuidv4 } from 'uuid';
@@ -98,13 +99,15 @@ export default defineComponent({
     async drop(e: DragEvent) {
       e.preventDefault();
       this.draging = false;
-      const files = Array.from(e.dataTransfer?.files ?? []).filter((i) => /\.exe$/.test(i.path));
+      const files = Array.from(e.dataTransfer?.files ?? []);
       const newGames: Ame.GameSetting[] = [];
-      for (const { path, name } of files) {
+      for (const i of files) {
+        const path = electron.webUtils.getPathForFile(i);
+        if (!/\.exe$/.test(path)) continue;
         newGames.push({
           uuid: uuidv4(),
           path,
-          name,
+          name: i.name,
           execShell: '& ' + quote([path]),
           type: 'textractor',
           hookCode: '',
