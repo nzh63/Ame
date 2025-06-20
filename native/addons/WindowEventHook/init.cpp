@@ -107,7 +107,8 @@ napi_value startWindowEventHook(napi_env env, napi_callback_info info, std::func
     }
 
     napi_value resource_name;
-    napi_threadsafe_function tsfn = nullptr;
+    napi_threadsafe_function tsfn;
+    tsfn = nullptr;
     NAPI_CALL(napi_create_string_utf8(env, "WindowEventHookCallback", NAPI_AUTO_LENGTH, &resource_name));
     NAPI_CALL(napi_create_threadsafe_function(env, argv[1], nullptr, resource_name, 0, 1, nullptr, nullptr, nullptr,
                                               callJsCallback, &tsfn));

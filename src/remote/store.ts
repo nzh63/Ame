@@ -1,10 +1,13 @@
 import logger from '@logger/store';
 import { defineRemoteFunction } from '@remote/common';
 
-export const storeGet = defineRemoteFunction('store-get', async (event, key: string, defaultValue?: any) => {
-  const { default: store } = await import('@main/store');
-  return store.get(key, defaultValue);
-});
+export const storeGet = defineRemoteFunction(
+  'store-get',
+  async <K extends string>(event: any, key: K, defaultValue?: any) => {
+    const { default: store } = await import('@main/store');
+    return store.get(key, defaultValue);
+  },
+);
 
 export const storeSet = defineRemoteFunction('store-set', async (event, key: string, value?: any) => {
   const { default: store } = await import('@main/store');

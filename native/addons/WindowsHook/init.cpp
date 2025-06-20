@@ -13,10 +13,11 @@ napi_value startHook(napi_env env, napi_callback_info info, std::function<HHOOK(
     size_t argc = 1;
     napi_value argv[1];
     std::vector<PID> pids;
-    NAPI_CALL_EXPECT(napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr), argc == 1, "expect 1 argument.", env);
+        NAPI_CALL_EXPECT(napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr), argc == 1, "expect 1 argument.", env);
 
     napi_value resource_name;
-    napi_threadsafe_function tsfn = nullptr;
+    napi_threadsafe_function tsfn;
+    tsfn = nullptr;
     NAPI_CALL(napi_create_string_utf8(env, "WindowHookCallback", NAPI_AUTO_LENGTH, &resource_name));
     NAPI_CALL(napi_create_threadsafe_function(env, argv[0], nullptr, resource_name, 0, 1, nullptr, nullptr, nullptr,
                                               callJsCallback, &tsfn));

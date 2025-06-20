@@ -19,7 +19,7 @@
                 '<(PRODUCT_DIR)/DrEyeCli.exe',
                 '<(PRODUCT_DIR)/JBeijingCli.exe'
             ],
-            'destination': '<(module_root_dir)/../../static/native/bin'
+            'destination': '<(module_root_dir)/../../build/static/native/bin'
         }]
     }]
 }

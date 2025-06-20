@@ -95,12 +95,14 @@ void completeCapture(napi_env env, napi_status status, void *_data) {
     NAPI_CALL(napi_create_uint32(env, data.width, &width));
     NAPI_CALL(napi_create_uint32(env, data.height, &height));
     NAPI_CALL(napi_get_reference_value(env, data.buffer, &buffer));
-    napi_property_descriptor desc[3] = {
-        {"width", nullptr, nullptr, nullptr, nullptr, width, napi_enumerable, nullptr},
-        {"height", nullptr, nullptr, nullptr, nullptr, height, napi_enumerable, nullptr},
-        {"buffer", nullptr, nullptr, nullptr, nullptr, buffer, napi_enumerable, nullptr}};
-    NAPI_CALL(napi_create_object(env, &result));
-    NAPI_CALL(napi_define_properties(env, result, 3, desc));
+    {
+        napi_property_descriptor desc[3] = {
+            {"width", nullptr, nullptr, nullptr, nullptr, width, napi_enumerable, nullptr},
+            {"height", nullptr, nullptr, nullptr, nullptr, height, napi_enumerable, nullptr},
+            {"buffer", nullptr, nullptr, nullptr, nullptr, buffer, napi_enumerable, nullptr}};
+        NAPI_CALL(napi_create_object(env, &result));
+        NAPI_CALL(napi_define_properties(env, result, 3, desc));
+    }
     NAPI_CALL(napi_resolve_deferred(env, data.deferred, result));
     data.deferred = nullptr;
     NAPI_CALL(napi_delete_async_work(env, data.work));

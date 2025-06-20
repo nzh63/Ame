@@ -52,7 +52,7 @@ export default ({ mode } = { mode: 'production' }) =>
             thirdParty: {
               includePrivate: false,
               output: {
-                file: path.join(import.meta.dirname, '../dist/license.dependencies.render.json'),
+                file: path.join(import.meta.dirname, '../build/license.dependencies.render.json'),
                 template(dependencies) {
                   return JSON.stringify(dependencies);
                 },
@@ -62,7 +62,7 @@ export default ({ mode } = { mode: 'production' }) =>
         : null,
     ],
     build: {
-      outDir: path.join(import.meta.dirname, '../dist/render'),
+      outDir: path.join(import.meta.dirname, '../build/render'),
       emptyOutDir: true,
       minify: mode === 'production',
       sourcemap: mode !== 'production',
@@ -81,8 +81,8 @@ export default ({ mode } = { mode: 'production' }) =>
       alias: {
         '@render': path.join(import.meta.dirname, '../src/render'),
         '@remote': path.join(import.meta.dirname, '../src/remote'),
-        '@static': path.join(import.meta.dirname, '../static'),
         '@assets': path.join(import.meta.dirname, '../assets'),
+        '@static': path.join(import.meta.dirname, '../build/static'),
       },
     },
   }) satisfies UserConfig;

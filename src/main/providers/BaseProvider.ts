@@ -51,7 +51,7 @@ export class BaseProvider<
   public constructor(
     public readonly $config: C,
     getStoreOptions: () => SchemaType<S> = () =>
-      store.get<string, SchemaType<S>>(`${(this.constructor as typeof BaseProvider).providersStoreKey}.${$config.id}`),
+      store.get(`${(this.constructor as typeof BaseProvider).providersStoreKey}.${$config.id}`),
   ) {
     this.$id = $config.id;
     this.$optionsSchema = $config.optionsSchema;

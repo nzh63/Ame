@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-2019
+    runs-on: windows-2025
 
     strategy:
       matrix:
@@ -52,4 +52,4 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: build-${{ matrix.arch }}
-          path: build/*.exe
+          path: build/nsis/*.exe

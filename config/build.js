@@ -4,22 +4,19 @@
 const os = require('os');
 const fs = require('fs');
 const fsPromise = require('fs').promises;
-const path = require('path');
+const path = require('path').posix;
 const stream = require('stream');
 const util = require('util');
 const child_process = require('child_process');
 const electron = require('electron');
 const yauzl = require('yauzl');
-const got = require('got');
-const glob = require('glob');
+const { got } = require('got');
+const { glob } = require('glob');
 
 const rollup = require('rollup');
 const { build: electronBuilder } = require('electron-builder');
 
-const { register } = require('module');
-const { pathToFileURL } = require('url');
-require('ts-node/register');
-register('ts-node/esm', pathToFileURL('./'));
+require('tsx');
 
 function extract(zipPath, files, dst) {
   return new Promise((resolve, reject) => {
@@ -76,10 +73,10 @@ async function checkFiles(files) {
 
 async function downloadTextractor(version = '5.2.0') {
   const files = [
-    'static/lib/x86/TextractorCLI.exe',
-    'static/lib/x86/texthook.dll',
-    'static/lib/x64/TextractorCLI.exe',
-    'static/lib/x64/texthook.dll',
+    'build/static/lib/x86/TextractorCLI.exe',
+    'build/static/lib/x86/texthook.dll',
+    'build/static/lib/x64/TextractorCLI.exe',
+    'build/static/lib/x64/texthook.dll',
   ];
   if (await checkFiles(files)) return;
 
@@ -90,7 +87,7 @@ async function downloadTextractor(version = '5.2.0') {
   try {
     const license = gotLicense(
       'https://github.com/Artikash/Textractor/raw/master/LICENSE',
-      path.join(__dirname, '../static/lib/LICENSE.Textractor.txt'),
+      path.join(__dirname, '../build/static/lib/LICENSE.Textractor.txt'),
     );
     await pipeline(
       got.stream(url).on('downloadProgress', (progress) => {
@@ -102,31 +99,31 @@ async function downloadTextractor(version = '5.2.0') {
     );
     await extract(
       path.join(tmp, './Textractor.zip'),
-      files.map((i) => i.replace('static/lib/', 'Textractor/')),
-      (entry) => entry.fileName.replace(/^Textractor\//, path.join(__dirname, '../static/lib/')),
+      files.map((i) => i.replace('build/static/lib/', 'Textractor/')),
+      (entry) => entry.fileName.replace(/^Textractor\//, path.join(__dirname, '../build/static/lib/')),
     );
     await fsPromise.rm(tmp, { recursive: true });
     await license;
   } catch (e) {
-    await fsPromise.rm('static/lib', { recursive: true, force: true });
+    await fsPromise.rm('build/static/lib', { recursive: true, force: true });
     throw e;
   }
 }
 
 async function downloadLanguageData() {
-  const files = ['static/lang-data/jpn.traineddata'];
+  const files = ['build/static/lang-data/jpn.traineddata'];
   if (await checkFiles(files)) return;
 
   const pipeline = util.promisify(stream.pipeline);
   try {
     const license = gotLicense(
       'https://github.com/tesseract-ocr/tessdata_fast/raw/main/LICENSE',
-      path.join(__dirname, '../static/lang-data/LICENSE.tesseract.txt'),
+      path.join(__dirname, '../build/static/lang-data/LICENSE.tesseract.txt'),
     );
     for (const file of files) {
       const dstPath = path.join(__dirname, '../', file);
       fs.mkdirSync(path.dirname(dstPath), { recursive: true });
-      const url = `https://github.com/tesseract-ocr/tessdata_fast/raw/main/${file.replace('static/lang-data/', '')}`;
+      const url = `https://github.com/tesseract-ocr/tessdata_fast/raw/main/${file.replace('build/static/lang-data/', '')}`;
       console.log('downloading', url);
       await pipeline(
         got.stream(url).on('downloadProgress', (progress) => {
@@ -139,7 +136,7 @@ async function downloadLanguageData() {
     }
     await license;
   } catch (e) {
-    await fsPromise.rm('static/lang-data', { recursive: true, force: true });
+    await fsPromise.rm('build/static/lang-data', { recursive: true, force: true });
     throw e;
   }
 }
@@ -151,19 +148,19 @@ async function downloadDependencies() {
 
 async function buildNative(arch = 'x64', configureOnly = false) {
   const files = [
-    `dist/addons/${arch}/ScreenCapturer.node`,
-    `dist/addons/${arch}/WindowEventHook.node`,
-    `dist/addons/${arch}/WindowsHook.node`,
-    `dist/addons/${arch}/Process.node`,
-    'static/native/bin/JBeijingCli.exe',
-    'static/native/bin/DrEyeCli.exe',
+    `build/addons/${arch}/ScreenCapturer.node`,
+    `build/addons/${arch}/WindowEventHook.node`,
+    `build/addons/${arch}/WindowsHook.node`,
+    `build/addons/${arch}/Process.node`,
+    'build/static/native/bin/JBeijingCli.exe',
+    'build/static/native/bin/DrEyeCli.exe',
   ];
   if (await checkFiles(files)) return;
 
   console.log('build native module...');
 
-  await gypBuild('native/cli', 'static/native/bin', 'ia32');
-  await gypBuild('native/addons', `dist/addons/${arch}`, arch);
+  await gypBuild('native/cli', 'build/static/native/bin', 'ia32');
+  await gypBuild('native/addons', `build/addons/${arch}`, arch);
 
   // eslint-disable-next-line max-params
   async function gypBuild(dir, output, arch, configureOptions = []) {
@@ -199,7 +196,7 @@ async function buildRender(mode = 'production') {
 }
 
 async function clear(type) {
-  await fsPromise.rm(path.join(__dirname, '../dist', type), { recursive: true, force: true });
+  await fsPromise.rm(path.join(__dirname, '../build', type), { recursive: true, force: true });
 }
 
 async function build(type, mode = 'production') {
@@ -266,7 +263,7 @@ function startElectron() {
     '--inspect=5858',
     '--require',
     'source-map-support/register',
-    path.join(__dirname, '../dist/main/index.js'),
+    path.join(__dirname, '../build/main/index.js'),
   ];
 
   args = args.concat(process.argv.slice(3));
@@ -316,7 +313,7 @@ function killElectron() {
 function buildLicense() {
   const self = require('../package.json');
   const map = new Map();
-  const files = glob.sync(path.join(__dirname, '../dist/license.*.json'));
+  const files = glob.sync(path.join(__dirname, '../build/license.*.json'));
   for (const file of files) {
     const json = require(file);
     for (const dep of json) {
@@ -326,7 +323,7 @@ function buildLicense() {
     }
   }
   const deps = [...map.values()].sort((a, b) => (a.name < b.name ? -1 : 1));
-  const out = fs.createWriteStream(path.join(__dirname, '../dist/LICENSE.3rdparty.txt'));
+  const out = fs.createWriteStream(path.join(__dirname, '../build/LICENSE.3rdparty.txt'));
   for (const dep of deps) {
     out.write(
       `${dep.name}\n${(dep.author || {}).name || ''}${(dep.author || {}).email ? `<${dep.author.email}>` : ''}\n`,
@@ -352,22 +349,13 @@ async function buildJs(mode = 'production') {
   if (mode === 'production') buildLicense();
 }
 
-async function removeSharpVendor(cliArgs) {
-  const platform = require('sharp/lib/platform');
-  process.env.npm_config_arch = cliArgs.arch;
-  const platformJson = await util.promisify(glob)(path.join(__dirname, '../node_modules/sharp/vendor/*/platform.json'));
-  if (platformJson[0] && platform() !== require(platformJson[0])) {
-    await fsPromise.rm(path.join(__dirname, '../node_modules/sharp/vendor'), { recursive: true, force: true });
-  }
-}
-
 async function buildNsis(cliArgs = {}) {
   await downloadDependencies();
-  await removeSharpVendor(cliArgs);
   await buildNative(cliArgs.arch);
   await buildJs('production');
   const args = cliArgs;
   args[cliArgs.arch] = true;
+  // args['config'] = path.join(__dirname, '../electron-builder.js');
   delete args.arch;
   delete args.mode;
   await electronBuilder(args);
@@ -385,7 +373,7 @@ function dev(mode = 'development') {
 
 function clean() {
   return Promise.all(
-    ['dist', 'static/native'].map((i) => fsPromise.rm(path.join(__dirname, '..', i), { recursive: true, force: true })),
+    ['build'].map((i) => fsPromise.rm(path.join(__dirname, '..', i), { recursive: true, force: true })),
   );
 }
 

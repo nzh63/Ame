@@ -93,7 +93,7 @@ app.on('ready', () => {
             buttons: ['下载', '取消'],
           });
           if (response === 0) {
-            shell.openExternal(res.url);
+            shell.openExternal(json.url);
           }
         }
       } catch (e) {

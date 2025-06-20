@@ -14,11 +14,13 @@ napi_value isWow64(napi_env env, napi_callback_info info) {
     std::vector<napi_threadsafe_function>::iterator it;
     NAPI_CALL_EXPECT(napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr), argc == 1, "expect 1 argument.", env);
     NAPI_CALL(napi_get_value_uint32(env, argv[0], (uint32_t *)&pid));
-    auto handle = OpenProcess(PROCESS_QUERY_INFORMATION, false, pid);
-    ULONG_PTR ret = 0;
+    HANDLE handle;
+    handle = OpenProcess(PROCESS_QUERY_INFORMATION, false, pid);
+    ULONG_PTR ret;
     unsigned long retLen;
     NtQueryInformationProcess(handle, ProcessWow64Information, &ret, sizeof ret, &retLen);
-    bool isWow64 = ret != 0;
+    bool isWow64;
+    isWow64 = ret != 0;
 
     napi_value result;
     NAPI_CALL(napi_get_boolean(env, isWow64, &result));
@@ -144,7 +146,8 @@ napi_value getPidFromPoint(napi_env env, napi_callback_info info) {
     POINT pt;
     pt.x = x;
     pt.y = y;
-    auto hwnd = WindowFromPoint(pt);
+    HWND hwnd;
+    hwnd = WindowFromPoint(pt);
     if (hwnd == nullptr) {
         napi_value undefined;
         NAPI_CALL(napi_get_undefined(env, &undefined));

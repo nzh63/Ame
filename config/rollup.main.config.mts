@@ -37,8 +37,8 @@ export default (mode = 'production') =>
           '@main': path.join(import.meta.dirname, '../src/main'),
           '@render': path.join(import.meta.dirname, '../src/render'),
           '@remote': path.join(import.meta.dirname, '../src/remote'),
-          '@static': path.join(import.meta.dirname, '../static'),
           '@assets': path.join(import.meta.dirname, '../assets'),
+          '@static': path.join(import.meta.dirname, '../build/static'),
         },
       }),
       esbuild({
@@ -61,8 +61,8 @@ export default (mode = 'production') =>
       copy({
         targets: [
           {
-            src: ['node_modules/sharp/build/Release/*.node', 'node_modules/sharp/build/Release/*.dll'],
-            dest: path.join(import.meta.dirname, '../dist/build/Release'),
+            src: [`node_modules/@img/sharp-${process.platform}-${process.env.npm_config_arch}/lib/*`],
+            dest: path.join(import.meta.dirname, '../build/src/build/Release'),
           },
         ],
       }),
@@ -71,7 +71,7 @@ export default (mode = 'production') =>
             thirdParty: {
               includePrivate: false,
               output: {
-                file: path.join(import.meta.dirname, '../dist/license.dependencies.main.json'),
+                file: path.join(import.meta.dirname, '../build/license.dependencies.main.json'),
                 template(dependencies: any) {
                   return JSON.stringify(dependencies);
                 },
@@ -82,7 +82,7 @@ export default (mode = 'production') =>
     ],
     input: path.join(import.meta.dirname, mode === 'production' ? '../src/main/index.ts' : '../src/main/index.dev.ts'),
     output: {
-      dir: path.join(import.meta.dirname, '../dist/main'),
+      dir: path.join(import.meta.dirname, '../build/main'),
       entryFileNames: 'index.js',
       chunkFileNames: 'chunk-[hash].js',
       // manualChunks(id, meta) {

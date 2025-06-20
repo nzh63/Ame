@@ -6,10 +6,9 @@ import json from '@rollup/plugin-json';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import { wasm } from '@rollup/plugin-wasm';
 import builtinModules from 'builtin-modules';
-import glob from 'glob';
+import { glob } from 'glob';
 import path from 'path';
 import type { RollupOptions } from 'rollup';
-import copy from 'rollup-plugin-copy';
 import esbuild from 'rollup-plugin-esbuild';
 
 const resolve = nodeResolve({
@@ -46,8 +45,8 @@ export default (mode = 'production') =>
           '@main': path.join(import.meta.dirname, '../src/main'),
           '@render': path.join(import.meta.dirname, '../src/render'),
           '@remote': path.join(import.meta.dirname, '../src/remote'),
-          '@static': path.join(import.meta.dirname, '../static'),
           '@assets': path.join(import.meta.dirname, '../assets'),
+          '@static': path.join(import.meta.dirname, '../build/static'),
         },
       }),
       esbuild({
@@ -67,22 +66,14 @@ export default (mode = 'production') =>
       wasm(),
       native(),
       commonjs({
-        dynamicRequireRoot: path.join(import.meta.dirname, '../dist/test'),
+        dynamicRequireRoot: path.join(import.meta.dirname, '../build/test'),
         dynamicRequireTargets: ['../build/Release/*.node'],
         ignoreDynamicRequires: true,
-      }),
-      copy({
-        targets: [
-          {
-            src: ['node_modules/sharp/build/Release/*.node', 'node_modules/sharp/build/Release/*.dll'],
-            dest: path.join(import.meta.dirname, '../dist/build/Release'),
-          },
-        ],
       }),
     ],
     input: testEntries,
     output: {
-      dir: path.join(import.meta.dirname, '../dist/test'),
+      dir: path.join(import.meta.dirname, '../build/test'),
       entryFileNames: '[name].js',
       format: 'commonjs',
       sourcemap: mode !== 'production',

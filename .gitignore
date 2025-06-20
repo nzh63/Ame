@@ -1,12 +1,7 @@
 node_modules
 .DS_Store
 build
-dist
-dist-ssr
 *.local
-static/lib
-static/lang-data
-static/native
 
 .yarn/*
 !.yarn/patches

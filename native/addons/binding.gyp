@@ -38,7 +38,7 @@
                 '<(PRODUCT_DIR)/WindowsHook.node',
                 '<(PRODUCT_DIR)/Process.node',
             ],
-            'destination': '<(module_root_dir)/../../dist/addons/<(target_arch)'
+            'destination': '<(module_root_dir)/../../build/addons/<(target_arch)'
         }]
     }]
 }

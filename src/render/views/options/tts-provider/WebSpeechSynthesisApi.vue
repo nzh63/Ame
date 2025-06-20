@@ -24,6 +24,7 @@ export default defineComponent({
         voices = speechSynthesis.getVoices().map((i) => i.voiceURI);
         getMeta.value = async (id) => {
           const meta = await getProviderOptionsMeta('tts', id);
+          if (typeof meta.jsonSchema !== 'object') return meta;
           const voice = meta.jsonSchema.properties?.voice;
           if (typeof voice === 'object') {
             if (voice?.properties?.originalVoiceURI && voice?.properties?.originalVoiceURI !== true) {

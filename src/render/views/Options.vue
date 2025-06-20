@@ -120,7 +120,7 @@ export default defineComponent({
       readableName: string;
       key: (string | number)[];
       typeInfo: string[];
-      enum?: any[];
+      enum?: readonly any[];
       enumSelectId: number;
       help?: string;
     }
@@ -155,9 +155,7 @@ export default defineComponent({
             readableName: optionsDescription?.readableName ?? optionsDescription ?? key.join('.'),
             key,
             typeInfo:
-              typeof root.type === 'string'
-                ? [root.type]
-                : (root.anyOf?.map((i) => (i as JSONSchema).type as string) ?? []),
+              typeof root.type === 'string' ? [root.type] : (root.anyOf?.map((i) => (i as any).type as string) ?? []),
             enumSelectId: -1,
           };
           if (root.enum) {

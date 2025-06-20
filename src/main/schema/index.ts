@@ -115,7 +115,9 @@ export function toJSONSchema(root: Schema, defaultValue?: any): JSONSchema {
       anyOf: root
         .map((i) => toJSONSchema(i, undefined))
         .map((i) => {
-          delete i.default;
+          if (typeof i === 'object') {
+            delete i.default;
+          }
           return i;
         }),
       default: defaultValue,

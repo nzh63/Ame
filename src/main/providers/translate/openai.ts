@@ -1,7 +1,7 @@
 import { defineTranslateProvider } from '@main/providers/translate';
 import { TaskQueue } from '@main/utils';
 import OpenAI from 'openai';
-import type { ChatCompletionMessageParam } from 'openai/resources';
+import type { ChatCompletionMessageParam } from 'openai/resources/index';
 
 export default defineTranslateProvider({
   id: 'OpenAI-Compatible API',

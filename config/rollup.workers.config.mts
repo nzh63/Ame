@@ -6,7 +6,7 @@ import json from '@rollup/plugin-json';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import { wasm } from '@rollup/plugin-wasm';
 import builtinModules from 'builtin-modules';
-import glob from 'glob';
+import { glob } from 'glob';
 import path from 'path';
 import type { RollupOptions } from 'rollup';
 import copy from 'rollup-plugin-copy';
@@ -49,8 +49,8 @@ export default (mode = 'production') =>
           '@main': path.join(import.meta.dirname, '../src/main'),
           '@render': path.join(import.meta.dirname, '../src/render'),
           '@remote': path.join(import.meta.dirname, '../src/remote'),
-          '@static': path.join(import.meta.dirname, '../static'),
           '@assets': path.join(import.meta.dirname, '../assets'),
+          '@static': path.join(import.meta.dirname, '../build/static'),
         },
       }),
       esbuild({
@@ -74,7 +74,7 @@ export default (mode = 'production') =>
         targets: [
           {
             src: 'node_modules/tesseract.js-core/tesseract-core-simd.wasm',
-            dest: path.join(import.meta.dirname, '../dist/workers'),
+            dest: path.join(import.meta.dirname, '../build/workers'),
           },
         ],
       }),
@@ -83,7 +83,7 @@ export default (mode = 'production') =>
             thirdParty: {
               includePrivate: false,
               output: {
-                file: path.join(import.meta.dirname, '../dist/license.dependencies.workers.json'),
+                file: path.join(import.meta.dirname, '../build/license.dependencies.workers.json'),
                 template(dependencies: any) {
                   return JSON.stringify(dependencies);
                 },
@@ -94,7 +94,7 @@ export default (mode = 'production') =>
     ],
     input: workerEntries,
     output: {
-      dir: path.join(import.meta.dirname, '../dist/workers'),
+      dir: path.join(import.meta.dirname, '../build/workers'),
       entryFileNames: (chunkInfo) => {
         const workerBase = path.join(import.meta.dirname, '../src/workers').replace(/\\/g, '/');
         const facadeModuleId = (chunkInfo.facadeModuleId ?? '').replace(/\\/g, '/');

@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "target": "esnext",
-    "module": "esnext",
-    "moduleResolution": "node",
+    "module": "preserve",
+    "moduleResolution": "bundler",
     "strict": true,
     "jsx": "preserve",
     "sourceMap": true,
@@ -18,7 +18,7 @@
       "@remote/*": ["./src/remote/*"],
       "@remote": ["./src/remote/index"],
       "@type/*": ["./src/type/*"],
-      "@static/*": ["./static/*"]
+      "@static/*": ["./build/static/*"]
     }
   },
   "include": ["src/**/*", "src/**/*.vue", "test/**/*.ts"],
