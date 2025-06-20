@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-
 /* eslint-disable prefer-arrow-callback */
 import { defineRemoteFunction } from '@remote/common';
 

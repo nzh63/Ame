@@ -21,4 +21,5 @@ module.exports = {
   embeddedLanguageFormatting: 'auto',
   singleAttributePerLine: false,
   plugins: ['@trivago/prettier-plugin-sort-imports'],
+  importOrderParserPlugins: ['typescript', 'jsx', 'explicitResourceManagement'],
 };

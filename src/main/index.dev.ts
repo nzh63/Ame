@@ -4,7 +4,6 @@
  *  modify this file, but it can be used to extend your development
  *  environment.
  */
-
 /* eslint-disable */
 // Install `electron-debug` with `devtron`
 // Require `main` process to boot app
