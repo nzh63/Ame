@@ -76,38 +76,34 @@ export default defineTranslateProvider({
     return this.enable && !!this.openai;
   },
   async *translate(t) {
-    const lock = await this.taskQueue.acquire();
-    try {
-      this.history.push({ role: 'user', content: t });
-      const cur = { role: 'assistant' as const, content: '' };
-      this.history.push(cur);
-      while (this.history.length > this.chatConfig.maxHistory) {
-        while (this.history[1].role !== 'user' || this.history.length > this.chatConfig.maxHistory) {
-          this.history.splice(1, 1);
-        }
+    using _lock = await this.taskQueue.acquire();
+    this.history.push({ role: 'user', content: t });
+    const cur = { role: 'assistant' as const, content: '' };
+    this.history.push(cur);
+    while (this.history.length > this.chatConfig.maxHistory) {
+      while (this.history[1].role !== 'user' || this.history.length > this.chatConfig.maxHistory) {
+        this.history.splice(1, 1);
       }
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const stream = await this.openai!.chat.completions.create({
-        model: this.chatConfig.model,
-        messages: this.history.slice(0, -1),
-        stream: true,
-      });
-      for await (const chunk of stream) {
-        for (const choice of chunk.choices) {
-          if (choice.delta.content) {
-            cur.content += choice.delta.content;
-            yield choice.delta.content;
-          }
+    }
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const stream = await this.openai!.chat.completions.create({
+      model: this.chatConfig.model,
+      messages: this.history.slice(0, -1),
+      stream: true,
+    });
+    for await (const chunk of stream) {
+      for (const choice of chunk.choices) {
+        if (choice.delta.content) {
+          cur.content += choice.delta.content;
+          yield choice.delta.content;
+        }
+        // @ts-expect-error for deepseek-r1
+        if (choice.delta.reasoning_content) {
+          // 思考过程不要放到下次的上下文里面
           // @ts-expect-error for deepseek-r1
-          if (choice.delta.reasoning_content) {
-            // 思考过程不要放到下次的上下文里面
-            // @ts-expect-error for deepseek-r1
-            yield choice.delta.reasoning_content;
-          }
+          yield choice.delta.reasoning_content;
         }
       }
-    } finally {
-      lock.release();
     }
   },
 });

@@ -42,6 +42,9 @@ export class TaskQueue {
           task.release = () => {};
           resolve(Result.Finished);
         },
+        [Symbol.dispose]() {
+          task.release();
+        },
       };
     });
     return task;
@@ -50,4 +53,5 @@ export class TaskQueue {
 
 interface Lock {
   release: () => void;
+  [Symbol.dispose]: () => void;
 }

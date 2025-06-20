@@ -260,7 +260,7 @@ export class Context {
     }
     const callback: WatchCallback = ({ key, text }) => {
       this.translateManager.translate(key, text, (err, result) => {
-        if (!this.translatorWindow.webContents) return;
+        if (this.translatorWindow.isDestroyed() || !this.translatorWindow.webContents) return;
         if (!err) this.translatorWindow.webContents.send('translate-watch-list-update', result);
         else this.translatorWindow.webContents.send('translate-watch-list-update-error', err, result);
       });

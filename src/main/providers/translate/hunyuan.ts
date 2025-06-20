@@ -10,7 +10,7 @@ import type {
 export default defineTranslateProvider({
   id: '腾讯混元大模型',
   description:
-    '腾讯混元大模型，详见 hhttps://cloud.tencent.com/product/hunyuan \n此翻译器会向 hunyuan.tencentcloudapi.com 发送数据',
+    '腾讯混元大模型，详见 https://cloud.tencent.com/product/hunyuan \n此翻译器会向 hunyuan.tencentcloudapi.com 发送数据',
   optionsSchema: {
     enable: Boolean,
     apiConfig: {
@@ -98,33 +98,30 @@ export default defineTranslateProvider({
   },
   async *translate(t) {
     if (!this.client) throw new Error('client have not been init');
-    const lock = await this.taskQueue.acquire();
-    try {
-      this.history.push({ Role: 'user', Content: t });
-      const cur = { Role: 'assistant', Content: '' };
-      this.history.push(cur);
-      while (this.history.length > this.chatConfig.maxHistory) {
-        while (this.history[1].Role !== 'user' || this.history.length > this.chatConfig.maxHistory) {
-          this.history.splice(1, 1);
-        }
+    using _lock = await this.taskQueue.acquire();
+    this.history.push({ Role: 'user', Content: t });
+    const cur = { Role: 'assistant', Content: '' };
+    this.history.push(cur);
+    while (this.history.length > this.chatConfig.maxHistory) {
+      while (this.history[1].Role !== 'user' || this.history.length > this.chatConfig.maxHistory) {
+        this.history.splice(1, 1);
       }
-      const stream = (await this.client.ChatCompletions({
-        Model: this.chatConfig.model,
-        Stream: true,
-        StreamModeration: true,
-        Messages: this.history.slice(0, -1),
-      })) as SSEResponseModel;
-      for await (const chunk of stream) {
-        const v: ChatCompletionsResponse = JSON.parse(chunk.data);
-        if (!v.Choices) continue;
-        for (const choice of v.Choices) {
-          if (!choice.Delta?.Content) continue;
-          cur.Content += choice.Delta.Content;
-          yield choice.Delta.Content;
-        }
+    }
+    const stream = (await this.client.ChatCompletions({
+      Model: this.chatConfig.model,
+      Stream: true,
+      StreamModeration: true,
+      Messages: this.history.slice(0, -1),
+    })) as SSEResponseModel;
+    stream.on('error', () => {});
+    for await (const chunk of stream) {
+      const v: ChatCompletionsResponse = JSON.parse(chunk.data);
+      if (!v.Choices) continue;
+      for (const choice of v.Choices) {
+        if (!choice.Delta?.Content) continue;
+        cur.Content += choice.Delta.Content;
+        yield choice.Delta.Content;
       }
-    } finally {
-      lock.release();
     }
   },
 });
