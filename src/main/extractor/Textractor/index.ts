@@ -26,8 +26,8 @@ export declare interface Textractor extends IExtractor {
 }
 
 export class Textractor extends IExtractor {
-  private static readonly TextractorCliX64 = join(__static, './lib/x64/TextractorCLI.exe');
-  private static readonly TextractorCliX86 = join(__static, './lib/x86/TextractorCLI.exe');
+  private static readonly TextractorCliX64 = join(__static, './textractor/x64/TextractorCLI.exe');
+  private static readonly TextractorCliX86 = join(__static, './textractor/x86/TextractorCLI.exe');
   private textractorCliProcess: ChildProcessWithoutNullStreams;
   private textractorCliStdoutBuffer = '';
 

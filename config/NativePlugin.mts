@@ -14,7 +14,7 @@ export default function native() {
     async load(id) {
       if (id.startsWith('@addons/')) {
         const arch = process.env.npm_config_arch || process.arch;
-        let file = id.replace(/^@addons\//, path.join(import.meta.dirname, `../build/addons/${arch}/`));
+        let file = id.replace(/^@addons\//, path.join(import.meta.dirname, `../build/native/install/${arch}/bin/`));
         if (!file.endsWith('.node')) file += '.node';
         const ref = this.emitFile({
           type: 'asset',

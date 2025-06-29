@@ -49,10 +49,7 @@ jobs:
         run: |
           corepack enable
           yarn install --frozen-lockfile
-          yarn node-gyp -C native/cli configure --arch=ia32
-          yarn node-gyp -C native/cli build -j max
-          yarn node-gyp -C native/addons configure
-          yarn node-gyp -C native/addons build -j max
+          yarn build:native
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3

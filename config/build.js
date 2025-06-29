@@ -4,7 +4,7 @@
 const os = require('os');
 const fs = require('fs');
 const fsPromise = require('fs').promises;
-const path = require('path').posix;
+const path = require('path');
 const stream = require('stream');
 const util = require('util');
 const child_process = require('child_process');
@@ -73,10 +73,10 @@ async function checkFiles(files) {
 
 async function downloadTextractor(version = '5.2.0') {
   const files = [
-    'build/static/lib/x86/TextractorCLI.exe',
-    'build/static/lib/x86/texthook.dll',
-    'build/static/lib/x64/TextractorCLI.exe',
-    'build/static/lib/x64/texthook.dll',
+    'build/static/textractor/x86/TextractorCLI.exe',
+    'build/static/textractor/x86/texthook.dll',
+    'build/static/textractor/x64/TextractorCLI.exe',
+    'build/static/textractor/x64/texthook.dll',
   ];
   if (await checkFiles(files)) return;
 
@@ -99,13 +99,13 @@ async function downloadTextractor(version = '5.2.0') {
     );
     await extract(
       path.join(tmp, './Textractor.zip'),
-      files.map((i) => i.replace('build/static/lib/', 'Textractor/')),
-      (entry) => entry.fileName.replace(/^Textractor\//, path.join(__dirname, '../build/static/lib/')),
+      files.map((i) => i.replace('build/static/textractor/', 'Textractor/')),
+      (entry) => entry.fileName.replace(/^Textractor\//, path.join(__dirname, '../build/static/textractor/')),
     );
     await fsPromise.rm(tmp, { recursive: true });
     await license;
   } catch (e) {
-    await fsPromise.rm('build/static/lib', { recursive: true, force: true });
+    await fsPromise.rm('build/static/textractor', { recursive: true, force: true });
     throw e;
   }
 }
@@ -146,44 +146,58 @@ async function downloadDependencies() {
   await downloadLanguageData();
 }
 
-async function buildNative(arch = 'x64', configureOnly = false) {
+async function buildNative(arch = 'x64') {
   const files = [
-    `build/addons/${arch}/ScreenCapturer.node`,
-    `build/addons/${arch}/WindowEventHook.node`,
-    `build/addons/${arch}/WindowsHook.node`,
-    `build/addons/${arch}/Process.node`,
-    'build/static/native/bin/JBeijingCli.exe',
-    'build/static/native/bin/DrEyeCli.exe',
+    `build/native/install/${arch}/bin/ScreenCapturer.node`,
+    `build/native/install/${arch}/bin/WindowEventHook.node`,
+    `build/native/install/${arch}/bin/WindowsHook.node`,
+    `build/native/install/${arch}/bin/Process.node`,
+    `build/static/native/bin/JBeijingCli.exe`,
+    `build/static/native/bin/DrEyeCli.exe`,
   ];
   if (await checkFiles(files)) return;
 
   console.log('build native module...');
 
-  await gypBuild('native/cli', 'build/static/native/bin', 'ia32');
-  await gypBuild('native/addons', `build/addons/${arch}`, arch);
-
-  // eslint-disable-next-line max-params
-  async function gypBuild(dir, output, arch, configureOptions = []) {
-    if (typeof configureOptions === 'string') configureOptions = [configureOptions];
-    const execFile = async (...args) => {
-      const ret = await util.promisify(child_process.execFile)(...args);
-      console.log(ret.stdout);
-      console.log(ret.stderr);
-      return ret;
-    };
-    await fsPromise.mkdir(path.join(__dirname, '..', output), { recursive: true });
-    await execFile(
-      'yarn',
-      ['node-gyp', '-C', path.join(__dirname, '..', dir), 'configure', `--arch=${arch}`, ...configureOptions],
-      { shell: true, env: { ...process.env, npm_config_arch: arch } },
-    );
-    if (configureOnly) return;
-    await execFile('yarn', ['node-gyp', '-C', path.join(__dirname, '..', dir), 'build', '-j', 'max'], {
-      shell: true,
-      env: { ...process.env, npm_config_arch: arch },
+  function spawn(command, args, options) {
+    return new Promise((resolve, reject) => {
+      const child = child_process.spawn(command, args, { ...options, stdio: 'inherit' });
+      child.once('exit', (code) => {
+        if (code === 0) resolve();
+        else reject(new Error(`child process exited with code ${code}`));
+      });
     });
-    await fsPromise.rm(path.join(__dirname, '..', dir, 'build'), { recursive: true });
   }
+
+  async function cmake(options) {
+    await fsPromise.mkdir(options.buildDir, { recursive: true });
+    await spawn('cmake', [
+      '-G',
+      'Visual Studio 17 2022',
+      '-S',
+      options.sourceDir,
+      '-B',
+      options.buildDir,
+      '-A',
+      options.arch === 'x64' ? 'x64' : 'Win32',
+      `-DCMAKE_INSTALL_PREFIX=${options.installDir}`,
+    ]);
+    await spawn('cmake', ['--build', options.buildDir, '--config', 'Release', '--parallel']);
+    await spawn('cmake', ['--install', options.buildDir]);
+  }
+
+  await cmake({
+    sourceDir: path.join(__dirname, '../native/addons'),
+    buildDir: path.join(__dirname, '../build/native/build/addons', arch),
+    installDir: path.join(__dirname, '../build/native/install', arch),
+    arch,
+  });
+  await cmake({
+    sourceDir: path.join(__dirname, '../native/cli'),
+    buildDir: path.join(__dirname, '../build/native/build/cli'),
+    installDir: path.resolve(__dirname, '../build/static/native'),
+    arch: 'ia32',
+  });
 }
 
 async function buildRender(mode = 'production') {
@@ -313,7 +327,7 @@ function killElectron() {
 function buildLicense() {
   const self = require('../package.json');
   const map = new Map();
-  const files = glob.sync(path.join(__dirname, '../build/license.*.json'));
+  const files = glob.sync(path.posix.join(__dirname, '../build/license.*.json'));
   for (const file of files) {
     const json = require(file);
     for (const dep of json) {
@@ -394,9 +408,7 @@ function clean() {
         .command('main', '构建主进程', {}, (args) => buildMain(args.mode, args.arch))
         .command('render', '构建渲染进程', {}, (args) => buildRender(args.mode))
         .command('workers', '构建workers', {}, (args) => buildWorkers(args.mode))
-        .command('native', '构建原生模块', { 'configure-only': { type: 'boolean', default: false } }, (args) =>
-          buildNative(args.arch, args['configure-only']),
-        )
+        .command('native', '构建原生模块', {}, (args) => buildNative(args.arch))
         .command('test', '构建测试', {}, async (args) => {
           await downloadDependencies();
           await buildNative(args.arch);

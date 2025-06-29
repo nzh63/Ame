@@ -1,11 +1,10 @@
-cmake_minimum_required(VERSION 3.0.0)
-project(Ame-NativeModule VERSION 0.1.0)
+cmake_minimum_required(VERSION 3.14)
+project(Ame-Native-Cli)
+
+cmake_policy(SET CMP0135 NEW)
+set(CMAKE_CXX_STANDARD 17)
 
 add_executable(JBeijingCli JBeijingCli.cpp)
 add_executable(DrEyeCli DrEyeCli.cpp)
 
-set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/../../static/native)
 install(TARGETS JBeijingCli DrEyeCli)
-
-set(CPACK_PROJECT_NAME ${PROJECT_NAME})
-set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
