@@ -25,10 +25,10 @@
       />
       <t-button class="pid" variant="dashed" @click="visible = true"> 通过PID启动 </t-button>
       <div v-for="i in 10" :key="i" class="placeholder" />
-      <t-dialog v-model:visible="visible" header="通过PID启动" @ok="start">
+      <t-dialog v-model:visible="visible" header="通过PID启动" @confirm="start">
         <t-form>
           <t-form-item label="游戏进程PID">
-            <t-input v-model:value="pid" :min="0" type="number" @keyup.enter="start">
+            <t-input v-model:value="pid" :min="0" type="number" @enter="start">
               <template #suffix>
                 <t-tooltip content="通过点击选取窗口">
                   <t-button size="small" variant="text" @click="findWindowByClick">

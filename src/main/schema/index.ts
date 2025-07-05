@@ -106,7 +106,7 @@ export function toJSONSchema(root: Schema, defaultValue?: any): JSONSchema {
             root.map((i) => ({ type: typeof i, value: i })),
             ({ type }) => type,
           ),
-        ).map(([type, values]) => ({ type: type as any, enum: values.map((i) => i.value) })),
+        ).map(([type, values]) => ({ type: type as any, examples: values.map((i) => i.value) })),
         enum: [...root],
         default: defaultValue,
       };

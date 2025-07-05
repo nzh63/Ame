@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.19)
 project(Ame-Native-Addons)
 
 cmake_policy(SET CMP0135 NEW)
@@ -35,6 +35,7 @@ file(DOWNLOAD
     ${CMAKE_CURRENT_BINARY_DIR}/node.lib
 )
 
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 set(CMAKE_SHARED_LIBRARY_SUFFIX ".node")
 set(CMAKE_SHARED_LINKER_FLAGS /DELAYLOAD:NODE.EXE)
 add_compile_definitions(BUILDING_NODE_EXTENSION)
@@ -54,3 +55,4 @@ add_subdirectory(Process)
 add_subdirectory(ScreenCapturer)
 add_subdirectory(WindowEventHook)
 add_subdirectory(WindowsHook)
+add_subdirectory(PP-OCR)

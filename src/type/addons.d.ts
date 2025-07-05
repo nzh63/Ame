@@ -46,3 +46,41 @@ declare module '@addons/Process' {
   }
   export = Process;
 }
+
+declare module '@addons/PP-OCR' {
+  interface Option {
+    gpu: 'off' | 'auto' | number;
+  }
+
+  interface Image {
+    data: Buffer;
+    info: {
+      width: number;
+      height: number;
+    };
+  }
+
+  interface RotatedRect {
+    center: { x: number; y: number };
+    size: { width: number; height: number };
+    angle: number;
+  }
+
+  export class Detecter {
+    private constructor();
+    public static create(param: string, model: string, option: Option): Promise<Detecter>;
+
+    public detect(img: Image): Promise<RotatedRect[]>;
+  }
+
+  export class Recognizer {
+    private constructor();
+    public static create(param: string, model: string, option: Option): Promise<Recognizer>;
+
+    public recognize(img: Image, boxes: RotatedRect[]): Promise<string[]>;
+  }
+
+  export namespace GPU {
+    const devices: number[];
+  }
+}

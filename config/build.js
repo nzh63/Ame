@@ -87,7 +87,7 @@ async function downloadTextractor(version = '5.2.0') {
   try {
     const license = gotLicense(
       'https://github.com/Artikash/Textractor/raw/master/LICENSE',
-      path.join(__dirname, '../build/static/lib/LICENSE.Textractor.txt'),
+      path.join(__dirname, '../build/static/textractor/LICENSE.Textractor.txt'),
     );
     await pipeline(
       got.stream(url).on('downloadProgress', (progress) => {
@@ -123,7 +123,7 @@ async function downloadLanguageData() {
     for (const file of files) {
       const dstPath = path.join(__dirname, '../', file);
       fs.mkdirSync(path.dirname(dstPath), { recursive: true });
-      const url = `https://github.com/tesseract-ocr/tessdata_fast/raw/main/${file.replace('build/static/lang-data/', '')}`;
+      const url = `https://github.com/tesseract-ocr/tessdata_fast/raw/main/${path.basename(file)}`;
       console.log('downloading', url);
       await pipeline(
         got.stream(url).on('downloadProgress', (progress) => {
@@ -141,9 +141,50 @@ async function downloadLanguageData() {
   }
 }
 
+async function downloadPPOCR() {
+  const files = [
+    'build/static/ppocr/PP-OCRv5_mobile_det.fp16.ncnn.param',
+    'build/static/ppocr/PP-OCRv5_mobile_det.fp16.ncnn.bin',
+    'build/static/ppocr/PP-OCRv5_mobile_rec.fp16.ncnn.param',
+    'build/static/ppocr/PP-OCRv5_mobile_rec.fp16.ncnn.bin',
+    'build/static/ppocr/PP-OCRv5_server_det.fp32.ncnn.param',
+    'build/static/ppocr/PP-OCRv5_server_det.fp32.ncnn.bin',
+    'build/static/ppocr/PP-OCRv5_server_rec.fp32.ncnn.param',
+    'build/static/ppocr/PP-OCRv5_server_rec.fp32.ncnn.bin',
+  ];
+  if (await checkFiles(files)) return;
+
+  const pipeline = util.promisify(stream.pipeline);
+  try {
+    const license = gotLicense(
+      'https://github.com/PaddlePaddle/PaddleOCR/raw/refs/tags/v3.1.0/LICENSE',
+      path.join(__dirname, '../build/static/ppocr/LICENSE.ppocr.txt'),
+    );
+    for (const file of files) {
+      const dstPath = path.join(__dirname, '../', file);
+      fs.mkdirSync(path.dirname(dstPath), { recursive: true });
+      const url = `https://github.com/nzh63/ppocr2ncnn/releases/download/20250705/${path.basename(file)}`;
+      console.log('downloading', url);
+      await pipeline(
+        got.stream(url).on('downloadProgress', (progress) => {
+          process.stderr.write(
+            ` ${Math.round(progress.percent * 100)}% ${progress.transferred} / ${progress.total} bytes\r`,
+          );
+        }),
+        fs.createWriteStream(dstPath),
+      );
+    }
+    await license;
+  } catch (e) {
+    await fsPromise.rm('build/static/textractor', { recursive: true, force: true });
+    throw e;
+  }
+}
+
 async function downloadDependencies() {
   await downloadTextractor();
   await downloadLanguageData();
+  await downloadPPOCR();
 }
 
 async function buildNative(arch = 'x64') {
@@ -152,6 +193,7 @@ async function buildNative(arch = 'x64') {
     `build/native/install/${arch}/bin/WindowEventHook.node`,
     `build/native/install/${arch}/bin/WindowsHook.node`,
     `build/native/install/${arch}/bin/Process.node`,
+    `build/native/install/${arch}/bin/PP-OCR.node`,
     `build/static/native/bin/JBeijingCli.exe`,
     `build/static/native/bin/DrEyeCli.exe`,
   ];
@@ -327,7 +369,10 @@ function killElectron() {
 function buildLicense() {
   const self = require('../package.json');
   const map = new Map();
-  const files = glob.sync(path.posix.join(__dirname, '../build/license.*.json'));
+  const files = glob.sync([
+    path.posix.join(__dirname, '../build/license.*.json'),
+    path.posix.join(__dirname, '../build/native/install', process.env.npm_config_arch, 'license.*.json'),
+  ]);
   for (const file of files) {
     const json = require(file);
     for (const dep of json) {
@@ -339,9 +384,18 @@ function buildLicense() {
   const deps = [...map.values()].sort((a, b) => (a.name < b.name ? -1 : 1));
   const out = fs.createWriteStream(path.join(__dirname, '../build/LICENSE.3rdparty.txt'));
   for (const dep of deps) {
-    out.write(
-      `${dep.name}\n${(dep.author || {}).name || ''}${(dep.author || {}).email ? `<${dep.author.email}>` : ''}\n`,
-    );
+    out.write(dep.name);
+    if (dep.homepage) {
+      out.write(` (${dep.homepage})`);
+    }
+    out.write('\n');
+    if (dep.author?.name) {
+      out.write(dep.author.name);
+      if (dep.author?.email) {
+        out.write(`<${dep.author.email}>`);
+      }
+      out.write('\n');
+    }
     out.write(dep.licenseText || getLicenseText(dep));
     out.write('\n\n');
   }

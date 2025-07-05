@@ -1,7 +1,7 @@
 <template>
   <t-layout class="option-layout">
     <t-content class="option-content">
-      <div v-if="providerId" class="title">
+      <div v-if="providerId && providerId !== '<none>'" class="title">
         {{ providerId }}
       </div>
       <div v-if="description" class="description">
@@ -158,9 +158,9 @@ export default defineComponent({
               typeof root.type === 'string' ? [root.type] : (root.anyOf?.map((i) => (i as any).type as string) ?? []),
             enumSelectId: -1,
           };
-          if (root.enum) {
-            item.enum = root.enum;
-            item.enumSelectId = root.enum.findIndex((i) => JSON.stringify(i) === JSON.stringify(options));
+          if (root.enum || root.examples) {
+            item.enum = root.enum || root.examples;
+            item.enumSelectId = item.enum!.findIndex((i) => JSON.stringify(i) === JSON.stringify(options));
           }
           list.push(item);
         }

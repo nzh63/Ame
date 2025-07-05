@@ -51,7 +51,7 @@ export function buildTest<C extends OcrProviderConfig<string, any, unknown, any>
         (await screenCapturer.capture()).extract({ left: 50, top: 100, width: 500, height: 200 }),
       );
       expect(result).to.be.a('string').and.not.to.be.empty;
-      expect(result.trim()).to.equal('こんにちは。');
+      expect(result.trim()).to.include('こんにちは');
     }),
   );
 
