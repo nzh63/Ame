@@ -2041,7 +2041,7 @@ __metadata:
     chai-as-promised: "npm:^8.0.1"
     debug: "npm:^4.4.1"
     dotenv: "npm:^17.0.0"
-    electron: "npm:^37.1.0"
+    electron: "npm:^37.3.1"
     electron-builder: "npm:26.0.12"
     electron-debug: "npm:^4.1.0"
     electron-mocha: "npm:^13.1.0"
@@ -3518,16 +3518,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"electron@npm:^37.1.0":
-  version: 37.1.0
-  resolution: "electron@npm:37.1.0"
+"electron@npm:^37.3.1":
+  version: 37.4.0
+  resolution: "electron@npm:37.4.0"
   dependencies:
     "@electron/get": "npm:^2.0.0"
     "@types/node": "npm:^22.7.7"
     extract-zip: "npm:^2.0.1"
   bin:
     electron: cli.js
-  checksum: 10c0/3821c81a383ac1f6e99fbfb9f231dc113f80df4ee0091cc3e1f4fcd9421e30fd38a8c777a47a06163a0dc13fbcfd70164a7c09d14284f7e4228eb6558ed6c8e9
+  checksum: 10c0/92a0c41190e234d302bc612af6cce9af08cd07f6699c1ff21a9365297e73dc9d88c6c4c25ddabf352447e3e555878d2ab0f2f31a14e210dda6de74d2787ff323
   languageName: node
   linkType: hard
 
