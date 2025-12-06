@@ -7,11 +7,12 @@ import store from '@main/store';
 
 export class DictManager extends BaseManager<DictProvider> {
   protected options: DictManagerOptions;
+  private optionsUnsubscribe?: () => void;
 
   public constructor() {
     super(availableDictConfigs, DictProvider);
     this.options = store.get('dictManager');
-    store.onDidChange('dictManager', () => {
+    this.optionsUnsubscribe = store.onDidChange('dictManager', () => {
       this.options = store.get('dictManager');
     });
   }
@@ -23,5 +24,11 @@ export class DictManager extends BaseManager<DictProvider> {
     } else {
       logger('warning: defaultProvider not ready');
     }
+  }
+
+  public override destroy() {
+    this.optionsUnsubscribe?.();
+    this.optionsUnsubscribe = undefined;
+    super.destroy();
   }
 }

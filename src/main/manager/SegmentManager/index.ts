@@ -8,11 +8,12 @@ import store from '@main/store';
 
 export class SegmentManager extends BaseManager<SegmentProvider> {
   protected options: SegmentManagerOptions;
+  private optionsUnsubscribe?: () => void;
 
   public constructor() {
     super(availableSegmentConfigs, SegmentProvider);
     this.options = store.get('segmentManager');
-    store.onDidChange('segmentManager', () => {
+    this.optionsUnsubscribe = store.onDidChange('segmentManager', () => {
       this.options = store.get('segmentManager');
     });
   }
@@ -24,5 +25,11 @@ export class SegmentManager extends BaseManager<SegmentProvider> {
     } else {
       logger('warning: defaultProvider not ready');
     }
+  }
+
+  public override destroy() {
+    this.optionsUnsubscribe?.();
+    this.optionsUnsubscribe = undefined;
+    super.destroy();
   }
 }

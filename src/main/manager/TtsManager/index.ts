@@ -7,11 +7,12 @@ import store from '@main/store';
 
 export class TtsManager extends BaseManager<TtsProvider> {
   protected options: TtsManagerOptions;
+  private optionsUnsubscribe?: () => void;
 
   public constructor() {
     super(availableTtsConfigs, TtsProvider);
     this.options = store.get('ttsManager');
-    store.onDidChange('ttsProviders', () => {
+    this.optionsUnsubscribe = store.onDidChange('ttsProviders', () => {
       this.options = store.get('ttsManager');
     });
   }
@@ -23,5 +24,11 @@ export class TtsManager extends BaseManager<TtsProvider> {
     } else {
       logger('warning: defaultProvider not ready');
     }
+  }
+
+  public override destroy() {
+    this.optionsUnsubscribe?.();
+    this.optionsUnsubscribe = undefined;
+    super.destroy();
   }
 }

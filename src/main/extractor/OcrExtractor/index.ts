@@ -27,6 +27,7 @@ export class OcrExtractor extends IExtractor {
   private options: OcrExtractorOptions;
   private timeoutId?: ReturnType<typeof setTimeout>;
   private movementDetector?: MovementDetector;
+  private optionsUnsubscribe?: () => void;
 
   public rect?: sharp.Region;
   public preprocessOption: PreprocessOption = {
@@ -41,7 +42,7 @@ export class OcrExtractor extends IExtractor {
   ) {
     super();
     this.options = store.get('ocrExtractor');
-    store.onDidChange('ocrExtractor', () => {
+    this.optionsUnsubscribe = store.onDidChange('ocrExtractor', () => {
       this.options = store.get('ocrExtractor');
       this.screenCapturer?.destroy();
       this.setupMovementDetector();
@@ -189,9 +190,11 @@ export class OcrExtractor extends IExtractor {
   }
 
   public destroy() {
+    this.optionsUnsubscribe?.();
+    this.optionsUnsubscribe = undefined;
     this.screenCapturer.destroy();
     this.lastImage = undefined;
-    if (this.timeoutId) clearTimeout(this.timeoutId);
+    this.timeoutId && clearTimeout(this.timeoutId);
     this.timeoutId = undefined;
     this.hook.off('mouse-left-up', this.mouseLeftHookCallback);
     this.hook.off('mouse-wheel', this.mouseWheelHookCallback);
