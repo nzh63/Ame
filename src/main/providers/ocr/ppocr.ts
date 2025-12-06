@@ -1,3 +1,4 @@
+import type { RotatedRect } from '@addons/PP-OCR';
 import { Detecter, Recognizer, GPU } from '@addons/PP-OCR';
 import { __static } from '@main/paths';
 import { defineOcrProvider } from '@main/providers/ocr';
@@ -12,16 +13,19 @@ export default defineOcrProvider({
     enable: Boolean,
     model: ['mobile.fp16', 'server.fp32'],
     device: ['CPU', 'GPU (自动)', ...GPU.devices],
+    textDirection: ['横排文本 从左到右', '竖排文本 从右到左'],
   } as const,
   defaultOptions: {
     enable: true,
     model: 'server.fp32',
     device: 'CPU',
+    textDirection: '横排文本 从左到右',
   },
   optionsDescription: {
     enable: '启用',
     model: '模型',
     device: '设备',
+    textDirection: '文本方向',
   },
   data() {
     return {
@@ -81,9 +85,26 @@ export default defineOcrProvider({
       image = await img.raw({ depth: 'char' }).toBuffer({ resolveWithObject: true });
     }
     const boxes = await this.detecter!.detect(image);
-    boxes.sort((a, b) => a.center.x / 100 + a.center.y - (b.center.x / 100 + b.center.y));
+    boxes.sort((a, b) => sortValue(this.textDirection, a) - sortValue(this.textDirection, b));
     const textes = await this.recognizer!.recognize(image, boxes);
     return textes.join('\n');
   },
   destroy() {},
 });
+
+function sortValue(mode: string, rect: RotatedRect) {
+  let x = -(rect.size.width / 2);
+  let y = -(rect.size.height / 2);
+  let r = Math.sqrt(x * x + y * y);
+  let theta = Math.atan2(y, x);
+  theta += (rect.angle / 180) * Math.PI;
+  x = r * Math.cos(theta);
+  y = r * Math.sin(theta);
+  x += rect.center.x;
+  y += rect.center.y;
+  if (mode === '横排文本 从左到右') {
+    return x / 100 + y;
+  } else {
+    return -y / 100 + x;
+  }
+}

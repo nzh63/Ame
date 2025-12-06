@@ -9,9 +9,9 @@ import EventEmitter from 'events';
 import sharp from 'sharp';
 
 class MockHook extends EventEmitter {
-  public registerKeyboardAndMouseHook(): void {}
+  public register(): void {}
 
-  public unregisterKeyboardAndMouseHook(): void {}
+  public unregister(): void {}
 
   public destroy(): void {}
 }

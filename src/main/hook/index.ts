@@ -57,12 +57,12 @@ export class Hook extends EventEmitter {
     return hook;
   }
 
-  public registerKeyboardAndMouseHook() {
+  public register() {
     if (!this.keyboardEventHook) this.keyboardEventHook = new GlobalKeyboardEventHook(this);
     if (!this.mouseEventHook) this.mouseEventHook = new GlobalMouseEventHook(this);
   }
 
-  public unregisterKeyboardAndMouseHook() {
+  public unregister() {
     this.keyboardEventHook?.destroy();
     this.mouseEventHook?.destroy();
     this.keyboardEventHook = undefined;
@@ -72,6 +72,6 @@ export class Hook extends EventEmitter {
   public destroy() {
     logger('end hook for pids %O', this.gamePids);
     this.WindowEventHook?.destroy();
-    this.unregisterKeyboardAndMouseHook();
+    this.unregister();
   }
 }

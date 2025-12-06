@@ -1,10 +1,12 @@
 import logger from '@logger/extractor/OcrExtractor';
 import { IExtractor } from '@main/extractor/IExtractor';
 import { ScreenCapturer } from '@main/extractor/OcrExtractor//ScreenCapturer';
+import { MovementDetector } from '@main/extractor/OcrExtractor/MovementDetector';
 import type { OcrExtractorOptions } from '@main/extractor/OcrExtractor/options';
 import type { Hook } from '@main/hook';
 import { OcrManager } from '@main/manager/OcrManager';
 import store from '@main/store';
+import { TaskQueue } from '@main/utils';
 import type sharp from 'sharp';
 
 export interface PreprocessOption {
@@ -15,15 +17,16 @@ export interface PreprocessOption {
 export class OcrExtractor extends IExtractor {
   private lastImage?: sharp.Sharp;
   private lastCropImage?: sharp.Sharp;
-  private shouldCapture1 = true;
-  private shouldCapture2 = true;
+  private windowVisible = true;
+  private paused = false;
   private mouseLeftHookCallback: () => void;
   private mouseWheelHookCallback: () => void;
   private keyboardHookCallback: (code: number) => void;
   private minimizeHookCallback: () => void;
   private restoreHookCallback: () => void;
   private options: OcrExtractorOptions;
-  private setTimeoutId?: ReturnType<typeof setTimeout>;
+  private timeoutId?: ReturnType<typeof setTimeout>;
+  private movementDetector?: MovementDetector;
 
   public rect?: sharp.Region;
   public preprocessOption: PreprocessOption = {
@@ -40,43 +43,67 @@ export class OcrExtractor extends IExtractor {
     this.options = store.get('ocrExtractor');
     store.onDidChange('ocrExtractor', () => {
       this.options = store.get('ocrExtractor');
+      this.screenCapturer?.destroy();
+      this.setupMovementDetector();
     });
 
     this.mouseLeftHookCallback = () => {
       if (this.shouldCapture && this.options.trigger.mouse.left) {
-        this.triggerRecognizeLatter();
+        this.extractLatter();
       }
     };
     this.hook.on('mouse-left-up', this.mouseLeftHookCallback);
     this.mouseWheelHookCallback = () => {
       if (this.shouldCapture && this.options.trigger.mouse.wheel) {
-        this.triggerRecognizeLatter();
+        this.extractLatter();
       }
     };
     this.hook.on('mouse-wheel', this.mouseWheelHookCallback);
     this.keyboardHookCallback = (code: number) => {
       if (this.shouldCapture && this.shouldCaptureAtKeyboard(code)) {
-        this.triggerRecognizeLatter();
+        this.extractLatter();
       }
     };
     this.hook.on('key-up', this.keyboardHookCallback);
+
     this.minimizeHookCallback = () => {
-      this.shouldCapture1 = false;
-      this.hook.unregisterKeyboardAndMouseHook();
+      this.windowVisible = false;
+      this.hook.unregister();
     };
     this.hook.on('window-minimize', this.minimizeHookCallback);
     this.restoreHookCallback = () => {
-      this.shouldCapture1 = true;
+      this.windowVisible = true;
       if (this.shouldCapture) {
-        this.hook.registerKeyboardAndMouseHook();
+        this.hook.register();
       }
     };
     this.hook.on('window-restore', this.restoreHookCallback);
-    this.hook.registerKeyboardAndMouseHook();
+
+    this.hook.register();
+
+    this.setupMovementDetector();
+  }
+
+  private setupMovementDetector() {
+    if (this.options.trigger.movement.interval > 0) {
+      this.movementDetector = new MovementDetector(
+        this.screenCapturer,
+        this.options.trigger.movement.threshold,
+        this.options.trigger.movement.interval,
+        async (img) => {
+          img = await this.crop(img);
+          img = await this.preprocess(img);
+          return img;
+        },
+      );
+      this.movementDetector.on('movement', () => {
+        this.extract();
+      });
+    }
   }
 
   private get shouldCapture() {
-    return this.shouldCapture1 && this.shouldCapture2;
+    return this.windowVisible && !this.paused;
   }
 
   private shouldCaptureAtKeyboard(code: number) {
@@ -89,30 +116,18 @@ export class OcrExtractor extends IExtractor {
     return false;
   }
 
-  private triggerRecognizeLatter() {
-    if (this.setTimeoutId) clearTimeout(this.setTimeoutId);
-    this.setTimeoutId = setTimeout(() => {
+  private extractLatter() {
+    if (this.timeoutId) clearTimeout(this.timeoutId);
+    this.timeoutId = setTimeout(() => {
       logger('triggerRecognize');
-      this.setTimeoutId = undefined;
-      this.triggerRecognize();
+      this.timeoutId = undefined;
+      this.extract();
     }, this.options.delay);
   }
 
-  private async triggerRecognize() {
+  private async extract() {
     this.lastImage = await this.screenCapturer.capture();
-    if (this.rect) {
-      // NOTE: 我们把图像flip过，所以这里rect同样要反转
-      const metatdat = await this.lastImage.metadata();
-      const rect: sharp.Region = {
-        left: this.rect.left,
-        width: this.rect.width,
-        top: (metatdat.height ?? 0) - this.rect.top - this.rect.height,
-        height: this.rect.height,
-      };
-      this.lastCropImage = this.lastImage.clone().extract(rect);
-    } else {
-      this.lastCropImage = this.lastImage.clone();
-    }
+    this.lastCropImage = await this.crop(this.lastImage);
     this.lastCropImage = this.preprocess(this.lastCropImage);
     this.ocrManager.recognize(this.lastCropImage, (e, res) => {
       if (this.lastCropImage !== res.img) return;
@@ -125,6 +140,21 @@ export class OcrExtractor extends IExtractor {
       const key = `ocr-${res.providerId}`;
       this.update(key, text);
     });
+  }
+
+  private async crop(img: sharp.Sharp, rect = this.rect) {
+    if (!rect) {
+      return img.clone();
+    }
+    // NOTE: 我们把图像flip过，所以这里rect同样要反转
+    const meta = await img.metadata();
+    rect = {
+      left: rect.left,
+      width: rect.width,
+      top: (meta?.height ?? 0) - rect.top - rect.height,
+      height: rect.height,
+    };
+    return img.clone().extract(rect);
   }
 
   public preprocess(img: sharp.Sharp, option = this.preprocessOption) {
@@ -140,35 +170,37 @@ export class OcrExtractor extends IExtractor {
   }
 
   public async getLastCapture(force = false): Promise<sharp.Sharp> {
-    if (force) {
-      return this.screenCapturer.capture();
-    } else {
-      return this.lastImage ?? this.screenCapturer.capture();
+    if (force || !this.lastImage) {
+      this.lastImage = await this.screenCapturer.capture();
     }
+    return this.lastImage;
   }
 
   public pause() {
-    this.shouldCapture2 = false;
-    this.hook.unregisterKeyboardAndMouseHook();
+    this.paused = true;
+    this.hook.unregister();
   }
 
   public resume() {
-    this.shouldCapture2 = true;
+    this.paused = false;
     if (this.shouldCapture) {
-      this.hook.registerKeyboardAndMouseHook();
+      this.hook.register();
     }
   }
 
   public destroy() {
     this.screenCapturer.destroy();
     this.lastImage = undefined;
-    if (this.setTimeoutId) clearTimeout(this.setTimeoutId);
+    if (this.timeoutId) clearTimeout(this.timeoutId);
+    this.timeoutId = undefined;
     this.hook.off('mouse-left-up', this.mouseLeftHookCallback);
     this.hook.off('mouse-wheel', this.mouseWheelHookCallback);
     this.hook.off('key-up', this.keyboardHookCallback);
     this.hook.off('window-minimize', this.minimizeHookCallback);
     this.hook.off('window-restore', this.restoreHookCallback);
-    this.hook.unregisterKeyboardAndMouseHook();
+    this.hook.unregister();
     this.ocrManager.destroy();
+    this.movementDetector?.destroy();
+    this.movementDetector = undefined;
   }
 }

@@ -1,6 +1,5 @@
 #include "Recognizer.h"
 #include "dict.hpp"
-#include <iostream>
 #include <net.h>
 #include <omp.h>
 #include <opencv2/core/core.hpp>
@@ -63,17 +62,18 @@ std::vector<std::string> Recognizer::operator()(const cv::Mat &img, const std::v
 
 std::vector<std::string> Recognizer::operator()(const std::vector<cv::Mat> &imgs) {
     std::vector<std::string> ret;
+    ret.resize(imgs.size());
     if (gpu_.has_value()) {
         auto n = 1;
         auto gpu = ncnn::get_gpu_device(*gpu_);
         if (gpu) n = gpu->info.compute_queue_count();
 #pragma omp parallel for num_threads(n)
         for (int i = 0; i < imgs.size(); i++) {
-            ret.emplace_back(operator()(imgs[i]));
+            ret[i] = operator()(imgs[i]);
         }
     } else {
         for (int i = 0; i < imgs.size(); i++) {
-            ret.emplace_back(operator()(imgs[i]));
+            ret[i] = operator()(imgs[i]);
         }
     }
     return ret;

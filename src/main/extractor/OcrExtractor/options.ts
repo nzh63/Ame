@@ -11,6 +11,10 @@ export const ocrExtractorOptionsSchema = {
       enter: Boolean,
       space: Boolean,
     },
+    movement: {
+      interval: Number,
+      threshold: Number,
+    },
   },
 };
 
@@ -30,6 +34,16 @@ export const ocrExtractorOptionsDescription: SchemaDescription<typeof ocrExtract
       enter: '回车键触发',
       space: '空格键触发',
     },
+    movement: {
+      interval: {
+        readableName: '移动检测间隔',
+        description: '单位：ms',
+      },
+      threshold: {
+        readableName: '移动检测阈值',
+        description: '取值范围: [0, 1]',
+      },
+    },
   },
 };
 
@@ -43,6 +57,10 @@ export const ocrExtractorOptionsDefaultValue: OcrExtractorOptions = {
     keyboard: {
       enter: true,
       space: true,
+    },
+    movement: {
+      interval: 100,
+      threshold: 0.005,
     },
   },
 };

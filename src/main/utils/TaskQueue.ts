@@ -4,16 +4,14 @@ enum Result {
 }
 
 export class TaskQueue {
+  public static Canceled = new Error('Canceled');
+
   private running?: Promise<Result>;
   private abort?: () => void;
 
   public async dispatch<T>(task: (() => Promise<T>) | (() => T)): Promise<T> {
-    const lock = await this.acquire();
-    try {
-      return await task();
-    } finally {
-      lock.release();
-    }
+    using _lock = await this.acquire();
+    return await task();
   }
 
   public async acquire(): Promise<Readonly<Lock>> {
@@ -27,7 +25,7 @@ export class TaskQueue {
     const result = await Promise.any([this.running ?? Promise.resolve(Result.Finished), waiting]);
 
     if (result === Result.Canceled) {
-      throw new Error('Canceled');
+      throw TaskQueue.Canceled;
     }
 
     // @ts-expect-error microsoft/TypeScript#9998

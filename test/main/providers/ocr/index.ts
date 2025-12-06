@@ -29,7 +29,7 @@ export function buildTest<C extends OcrProviderConfig<string, any, unknown, any>
       `(function(){const { width, height } = screen.screenToDipRect(window, { x: 0, y: 0, width: ${width}, height: ${height} }); window.setSize(width, height);})()`,
     );
     await window.run(
-      'window.webContents.executeJavaScript(`document.open();document.write(\'<div style="width:100%;height:100%;display:flex;align-items:center;align-content:center;justify-content:center;"><h1>こんにちは。</h1></div>\');document.close();`)',
+      'window.webContents.executeJavaScript(`document.open();document.write(\'<div style="width:100%;height:100%;display:flex;align-items:center;align-content:center;justify-content:center;"><div><h2>私はガラスを食べられます。</h2><h2>それは私を傷つけません。</h2></div></div>\');document.close();`)',
     );
     screenCapturer = new ScreenCapturer(window.pids);
   });
@@ -51,7 +51,7 @@ export function buildTest<C extends OcrProviderConfig<string, any, unknown, any>
         (await screenCapturer.capture()).extract({ left: 50, top: 100, width: 500, height: 200 }),
       );
       expect(result).to.be.a('string').and.not.to.be.empty;
-      expect(result.trim()).to.include('こんにちは');
+      expect(result.trim()).to.match(/私はガラスを食べられます[\s\S]*それは私を傷つけません/);
     }),
   );
 
