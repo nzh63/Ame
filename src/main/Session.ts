@@ -1,4 +1,4 @@
-import logger from '@logger/context';
+import logger from '@logger/session';
 import type { IExtractor, PreprocessOption, PostProcessOption } from '@main/extractor';
 import { OcrExtractor, Textractor } from '@main/extractor';
 import { Hook } from '@main/hook';
@@ -12,8 +12,8 @@ import type sharp from 'sharp';
 
 type WatchCallback = (arg: Ame.Translator.OriginalText) => void;
 
-export class Context {
-  private static instances: Context[] = [];
+export class Session {
+  private static instances: Session[] = [];
 
   public extractor: IExtractor;
 
@@ -35,7 +35,7 @@ export class Context {
     private hook: Hook,
   ) {
     logger('start game for pids %O', this.gamePids);
-    Context.instances.push(this);
+    Session.instances.push(this);
     this.extractor =
       this.type === 'textractor'
         ? new Textractor(this.gamePids, this.hookCode)
@@ -95,7 +95,7 @@ export class Context {
     segmentManager: SegmentManager = new SegmentManager(),
     dictManager: DictManager = new DictManager(),
   ) {
-    return new Context(
+    return new Session(
       uuid,
       gamePids,
       hookCode,
@@ -108,13 +108,13 @@ export class Context {
     );
   }
 
-  public static getAllInstances(): readonly Context[] {
-    return Context.instances;
+  public static getAllInstances(): readonly Session[] {
+    return Session.instances;
   }
 
   public extractorTypeIs<T extends Ame.Extractor.ExtractorType>(
     type: T,
-  ): this is typeof type extends 'ocr' ? OcrContext : typeof type extends 'textractor' ? TextractorContext : never {
+  ): this is typeof type extends 'ocr' ? OcrSession : typeof type extends 'textractor' ? TextractorSession : never {
     return this.type === type;
   }
 
@@ -306,10 +306,10 @@ export class Context {
   }
 }
 
-interface OcrContext extends Context {
+interface OcrSession extends Session {
   extractor: OcrExtractor;
 }
 
-interface TextractorContext extends Context {
+interface TextractorSession extends Session {
   extractor: Textractor;
 }

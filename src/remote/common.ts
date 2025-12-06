@@ -46,10 +46,10 @@ function defineRemoteFunctionInRender<Args extends any[], T>(channel: string) {
   };
 }
 
-export async function requireContext(event: Electron.IpcMainInvokeEvent) {
+export async function requireSession(event: Electron.IpcMainInvokeEvent) {
   const window = electron.BrowserWindow.fromWebContents(event.sender);
-  const { WindowWithContext } = await import('@main/window/WindowWithContext');
-  if (!window || !(window instanceof WindowWithContext)) {
-    throw new Error('this ipc call require send from from a WindowWithContext');
+  const { WindowWithSession } = await import('@main/window/WindowWithSession');
+  if (!window || !(window instanceof WindowWithSession)) {
+    throw new Error('this ipc call require send from from a WindowWithSession');
   }
 }

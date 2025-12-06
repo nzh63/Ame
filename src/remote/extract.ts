@@ -1,32 +1,32 @@
 import logger from '@logger/remote/extract';
-import type { WindowWithContext } from '@main/window/WindowWithContext';
-import { defineRemoteFunction, requireContext } from '@remote/common';
+import type { WindowWithSession } from '@main/window/WindowWithSession';
+import { defineRemoteFunction, requireSession } from '@remote/common';
 import electron from 'electron';
 
 export const startExtract = defineRemoteFunction(
   'start-extract',
   async (event, uuid: string, gamePids: number[], hookCode?: string, type?: Ame.Extractor.ExtractorType) => {
-    const { Context } = await import('@main/Context');
-    const context = await Context.create(uuid, gamePids, hookCode, type);
-    logger('create context for pid %o', context.gamePids);
+    const { Session } = await import('@main/Session');
+    const session = await Session.create(uuid, gamePids, hookCode, type);
+    logger('create session for pid %o', session.gamePids);
   },
 );
 
-export const getAllExtractText = defineRemoteFunction('get-all-extract-text', requireContext, (event) => {
-  const window = electron.BrowserWindow.fromWebContents(event.sender) as WindowWithContext;
-  return window.context.text;
+export const getAllExtractText = defineRemoteFunction('get-all-extract-text', requireSession, (event) => {
+  const window = electron.BrowserWindow.fromWebContents(event.sender) as WindowWithSession;
+  return window.session.text;
 });
 
-export const getExtractorType = defineRemoteFunction('get-extractor-type', requireContext, (event) => {
-  const window = electron.BrowserWindow.fromWebContents(event.sender) as WindowWithContext;
-  return window.context.type;
+export const getExtractorType = defineRemoteFunction('get-extractor-type', requireSession, (event) => {
+  const window = electron.BrowserWindow.fromWebContents(event.sender) as WindowWithSession;
+  return window.session.type;
 });
 
 export const switchExtractorType = defineRemoteFunction(
   'switch-extractor-type',
-  requireContext,
+  requireSession,
   (event, type: Ame.Extractor.ExtractorType) => {
-    const window = electron.BrowserWindow.fromWebContents(event.sender) as WindowWithContext;
-    window.context.switchExtractor(type);
+    const window = electron.BrowserWindow.fromWebContents(event.sender) as WindowWithSession;
+    window.session.switchExtractor(type);
   },
 );

@@ -1,13 +1,13 @@
-import type { WindowWithContext } from '@main/window/WindowWithContext';
-import { defineRemoteFunction, requireContext } from '@remote/common';
+import type { WindowWithSession } from '@main/window/WindowWithSession';
+import { defineRemoteFunction, requireSession } from '@remote/common';
 import electron from 'electron';
 
 export const ttsSpeak = defineRemoteFunction(
   'tts-speak',
-  requireContext,
+  requireSession,
   (event, text: string, type: 'original' | 'translate') => {
-    const window = electron.BrowserWindow.fromWebContents(event.sender) as WindowWithContext;
-    return window.context.ttsManager.speak(text, type);
+    const window = electron.BrowserWindow.fromWebContents(event.sender) as WindowWithSession;
+    return window.session.ttsManager.speak(text, type);
   },
 );
 

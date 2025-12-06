@@ -1,10 +1,10 @@
-import type { Context } from '@main/Context';
+import type { Session } from '@main/Session';
 import type { BrowserWindowConstructorOptions } from 'electron';
 import { BrowserWindow } from 'electron';
 
-export class WindowWithContext extends BrowserWindow {
+export class WindowWithSession extends BrowserWindow {
   public constructor(
-    public context: Context,
+    public session: Session,
     options?: BrowserWindowConstructorOptions,
   ) {
     super(options);

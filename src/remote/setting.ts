@@ -1,11 +1,11 @@
-import type { WindowWithContext } from '@main/window/WindowWithContext';
-import { defineRemoteFunction, requireContext } from '@remote/common';
+import type { WindowWithSession } from '@main/window/WindowWithSession';
+import { defineRemoteFunction, requireSession } from '@remote/common';
 import electron from 'electron';
 
-export const getGameSetting = defineRemoteFunction('get-game-setting', requireContext, async (event) => {
+export const getGameSetting = defineRemoteFunction('get-game-setting', requireSession, async (event) => {
   const { default: store } = await import('@main/store');
-  const window = electron.BrowserWindow.fromWebContents(event.sender) as WindowWithContext;
-  return store.get('games').find((i) => i.uuid === window.context.uuid);
+  const window = electron.BrowserWindow.fromWebContents(event.sender) as WindowWithSession;
+  return store.get('games').find((i) => i.uuid === window.session.uuid);
 });
 
 export const setGameSelectKeys = defineRemoteFunction(
@@ -17,7 +17,7 @@ export const setGameSelectKeys = defineRemoteFunction(
     if (!translatorWindow || !(translatorWindow instanceof TranslatorWindow))
       throw new Error('TranslatorWindow not found');
     const games = store.get('games');
-    const setting = games.find((i) => i.uuid === translatorWindow.context.uuid);
+    const setting = games.find((i) => i.uuid === translatorWindow.session.uuid);
     if (setting) {
       setting.selectKeys = keys;
     }

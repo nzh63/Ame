@@ -7,7 +7,7 @@ defineRemoteFunction('watch-original', async (event: Electron.IpcMainInvokeEvent
   const translatorWindow = electron.BrowserWindow.fromWebContents(event.sender);
   if (!translatorWindow || !(translatorWindow instanceof TranslatorWindow))
     throw new Error('TranslatorWindow not found');
-  translatorWindow.context.watchOriginal(key);
+  translatorWindow.session.watchOriginal(key);
 });
 
 defineRemoteFunction('unwatch-original', async (event: Electron.IpcMainInvokeEvent, key: Ame.Extractor.Key) => {
@@ -15,7 +15,7 @@ defineRemoteFunction('unwatch-original', async (event: Electron.IpcMainInvokeEve
   const translatorWindow = electron.BrowserWindow.fromWebContents(event.sender);
   if (!translatorWindow || !(translatorWindow instanceof TranslatorWindow))
     throw new Error('TranslatorWindow not found');
-  translatorWindow.context.unwatchOriginal(key);
+  translatorWindow.session.unwatchOriginal(key);
 });
 
 defineRemoteFunction('watch-translate', async (event: Electron.IpcMainInvokeEvent, key: Ame.Extractor.Key) => {
@@ -23,7 +23,7 @@ defineRemoteFunction('watch-translate', async (event: Electron.IpcMainInvokeEven
   const translatorWindow = electron.BrowserWindow.fromWebContents(event.sender);
   if (!translatorWindow || !(translatorWindow instanceof TranslatorWindow))
     throw new Error('TranslatorWindow not found');
-  translatorWindow.context.watchTranslate(key);
+  translatorWindow.session.watchTranslate(key);
 });
 
 defineRemoteFunction('unwatch-translate', async (event: Electron.IpcMainInvokeEvent, key: Ame.Extractor.Key) => {
@@ -31,7 +31,7 @@ defineRemoteFunction('unwatch-translate', async (event: Electron.IpcMainInvokeEv
   const translatorWindow = electron.BrowserWindow.fromWebContents(event.sender);
   if (!translatorWindow || !(translatorWindow instanceof TranslatorWindow))
     throw new Error('TranslatorWindow not found');
-  translatorWindow.context.unwatchTranslate(key);
+  translatorWindow.session.unwatchTranslate(key);
 });
 
 type OriginalWatchCallback = (arg: Ame.Translator.OriginalText) => void;

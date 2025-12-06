@@ -1,9 +1,9 @@
 import logger from '@logger/translatorWindow';
-import type { Context } from '@main/Context';
-import { WindowWithContext } from '@main/window/WindowWithContext';
+import type { Session } from '@main/Session';
+import { WindowWithSession } from '@main/window/WindowWithSession';
 import { Menu } from 'electron';
 
-export class TranslatorWindow extends WindowWithContext {
+export class TranslatorWindow extends WindowWithSession {
   private static readonly windowOption = {
     show: false,
     useContentSize: true,
@@ -36,11 +36,11 @@ export class TranslatorWindow extends WindowWithContext {
   ]);
 
   public constructor(
-    context: Context,
+    session: Session,
     public gamePids: number[],
     autoShow = true,
   ) {
-    super(context, TranslatorWindow.windowOption);
+    super(session, TranslatorWindow.windowOption);
     logger('create TranslatorWindow for pids: %O', this.gamePids);
     this.loadURL(TranslatorWindow.url);
     if (autoShow) {
