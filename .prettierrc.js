@@ -17,7 +17,7 @@ module.exports = {
   proseWrap: 'preserve',
   htmlWhitespaceSensitivity: 'css',
   vueIndentScriptAndStyle: false,
-  endOfLine: 'lf',
+  endOfLine: 'crlf',
   embeddedLanguageFormatting: 'auto',
   singleAttributePerLine: false,
   plugins: ['@trivago/prettier-plugin-sort-imports'],
