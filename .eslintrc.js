@@ -30,6 +30,7 @@ module.exports = {
       rules: {
         'no-unused-expressions': 'off',
         '@typescript-eslint/no-unused-expressions': 'off',
+        'max-nested-callbacks': ['error', 6],
       },
     },
     {

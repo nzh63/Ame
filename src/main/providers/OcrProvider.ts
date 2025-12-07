@@ -6,7 +6,7 @@ import type sharp from 'sharp';
 
 export type OcrProviderConfig<ID extends string, S extends Schema, D, M extends Methods> = {
   recognize: (img: sharp.Sharp) => Ame.Awaitable<string>;
-} & BaseProviderConfig<ID, S, D, M, OcrProvider<ID, S, D, M>>;
+} & BaseProviderConfig<ID, S, D, M, BaseProvider<ID, S, D, M>>;
 
 export class OcrProvider<
   ID extends string = string,

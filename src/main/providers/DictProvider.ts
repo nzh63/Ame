@@ -5,7 +5,7 @@ import type { Schema } from '@main/schema';
 
 export type DictProviderConfig<ID extends string, S extends Schema, D, M extends Methods> = {
   query: (word: string) => Ame.Awaitable<void>;
-} & BaseProviderConfig<ID, S, D, M, DictProvider<ID, S, D, M>>;
+} & BaseProviderConfig<ID, S, D, M, BaseProvider<ID, S, D, M>>;
 
 export class DictProvider<
   ID extends string = string,

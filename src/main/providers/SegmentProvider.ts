@@ -5,7 +5,7 @@ import type { Schema } from '@main/schema';
 
 export type SegmentProviderConfig<ID extends string, S extends Schema, D, M extends Methods> = {
   segment: (text: string) => Ame.Awaitable<(string | SegmentWord)[]>;
-} & BaseProviderConfig<ID, S, D, M, SegmentProvider<ID, S, D, M>>;
+} & BaseProviderConfig<ID, S, D, M, BaseProvider<ID, S, D, M>>;
 
 export interface SegmentWord {
   word: string;

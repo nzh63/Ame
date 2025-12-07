@@ -5,7 +5,7 @@ import store from '@main/store';
 import { defaultsDeep } from 'lodash-es';
 
 export interface Methods {
-  readonly [name: string]: () => unknown;
+  readonly [name: string]: Function;
 }
 export type BaseProviderConfig<
   ID extends string = string,
@@ -23,7 +23,7 @@ export type BaseProviderConfig<
   init?: () => void | Promise<void>;
   isReady?: () => boolean;
   destroy?: () => void;
-  methods?: M & ProviderThisType<P>;
+  methods?: M;
 } & ProviderThisType<P>;
 
 export type ProviderThisType<P extends BaseProvider> = ThisType<
@@ -43,10 +43,10 @@ export class BaseProvider<
   #destroyed = false;
   public static readonly providersStoreKey: string;
   public readonly $id: ID;
-  public readonly $optionsSchema: S;
-  public readonly $options: SchemaType<S>;
-  public $data: D;
-  public $methods: M;
+  public readonly $optionsSchema: S & C['optionsSchema'];
+  public readonly $options: SchemaType<S> & SchemaType<C['optionsSchema']>;
+  public $data: D & ReturnType<C['data']>;
+  public $methods: M & (C['methods'] & {});
 
   public constructor(
     public readonly $config: C,
@@ -57,7 +57,7 @@ export class BaseProvider<
     this.$optionsSchema = $config.optionsSchema;
     this.$options = getStoreOptions();
     this.$options = defaultsDeep(this.$options, $config.defaultOptions);
-    this.$data = $config.data.call(undefined);
+    this.$data = $config.data.call(undefined) as any;
     this.$methods = { ...($config.methods ?? ({} as M)) };
     for (const i in this.$methods) {
       if (!Object.hasOwn(this.$methods, i)) continue;
@@ -106,7 +106,7 @@ export class BaseProvider<
 
   public destroy(): void {
     try {
-      return this.$config.destroy?.call(this);
+      this.$config.destroy?.call(this);
     } catch (e) {
       logger(`${this.$id} throw a error while calling the 'destroy' function, error: %O`, e);
     }

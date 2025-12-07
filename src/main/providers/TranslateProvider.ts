@@ -5,7 +5,7 @@ import type { Schema } from '@main/schema';
 
 export type TranslateProviderConfig<ID extends string, S extends Schema, D, M extends Methods> = {
   translate: (text: string) => Ame.Awaitable<string | Generator<string> | AsyncGenerator<string>>;
-} & BaseProviderConfig<ID, S, D, M, TranslateProvider<ID, S, D, M>>;
+} & BaseProviderConfig<ID, S, D, M, BaseProvider<ID, S, D, M>>;
 
 export class TranslateProvider<
   ID extends string = string,

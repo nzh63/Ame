@@ -2,6 +2,7 @@ import log from './LogPlugin.mts';
 import native from './NativePlugin.mts';
 import alias from '@rollup/plugin-alias';
 import commonjs from '@rollup/plugin-commonjs';
+import image from '@rollup/plugin-image';
 import json from '@rollup/plugin-json';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import { wasm } from '@rollup/plugin-wasm';
@@ -62,6 +63,7 @@ export default (mode = 'production') =>
         },
       }),
       resolve,
+      image(),
       json(),
       wasm(),
       native(),

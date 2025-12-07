@@ -5,7 +5,7 @@ import type { Schema } from '@main/schema';
 
 export type TtsProviderConfig<ID extends string, S extends Schema, D, M extends Methods> = {
   speak: (text: string, type: 'original' | 'translate') => Ame.Awaitable<void>;
-} & BaseProviderConfig<ID, S, D, M, TtsProvider<ID, S, D, M>>;
+} & BaseProviderConfig<ID, S, D, M, BaseProvider<ID, S, D, M>>;
 
 export class TtsProvider<
   ID extends string = string,
