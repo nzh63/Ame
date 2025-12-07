@@ -68,7 +68,7 @@
     "eslint-plugin-n": "^17.20.0",
     "eslint-plugin-promise": "^7.2.1",
     "eslint-plugin-vue": "^9.27.0",
-    "glob": "^11.0.3",
+    "glob": "^11.1.0",
     "got": "^14.4.7",
     "husky": "^9.1.7",
     "iconv-lite": "^0.6.3",
