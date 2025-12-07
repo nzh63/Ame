@@ -1,4 +1,5 @@
 #include "Detecter.h"
+#include <cstdio>
 #include <gpu.h>
 #include <iostream>
 #include <net.h>
@@ -6,6 +7,9 @@
 #include <opencv2/imgproc.hpp>
 
 Detecter::Detecter(std::string_view param, std::string_view model, std::optional<int> gpu) {
+    net_.opt.use_fp16_packed = false;
+    net_.opt.use_fp16_storage = false;
+    net_.opt.use_fp16_arithmetic = false;
     if (gpu.has_value()) {
         net_.opt.use_vulkan_compute = true;
         net_.set_vulkan_device(*gpu);
