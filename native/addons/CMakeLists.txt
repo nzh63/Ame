@@ -51,6 +51,16 @@ target_compile_definitions(win_delay_load_hook PRIVATE "HOST_BINARY=\"node.exe\"
 
 set(NODE_LIB ${CMAKE_CURRENT_BINARY_DIR}/node.lib win_delay_load_hook)
 
+# Fetch Google Test for all addons
+FetchContent_Declare(
+    googletest
+    URL https://github.com/google/googletest/archive/refs/tags/v1.16.0.tar.gz
+)
+FetchContent_MakeAvailable(googletest)
+
+# Enable testing for all addons
+enable_testing()
+
 add_subdirectory(Process)
 add_subdirectory(ScreenCapturer)
 add_subdirectory(WindowEventHook)

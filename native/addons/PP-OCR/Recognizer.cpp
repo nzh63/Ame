@@ -69,7 +69,8 @@ std::vector<std::string> Recognizer::operator()(const std::vector<cv::Mat> &imgs
     if (gpu_.has_value()) {
         auto n = 1;
         auto gpu = ncnn::get_gpu_device(*gpu_);
-        if (gpu) n = gpu->info.compute_queue_count();
+        if (gpu)
+            n = gpu->info.compute_queue_count();
 #pragma omp parallel for num_threads(n)
         for (int i = 0; i < imgs.size(); i++) {
             ret[i] = operator()(imgs[i]);
@@ -93,7 +94,7 @@ cv::Mat Recognizer::cutAndResize(const cv::Mat &img, const cv::RotatedRect &box)
     //     |                  |             |               |
     //     |                  |       ->    |               |
     //     |                  |             |               |
-    //  points[0]----------points[3]      (h, 0))----------(w, h)
+    //  points[0]----------points[3]      (0, h)----------(w, h)
 
     std::array<cv::Point2f, 3> src = {points[1], points[2], points[0]};
     std::array<cv::Point2f, 3> dst = {cv::Point2f(0, 0), cv::Point2f(targetWidth, 0), cv::Point2f(0, targetHeight)};

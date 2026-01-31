@@ -14,6 +14,9 @@ class Recognizer {
     std::vector<std::string> operator()(const std::vector<cv::Mat> &imgs);
 
   protected:
+    // Protected default constructor for testing
+    Recognizer() = default;
+
     cv::Mat cutAndResize(const cv::Mat &img, const cv::RotatedRect &box);
 
   protected:

@@ -1,5 +1,5 @@
 import type { RotatedRect } from '@addons/PP-OCR';
-import { Detecter, Recognizer, GPU } from '@addons/PP-OCR';
+import { Detector, Recognizer, GPU } from '@addons/PP-OCR';
 import { __static } from '@main/paths';
 import { defineOcrProvider } from '@main/providers/ocr';
 import { TaskQueue } from '@main/utils';
@@ -30,7 +30,7 @@ export default defineOcrProvider({
   data() {
     return {
       taskQueue: new TaskQueue(),
-      detecter: null as Detecter | null,
+      detector: null as Detector | null,
       recognizer: null as Recognizer | null,
     };
   },
@@ -70,11 +70,11 @@ export default defineOcrProvider({
           gpu -= 2;
         }
     }
-    this.detecter = await Detecter.create(detparam, detmodel, { gpu });
+    this.detector = await Detector.create(detparam, detmodel, { gpu });
     this.recognizer = await Recognizer.create(recparam, recmodel, { gpu });
   },
   isReady() {
-    return this.enable && !!this.detecter && !!this.recognizer;
+    return this.enable && !!this.detector && !!this.recognizer;
   },
   async recognize(img) {
     using _lock = await this.taskQueue.acquire();
@@ -84,7 +84,7 @@ export default defineOcrProvider({
       img = img.joinChannel([image.data, image.data], { raw: image.info });
       image = await img.raw({ depth: 'char' }).toBuffer({ resolveWithObject: true });
     }
-    const boxes = await this.detecter!.detect(image);
+    const boxes = await this.detector!.detect(image);
     boxes.sort((a, b) => sortValue(this.textDirection, a) - sortValue(this.textDirection, b));
     const textes = await this.recognizer!.recognize(image, boxes);
     return textes.join('\n');

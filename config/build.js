@@ -187,7 +187,7 @@ async function downloadDependencies() {
   await downloadPPOCR();
 }
 
-async function buildNative(arch = 'x64') {
+async function buildNative(arch = 'x64', force = false) {
   const files = [
     `build/native/install/${arch}/bin/ScreenCapturer.node`,
     `build/native/install/${arch}/bin/WindowEventHook.node`,
@@ -197,7 +197,7 @@ async function buildNative(arch = 'x64') {
     `build/static/native/bin/JBeijingCli.exe`,
     `build/static/native/bin/DrEyeCli.exe`,
   ];
-  if (await checkFiles(files)) return;
+  if (!force && (await checkFiles(files))) return;
 
   console.log('build native module...');
 
@@ -279,6 +279,25 @@ async function buildWorkers(mode = 'production') {
 
 async function buildTest(mode = 'development') {
   await build('test', mode);
+}
+
+async function testNative(arch = 'x64') {
+  await buildNative(arch, true);
+
+  const buildDir = path.join(__dirname, '../build/native/build/addons', arch);
+
+  function spawn(command, args, options) {
+    return new Promise((resolve, reject) => {
+      const child = child_process.spawn(command, args, { ...options, stdio: 'inherit' });
+      child.once('exit', (code) => {
+        if (code === 0) resolve();
+        else reject(new Error(`child process exited with code ${code}`));
+      });
+    });
+  }
+
+  // 运行 ctest
+  await spawn('ctest', ['-C', 'Release', '--output-on-failure'], { cwd: buildDir });
 }
 
 async function devRender(mode = 'development') {
@@ -468,6 +487,7 @@ function clean() {
           await buildNative(args.arch);
           await Promise.all([buildTest('development'), buildWorkers('development')]);
         })
+        .command('test:native', '运行原生模块单元测试', {}, (args) => testNative(args.arch))
         .command(['$0', 'all'], '构建全部', {}, (args) => buildNsis(args));
     })
     .parse();

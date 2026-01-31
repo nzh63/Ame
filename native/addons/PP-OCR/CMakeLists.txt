@@ -34,7 +34,7 @@ string(JSON license_json SET ${license_json} "licenseText" "\"${LICENSE}\"")
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/license.opencv-mobile.json "[${license_json}]")
 
 add_library(pp-ocr-objects OBJECT
-   Detecter.cpp
+   Detector.cpp
    Recognizer.cpp
 )
 target_link_libraries(pp-ocr-objects
@@ -58,6 +58,28 @@ target_link_libraries(pp-ocr-example
     pp-ocr-objects
     ${OpenCV_LIBS}
 )
+
+add_executable(Detector_test
+    Detector_test.cpp
+    Detector.cpp
+)
+target_link_libraries(Detector_test
+    gtest_main
+    ncnn
+    ${OpenCV_LIBS}
+)
+add_test(NAME Detector_test COMMAND Detector_test)
+
+add_executable(Recognizer_test
+    Recognizer_test.cpp
+    Recognizer.cpp
+)
+target_link_libraries(Recognizer_test
+    gtest_main
+    ncnn
+    ${OpenCV_LIBS}
+)
+add_test(NAME Recognizer_test COMMAND Recognizer_test)
 
 install(IMPORTED_RUNTIME_ARTIFACTS PP-OCR RUNTIME)
 install(FILES 

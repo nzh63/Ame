@@ -1,4 +1,4 @@
-#include "Detecter.h"
+#include "Detector.h"
 #include <cstdio>
 #include <gpu.h>
 #include <iostream>
@@ -6,7 +6,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc.hpp>
 
-Detecter::Detecter(std::string_view param, std::string_view model, std::optional<int> gpu) {
+Detector::Detector(std::string_view param, std::string_view model, std::optional<int> gpu) {
     net_.opt.use_fp16_packed = false;
     net_.opt.use_fp16_storage = false;
     net_.opt.use_fp16_arithmetic = false;
@@ -22,7 +22,7 @@ Detecter::Detecter(std::string_view param, std::string_view model, std::optional
     }
 }
 
-std::vector<cv::RotatedRect> Detecter::operator()(const cv::Mat &img) {
+std::vector<cv::RotatedRect> Detector::operator()(const cv::Mat &img) {
     // https://huggingface.co/PaddlePaddle/PP-OCRv5_mobile_det/blob/main/inference.yml
     // https://github.com/PaddlePaddle/PaddleOCR/blob/v3.1.0/ppocr/data/imaug/operators.py#L198
     constexpr size_t inputSize = 736;
@@ -116,7 +116,7 @@ std::vector<cv::RotatedRect> Detecter::operator()(const cv::Mat &img) {
 }
 
 std::tuple<cv::RotatedRect, std::array<cv::Point, 4>, float>
-Detecter::getMiniBoxes(const std::vector<cv::Point> &contour) {
+Detector::getMiniBoxes(const std::vector<cv::Point> &contour) {
     auto boundingBox = cv::minAreaRect(contour);
     std::vector<cv::Point2f> points;
     boundingBox.points(points);
@@ -142,7 +142,7 @@ Detecter::getMiniBoxes(const std::vector<cv::Point> &contour) {
                            std::min(boundingBox.size.width, boundingBox.size.height));
 }
 
-double Detecter::boxScoreFast(cv::Mat bitmap, const std::array<cv::Point, 4> &box) {
+double Detector::boxScoreFast(cv::Mat bitmap, const std::array<cv::Point, 4> &box) {
     auto xmin = std::min_element(box.begin(), box.end(), [](auto &a, auto &b) { return a.x < b.x; })->x;
     auto xmax = std::max_element(box.begin(), box.end(), [](auto &a, auto &b) { return a.x < b.x; })->x;
     auto ymin = std::min_element(box.begin(), box.end(), [](auto &a, auto &b) { return a.y < b.y; })->y;
@@ -159,7 +159,7 @@ double Detecter::boxScoreFast(cv::Mat bitmap, const std::array<cv::Point, 4> &bo
     return cv::mean(bitmap, mask)[0];
 }
 
-cv::RotatedRect Detecter::unclip(const cv::RotatedRect &box, double unclipRatio) {
+cv::RotatedRect Detector::unclip(const cv::RotatedRect &box, double unclipRatio) {
     auto size = box.size;
     float area = size.area();
     float distance = area * unclipRatio / (2 * (size.width + size.height));

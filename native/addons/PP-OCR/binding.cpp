@@ -1,9 +1,9 @@
-#include "Detecter.h"
+#include "Detector.h"
 #include "Recognizer.h"
 #include <napi.h>
 
 struct InstanceData {
-    Napi::FunctionReference DetecterWraapper, RecognizerWraapper;
+    Napi::FunctionReference DetectorWraapper, RecognizerWraapper;
 };
 
 static bool isImage(const Napi::Value &val) {
@@ -34,43 +34,43 @@ static cv::Mat toMat(const Napi::Value &val) {
     return cv::Mat(height, width, CV_8UC3, buffer.Data());
 }
 
-class DetecterWraapper : public Napi::ObjectWrap<DetecterWraapper> {
+class DetectorWraapper : public Napi::ObjectWrap<DetectorWraapper> {
   public:
     static Napi::Object Init(Napi::Env env, Napi::Object exports);
-    DetecterWraapper(const Napi::CallbackInfo &info);
+    DetectorWraapper(const Napi::CallbackInfo &info);
 
   protected:
     static Napi::Value create(const Napi::CallbackInfo &info);
     Napi::Value detect(const Napi::CallbackInfo &info);
 
   protected:
-    std::unique_ptr<Detecter> detecter_ = nullptr;
+    std::unique_ptr<Detector> detector_ = nullptr;
 
     static constexpr napi_type_tag prtTag = {0x65ee77ab6a7dec90, 0xf9815d82541a3a89};
 };
 
-Napi::Object DetecterWraapper::Init(Napi::Env env, Napi::Object exports) {
+Napi::Object DetectorWraapper::Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(
-        env, "Detecter",
-        {InstanceMethod("detect", &DetecterWraapper::detect), StaticMethod("create", &DetecterWraapper::create)});
+        env, "Detector",
+        {InstanceMethod("detect", &DetectorWraapper::detect), StaticMethod("create", &DetectorWraapper::create)});
 
-    env.GetInstanceData<InstanceData>()->DetecterWraapper = Napi::Persistent(func);
+    env.GetInstanceData<InstanceData>()->DetectorWraapper = Napi::Persistent(func);
 
-    exports.Set("Detecter", func);
+    exports.Set("Detector", func);
     return exports;
 }
 
-DetecterWraapper::DetecterWraapper(const Napi::CallbackInfo &info) : Napi::ObjectWrap<DetecterWraapper>(info) {
+DetectorWraapper::DetectorWraapper(const Napi::CallbackInfo &info) : Napi::ObjectWrap<DetectorWraapper>(info) {
     auto env = info.Env();
-    if (info.Length() < 1 || !info[0].IsExternal() || !info[0].As<Napi::External<Detecter>>().CheckTypeTag(&prtTag)) {
-        Napi::TypeError::New(env, "use Detecter.create instead.").ThrowAsJavaScriptException();
+    if (info.Length() < 1 || !info[0].IsExternal() || !info[0].As<Napi::External<Detector>>().CheckTypeTag(&prtTag)) {
+        Napi::TypeError::New(env, "use Detector.create instead.").ThrowAsJavaScriptException();
         return;
     }
-    auto detecter = info[0].As<Napi::External<Detecter>>().Data();
-    detecter_ = std::unique_ptr<Detecter>(detecter);
+    auto detector = info[0].As<Napi::External<Detector>>().Data();
+    detector_ = std::unique_ptr<Detector>(detector);
 }
 
-Napi::Value DetecterWraapper::create(const Napi::CallbackInfo &info) {
+Napi::Value DetectorWraapper::create(const Napi::CallbackInfo &info) {
     auto env = info.Env();
     if (info.Length() < 2) {
         Napi::TypeError::New(env, "String expected").ThrowAsJavaScriptException();
@@ -103,15 +103,15 @@ Napi::Value DetecterWraapper::create(const Napi::CallbackInfo &info) {
       protected:
         void Execute() override {
             try {
-                result_ = new Detecter(param_, model_, gpu_);
+                result_ = new Detector(param_, model_, gpu_);
             } catch (std::exception e) {
                 SetError(e.what());
             }
         }
         void OnOK() override {
-            auto detecter = Napi::External<Detecter>::New(Env(), result_);
-            detecter.TypeTag(&prtTag);
-            deferred_.Resolve(Env().GetInstanceData<InstanceData>()->DetecterWraapper.New({detecter}));
+            auto detector = Napi::External<Detector>::New(Env(), result_);
+            detector.TypeTag(&prtTag);
+            deferred_.Resolve(Env().GetInstanceData<InstanceData>()->DetectorWraapper.New({detector}));
         }
         void OnError(const Napi::Error &e) override { deferred_.Reject(e.Value()); }
 
@@ -119,7 +119,7 @@ Napi::Value DetecterWraapper::create(const Napi::CallbackInfo &info) {
         std::string param_, model_;
         std::atomic<std::optional<int>> gpu_;
         Napi::Promise::Deferred deferred_;
-        Detecter *result_ = nullptr;
+        Detector *result_ = nullptr;
     };
 
     auto deferred = Napi::Promise::Deferred::New(env);
@@ -129,7 +129,7 @@ Napi::Value DetecterWraapper::create(const Napi::CallbackInfo &info) {
     return deferred.Promise();
 }
 
-Napi::Value DetecterWraapper::detect(const Napi::CallbackInfo &info) {
+Napi::Value DetectorWraapper::detect(const Napi::CallbackInfo &info) {
     auto env = info.Env();
     auto length = info.Length();
     if (length == 0 || !isImage(info[0])) {
@@ -139,11 +139,11 @@ Napi::Value DetecterWraapper::detect(const Napi::CallbackInfo &info) {
 
     class Task : public Napi::AsyncWorker {
       public:
-        Task(Napi::Env env, Detecter &detecter, cv::Mat &&img, Napi::Promise::Deferred deferred)
-            : Napi::AsyncWorker(env), detecter_(detecter), img_(std::move(img)), deferred_(deferred) {}
+        Task(Napi::Env env, Detector &detector, cv::Mat &&img, Napi::Promise::Deferred deferred)
+            : Napi::AsyncWorker(env), detector_(detector), img_(std::move(img)), deferred_(deferred) {}
 
       protected:
-        void Execute() override { result_ = detecter_(img_); }
+        void Execute() override { result_ = detector_(img_); }
         void OnOK() override {
             auto array = Napi::Array::New(Env(), result_.size());
             for (uint32_t i = 0; i < result_.size(); i++) {
@@ -165,7 +165,7 @@ Napi::Value DetecterWraapper::detect(const Napi::CallbackInfo &info) {
         void OnError(const Napi::Error &e) override { deferred_.Reject(e.Value()); }
 
       protected:
-        Detecter &detecter_;
+        Detector &detector_;
         cv::Mat img_;
         Napi::Promise::Deferred deferred_;
         std::vector<cv::RotatedRect> result_;
@@ -173,7 +173,7 @@ Napi::Value DetecterWraapper::detect(const Napi::CallbackInfo &info) {
 
     cv::Mat mat = toMat(info[0]);
     auto deferred = Napi::Promise::Deferred::New(env);
-    Task *task = new Task(env, *detecter_, std::move(mat), deferred);
+    Task *task = new Task(env, *detector_, std::move(mat), deferred);
     task->Queue();
 
     return deferred.Promise();
@@ -208,7 +208,7 @@ Napi::Object RecognizerWraapper::Init(Napi::Env env, Napi::Object exports) {
 RecognizerWraapper::RecognizerWraapper(const Napi::CallbackInfo &info) : Napi::ObjectWrap<RecognizerWraapper>(info) {
     auto env = info.Env();
     if (info.Length() < 1 || !info[0].IsExternal() || !info[0].As<Napi::External<Recognizer>>().CheckTypeTag(&prtTag)) {
-        Napi::TypeError::New(env, "use Detecter.create instead.").ThrowAsJavaScriptException();
+        Napi::TypeError::New(env, "use Detector.create instead.").ThrowAsJavaScriptException();
         return;
     }
     auto recognizer = info[0].As<Napi::External<Recognizer>>().Data();
@@ -352,7 +352,7 @@ Napi::Value RecognizerWraapper::recognize(const Napi::CallbackInfo &info) {
 
 Napi::Object InitAll(Napi::Env env, Napi::Object exports) {
     env.SetInstanceData(new InstanceData);
-    exports = DetecterWraapper::Init(env, exports);
+    exports = DetectorWraapper::Init(env, exports);
     exports = RecognizerWraapper::Init(env, exports);
 
     auto gpu = Napi::Object::New(env);

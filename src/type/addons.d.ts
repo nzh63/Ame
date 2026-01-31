@@ -66,9 +66,9 @@ declare module '@addons/PP-OCR' {
     angle: number;
   }
 
-  export class Detecter {
+  export class Detector {
     private constructor();
-    public static create(param: string, model: string, option: Option): Promise<Detecter>;
+    public static create(param: string, model: string, option: Option): Promise<Detector>;
 
     public detect(img: Image): Promise<RotatedRect[]>;
   }

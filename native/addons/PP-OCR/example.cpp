@@ -1,4 +1,4 @@
-#include "Detecter.h"
+#include "Detector.h"
 #include "Recognizer.h"
 #include <codecvt>
 #include <iostream>
@@ -21,8 +21,8 @@ int main(int argc, char **argv) {
     cv::Mat rgb;
     cv::cvtColor(m, rgb, cv::COLOR_BGR2RGB);
 
-    Detecter detecter("PP-OCRv5_server_det.fp32.ncnn.param", "PP-OCRv5_server_det.fp32.ncnn.bin");
-    auto boxes = detecter(rgb);
+    Detector detector("PP-OCRv5_server_det.fp32.ncnn.param", "PP-OCRv5_server_det.fp32.ncnn.bin");
+    auto boxes = detector(rgb);
 
     std::wcout << "boxes.size: " << boxes.size() << std::endl;
     std::sort(boxes.begin(), boxes.end(),

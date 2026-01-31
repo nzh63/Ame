@@ -23,7 +23,9 @@
     "download:dep": "node ./config/build.js download-dependencies",
     "lint": "eslint . --ignore-path .gitignore --ext .ts,.mts,.js,.vue --fix",
     "style": "prettier --write -l \"./**/*.{js,ts,css,json,vue}\"",
-    "test": "yarn build:test && electron-mocha --colors --require source-map-support/register ./build/test",
+    "test": "yarn test:native \"$@\" && yarn test:js \"$@\"",
+    "test:native": "node ./config/build.js build test:native",
+    "test:js": "yarn build:test && electron-mocha --colors --require source-map-support/register ./build/test",
     "type-check": "tsc --noEmit && vue-tsc --noEmit",
     "prepare": "husky"
   },
