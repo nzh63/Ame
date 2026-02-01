@@ -36,4 +36,14 @@ module.exports = {
     // eslint-disable-next-line no-template-curly-in-string
     artifactName: '${productName}-${platform}-${env.npm_config_arch}-${buildVersion}.${ext}',
   },
+  electronFuses: {
+    runAsNode: false,
+    enableCookieEncryption: true,
+    enableNodeOptionsEnvironmentVariable: true,
+    enableNodeCliInspectArguments: false,
+    enableEmbeddedAsarIntegrityValidation: true,
+    onlyLoadAppFromAsar: true,
+    loadBrowserProcessSpecificV8Snapshot: false,
+    grantFileProtocolExtraPrivileges: true,
+  },
 };
