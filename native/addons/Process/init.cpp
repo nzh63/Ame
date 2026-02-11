@@ -1,174 +1,124 @@
 #include <Windows.h>
-#include <algorithm>
-#include <functional>
-#include <node_api.h>
-#include <vector>
+#include <napi.h>
 #include <winternl.h>
 
-#include "../utils.h"
+#include <algorithm>
+#include <functional>
+#include <vector>
 
-napi_value isWow64(napi_env env, napi_callback_info info) {
-    size_t argc = 1;
-    napi_value argv[1];
-    PID pid;
-    std::vector<napi_threadsafe_function>::iterator it;
-    NAPI_CALL_EXPECT(napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr), argc == 1, "expect 1 argument.", env);
-    NAPI_CALL(napi_get_value_uint32(env, argv[0], (uint32_t *)&pid));
-    HANDLE handle;
-    handle = OpenProcess(PROCESS_QUERY_INFORMATION, false, pid);
+using PID = DWORD;
+
+Napi::Value isWow64(const Napi::CallbackInfo &info) {
+    Napi::Env env = info.Env();
+
+    if (info.Length() < 1 || !info[0].IsNumber()) {
+        Napi::TypeError::New(env, "expect 1 argument (pid number).").ThrowAsJavaScriptException();
+        return env.Null();
+    }
+
+    PID pid = info[0].As<Napi::Number>().Uint32Value();
+    HANDLE handle = OpenProcess(PROCESS_QUERY_INFORMATION, false, pid);
+
     ULONG_PTR ret;
     unsigned long retLen;
     NtQueryInformationProcess(handle, ProcessWow64Information, &ret, sizeof ret, &retLen);
-    bool isWow64;
-    isWow64 = ret != 0;
+    bool isWow64 = ret != 0;
 
-    napi_value result;
-    NAPI_CALL(napi_get_boolean(env, isWow64, &result));
-
-    return result;
-err:
-    return throwError(env);
+    return Napi::Boolean::New(env, isWow64);
 }
 
-struct WaitData {
-    std::vector<PID> pids;
-    std::vector<HANDLE> handles;
-    bool noPids = false;
-    napi_deferred deferred = nullptr;
-    napi_value promise = nullptr;
-    napi_threadsafe_function tsfn = nullptr;
-    napi_async_work work = nullptr;
-};
+// AsyncWorker for waiting process exit
+class WaitProcessWorker : public Napi::AsyncWorker {
+  public:
+    WaitProcessWorker(Napi::Env env, std::vector<PID> &&pids)
+        : Napi::AsyncWorker(env), deferred_(Napi::Promise::Deferred::New(env)), pids_(std::move(pids)) {}
 
-void CALLBACK waitCallback(void *_data, BOOLEAN isTimedOut) {
-    auto *data = (WaitData *)_data;
-    if (!isTimedOut) {
-        data->handles.pop_back();
-    }
-    if (data->handles.size()) {
-        auto handle = data->handles.back();
-        HANDLE waitHandle;
-        RegisterWaitForSingleObject(&waitHandle, handle, waitCallback, (void *)data, INFINITE, WT_EXECUTEONLYONCE);
-    } else {
-        napi_call_threadsafe_function(data->tsfn, nullptr, napi_tsfn_nonblocking);
-    }
-}
-void resolvePromise(napi_env env, napi_value js_cb, void *context, void *_data) {
-    auto *data = (WaitData *)context;
-    napi_value undefined;
-    NAPI_CALL(napi_get_undefined(env, &undefined));
-    NAPI_CALL(napi_resolve_deferred(env, data->deferred, undefined));
-err:
-    napi_release_threadsafe_function(data->tsfn, napi_tsfn_release);
-    delete data;
-    return;
-}
+    Napi::Promise Promise() { return deferred_.Promise(); }
 
-void executeWait(napi_env env, void *_data) {
-    auto *data = (WaitData *)_data;
-    for (const auto pid : data->pids) {
-        auto handle = OpenProcess(SYNCHRONIZE, false, pid);
-        data->handles.push_back(handle);
-    }
+  protected:
+    void Execute() override {
+        std::vector<HANDLE> handles;
+        for (const auto pid : pids_) {
+            auto handle = OpenProcess(SYNCHRONIZE, false, pid);
+            if (handle) {
+                handles.push_back(handle);
+            }
+        }
 
-    while (data->handles.size()) {
-        auto handle = data->handles.back();
-        HANDLE waitHandle;
-        auto ret =
-            RegisterWaitForSingleObject(&waitHandle, handle, waitCallback, (void *)data, INFINITE, WT_EXECUTEONLYONCE);
-        if (ret == 0) { // fail
-            data->handles.pop_back();
-        } else {
-            break;
+        if (handles.empty()) {
+            // No valid processes to wait for, resolve immediately
+            return;
+        }
+
+        // Wait for all processes to exit
+        WaitForMultipleObjects(static_cast<DWORD>(handles.size()), handles.data(), TRUE, INFINITE);
+
+        // Close all handles
+        for (auto handle : handles) {
+            CloseHandle(handle);
         }
     }
-    if (!data->handles.size()) {
-        data->noPids = true;
+
+    void OnOK() override { deferred_.Resolve(Env().Undefined()); }
+
+    void OnError(const Napi::Error &e) override { deferred_.Reject(e.Value()); }
+
+  private:
+    Napi::Promise::Deferred deferred_;
+    std::vector<PID> pids_;
+};
+
+Napi::Value waitProcessForExit(const Napi::CallbackInfo &info) {
+    Napi::Env env = info.Env();
+
+    if (info.Length() < 1 || !info[0].IsArray()) {
+        Napi::TypeError::New(env, "expect 1 argument (pids array).").ThrowAsJavaScriptException();
+        return env.Null();
     }
-}
 
-void completeWait(napi_env env, napi_status status, void *_data) {
-    auto *data = (WaitData *)_data;
-    if (data->noPids) {
-        resolvePromise(env, nullptr, _data, nullptr);
-    }
-    napi_delete_async_work(env, data->work);
-}
+    Napi::Array pidsArray = info[0].As<Napi::Array>();
+    std::vector<PID> pids;
 
-napi_value waitProcessForExit(napi_env env, napi_callback_info info) {
-    size_t argc = 1;
-    napi_value n_pids;
-    auto *data = new WaitData();
-    NAPI_CALL_EXPECT(napi_get_cb_info(env, info, &argc, &n_pids, nullptr, nullptr), argc == 1, "expect one argument.",
-                     env);
-
-    bool isArray;
-    NAPI_CALL_EXPECT(napi_is_array(env, n_pids, &isArray), isArray, "expect array", env);
-
-    uint32_t len;
-    NAPI_CALL(napi_get_array_length(env, n_pids, &len));
-
+    uint32_t len = pidsArray.Length();
     for (uint32_t i = 0; i < len; i++) {
-        napi_value n_pid;
-        NAPI_CALL(napi_get_element(env, n_pids, i, &n_pid));
-        uint32_t pid;
-        NAPI_CALL(napi_get_value_uint32(env, n_pid, &pid));
-        data->pids.push_back(pid);
+        pids.push_back(pidsArray.Get(i).As<Napi::Number>().Uint32Value());
     }
-    napi_value resource_name;
-    NAPI_CALL(napi_create_promise(env, &data->deferred, &data->promise));
-    NAPI_CALL(napi_create_string_utf8(env, "WaitCallback", NAPI_AUTO_LENGTH, &resource_name));
-    NAPI_CALL(napi_create_threadsafe_function(env, nullptr, nullptr, resource_name, 0, 1, nullptr, nullptr, data,
-                                              resolvePromise, &data->tsfn));
-    NAPI_CALL(napi_create_async_work(env, nullptr, resource_name, executeWait, completeWait, data, &data->work));
-    NAPI_CALL(napi_queue_async_work(env, data->work));
 
-    return data->promise;
-err:
-    if (data->tsfn)
-        napi_release_threadsafe_function(data->tsfn, napi_tsfn_abort);
-    if (data->deferred)
-        napi_reject_deferred(env, data->deferred, createError(env, nullptr, ""));
-    if (data->work)
-        napi_delete_async_work(env, data->work);
-    delete data;
-    return throwError(env);
+    auto *worker = new WaitProcessWorker(env, std::move(pids));
+    worker->Queue();
+
+    return worker->Promise();
 }
 
-napi_value getPidFromPoint(napi_env env, napi_callback_info info) {
-    size_t argc = 2;
-    napi_value argv[2];
-    int64_t x, y;
-    NAPI_CALL_EXPECT(napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr), argc == 2, "expect 2 argument.", env);
-    NAPI_CALL(napi_get_value_int64(env, argv[0], &x));
-    NAPI_CALL(napi_get_value_int64(env, argv[1], &y));
+Napi::Value getPidFromPoint(const Napi::CallbackInfo &info) {
+    Napi::Env env = info.Env();
+
+    if (info.Length() < 2 || !info[0].IsNumber() || !info[1].IsNumber()) {
+        Napi::TypeError::New(env, "expect 2 arguments (x, y coordinates).").ThrowAsJavaScriptException();
+        return env.Null();
+    }
+
+    int64_t x = info[0].As<Napi::Number>().Int64Value();
+    int64_t y = info[1].As<Napi::Number>().Int64Value();
 
     POINT pt;
-    pt.x = x;
-    pt.y = y;
-    HWND hwnd;
-    hwnd = WindowFromPoint(pt);
+    pt.x = static_cast<LONG>(x);
+    pt.y = static_cast<LONG>(y);
+    HWND hwnd = WindowFromPoint(pt);
     if (hwnd == nullptr) {
-        napi_value undefined;
-        NAPI_CALL(napi_get_undefined(env, &undefined));
-        return undefined;
+        return env.Undefined();
     }
 
     PID windowPid;
     GetWindowThreadProcessId(hwnd, &windowPid);
-    napi_value result;
-    NAPI_CALL(napi_create_uint32(env, windowPid, &result));
-    return result;
-
-err:
-    return throwError(env);
+    return Napi::Number::From(env, windowPid);
 }
 
-NAPI_MODULE_INIT() {
-    napi_property_descriptor desc[] = {
-        {"isWow64", nullptr, isWow64, nullptr, nullptr, nullptr, napi_enumerable, nullptr},
-        {"waitProcessForExit", nullptr, waitProcessForExit, nullptr, nullptr, nullptr, napi_enumerable, nullptr},
-        {"getPidFromPoint", nullptr, getPidFromPoint, nullptr, nullptr, nullptr, napi_enumerable, nullptr}};
-    napi_define_properties(env, exports, 3, desc);
+Napi::Object Init(Napi::Env env, Napi::Object exports) {
+    exports.Set("isWow64", Napi::Function::New(env, isWow64));
+    exports.Set("waitProcessForExit", Napi::Function::New(env, waitProcessForExit));
+    exports.Set("getPidFromPoint", Napi::Function::New(env, getPidFromPoint));
     return exports;
 }
+
+NODE_API_MODULE(Process, Init)

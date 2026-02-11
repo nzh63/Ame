@@ -1,64 +1,83 @@
 #include <Windows.h>
+#include <napi.h>
+
 #include <algorithm>
 #include <functional>
 #include <map>
-#include <node_api.h>
+#include <memory>
 #include <vector>
-
-#include "../utils.h"
 
 struct MoveDiff {
     int32_t diffLeft, diffTop;
 };
 
-std::map<HWINEVENTHOOK, napi_threadsafe_function> callbacks;
+// Context type for threadsafe function
+using Context = std::nullptr_t;
+
+// Base data type for callbacks
+struct CallbackData {
+    virtual ~CallbackData() = default;
+};
+
+struct MinimizeData : CallbackData {
+    bool isMinimize;
+
+    MinimizeData(bool min) : isMinimize(min) {}
+};
+
+struct MoveData : CallbackData {
+    int32_t diffLeft, diffTop;
+
+    MoveData(int32_t left, int32_t top) : diffLeft(left), diffTop(top) {}
+};
+
+// Forward declarations for CallJs callbacks
+void CallMinimizeJs(Napi::Env env, Napi::Function jsCallback, Context *context, CallbackData *data);
+void CallMoveJs(Napi::Env env, Napi::Function jsCallback, Context *context, CallbackData *data);
+
+// TypedThreadSafeFunction type aliases
+template <void (*CallJs)(Napi::Env, Napi::Function, Context *, CallbackData *)>
+using TSFN = Napi::TypedThreadSafeFunction<Context, CallbackData, CallJs>;
+
+// Storage for callbacks and state
+std::map<HWINEVENTHOOK, std::shared_ptr<TSFN<CallMinimizeJs>>> minimizeCallbacks;
+std::map<HWINEVENTHOOK, std::shared_ptr<TSFN<CallMoveJs>>> moveCallbacks;
 std::map<HWINEVENTHOOK, RECT> lastRect;
 
-void callWindowMinimizeJsCallback(napi_env env, napi_value js_cb, void *context, void *data) {
-    DWORD event = (DWORD)(uint64_t)data;
-    if (env != nullptr) {
-        napi_value undefined, isMinimize;
-        NAPI_CALL(napi_get_undefined(env, &undefined));
-        NAPI_CALL(napi_get_boolean(env, event == EVENT_SYSTEM_MINIMIZESTART, &isMinimize));
-        NAPI_CALL(napi_call_function(env, undefined, js_cb, 1, &isMinimize, nullptr));
+// CallJs callback for minimize events
+void CallMinimizeJs(Napi::Env env, Napi::Function jsCallback, Context *context, CallbackData *data) {
+    auto *minData = static_cast<MinimizeData *>(data);
+    if (env != nullptr && jsCallback != nullptr && minData != nullptr) {
+        jsCallback.Call({Napi::Boolean::New(env, minData->isMinimize)});
     }
-err:
-    return;
+    delete minData;
+}
+
+// CallJs callback for move events
+void CallMoveJs(Napi::Env env, Napi::Function jsCallback, Context *context, CallbackData *data) {
+    auto *moveData = static_cast<MoveData *>(data);
+    if (env != nullptr && jsCallback != nullptr && moveData != nullptr) {
+        auto arg = Napi::Object::New(env);
+        arg.Set("diffTop", moveData->diffTop);
+        arg.Set("diffLeft", moveData->diffLeft);
+        jsCallback.Call({arg});
+    }
+    delete moveData;
 }
 
 void CALLBACK windowsMinimizeCallback(HWINEVENTHOOK hWinEventHook, DWORD event, HWND hwnd, LONG idObject, LONG idChild,
                                       DWORD idEventThread, DWORD dwmsEventTime) {
-    auto it = callbacks.find(hWinEventHook);
-    if (it != callbacks.end()) {
-        auto &tsfn = it->second;
-        NAPI_CALL(napi_call_threadsafe_function(tsfn, (void *)(uint64_t)event, napi_tsfn_nonblocking));
+    auto it = minimizeCallbacks.find(hWinEventHook);
+    if (it != minimizeCallbacks.end()) {
+        auto *data = new MinimizeData(event == EVENT_SYSTEM_MINIMIZESTART);
+        it->second->NonBlockingCall(data);
     }
-err:
-    return;
-}
-
-void callWindowMoveJsCallback(napi_env env, napi_value js_cb, void *context, void *data) {
-    MoveDiff *diff = (MoveDiff *)data;
-    if (env != nullptr) {
-        napi_value undefined, arg, diffTop, diffLeft;
-        NAPI_CALL(napi_get_undefined(env, &undefined));
-        NAPI_CALL(napi_create_object(env, &arg));
-        NAPI_CALL(napi_create_int32(env, diff->diffTop, &diffTop));
-        NAPI_CALL(napi_create_int32(env, diff->diffLeft, &diffLeft));
-        napi_property_descriptor desc[] = {
-            {"diffTop", nullptr, nullptr, nullptr, nullptr, diffTop, napi_enumerable, nullptr},
-            {"diffLeft", nullptr, nullptr, nullptr, nullptr, diffLeft, napi_enumerable, nullptr}};
-        NAPI_CALL(napi_define_properties(env, arg, 2, desc));
-        NAPI_CALL(napi_call_function(env, undefined, js_cb, 1, &arg, nullptr));
-    }
-err:
-    delete diff;
 }
 
 void CALLBACK windowsMoveCallback(HWINEVENTHOOK hWinEventHook, DWORD event, HWND hwnd, LONG idObject, LONG idChild,
                                   DWORD idEventThread, DWORD dwmsEventTime) {
-    auto it = callbacks.find(hWinEventHook);
-    if (it != callbacks.end()) {
+    auto it = moveCallbacks.find(hWinEventHook);
+    if (it != moveCallbacks.end()) {
         if (event == EVENT_SYSTEM_MOVESIZESTART) {
             RECT rect{0, 0, 0, 0};
             GetWindowRect(hwnd, &rect);
@@ -69,132 +88,157 @@ void CALLBACK windowsMoveCallback(HWINEVENTHOOK hWinEventHook, DWORD event, HWND
                 return;
             RECT rect{0, 0, 0, 0};
             GetWindowRect(hwnd, &rect);
-            auto diff = new MoveDiff();
-            diff->diffLeft = rect.left - it2->second.left;
-            diff->diffTop = rect.top - it2->second.top;
-            auto &tsfn = it->second;
-            NAPI_CALL_GOTOERR(napi_call_threadsafe_function(tsfn, diff, napi_tsfn_nonblocking), err2);
-            return;
-        err2:
-            delete diff;
-            goto err;
+            auto *data = new MoveData(rect.left - it2->second.left, rect.top - it2->second.top);
+            it->second->NonBlockingCall(data);
         }
     }
-err:
-    return;
 }
 
-napi_value startWindowEventHook(napi_env env, napi_callback_info info, std::function<HWINEVENTHOOK(PID)> createHook,
-                                napi_threadsafe_function_call_js callJsCallback) {
-    size_t argc = 2;
-    napi_value argv[2];
+using PID = DWORD;
+
+Napi::Value startWindowMinimizeHook(const Napi::CallbackInfo &info) {
+    Napi::Env env = info.Env();
+
+    if (info.Length() < 2) {
+        Napi::TypeError::New(env, "expect 2 arguments (pids array, callback function).").ThrowAsJavaScriptException();
+        return env.Null();
+    }
+    if (!info[0].IsArray()) {
+        Napi::TypeError::New(env, "expect array for first argument").ThrowAsJavaScriptException();
+        return env.Null();
+    }
+    if (!info[1].IsFunction()) {
+        Napi::TypeError::New(env, "expect function for second argument").ThrowAsJavaScriptException();
+        return env.Null();
+    }
+
+    Napi::Array pidsArray = info[0].As<Napi::Array>();
+    Napi::Function jsCallback = info[1].As<Napi::Function>();
+
     std::vector<PID> pids;
     std::vector<HWINEVENTHOOK> hooks;
-    NAPI_CALL_EXPECT(napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr), argc == 2, "expect 2 argument.", env);
 
-    bool isArray;
-    NAPI_CALL_EXPECT(napi_is_array(env, argv[0], &isArray), isArray, "expect array", env);
-
-    uint32_t len;
-    NAPI_CALL(napi_get_array_length(env, argv[0], &len));
-
+    uint32_t len = pidsArray.Length();
     for (uint32_t i = 0; i < len; i++) {
-        napi_value n_pid;
-        NAPI_CALL(napi_get_element(env, argv[0], i, &n_pid));
-        uint32_t pid;
-        NAPI_CALL(napi_get_value_uint32(env, n_pid, &pid));
-        pids.push_back(pid);
+        pids.push_back(pidsArray.Get(i).As<Napi::Number>().Uint32Value());
     }
 
-    napi_value resource_name;
-    napi_threadsafe_function tsfn;
-    tsfn = nullptr;
-    NAPI_CALL(napi_create_string_utf8(env, "WindowEventHookCallback", NAPI_AUTO_LENGTH, &resource_name));
-    NAPI_CALL(napi_create_threadsafe_function(env, argv[1], nullptr, resource_name, 0, 1, nullptr, nullptr, nullptr,
-                                              callJsCallback, &tsfn));
+    // Create threadsafe function
+    TSFN<CallMinimizeJs> tsfn = TSFN<CallMinimizeJs>::New(env, jsCallback, "WindowMinimizeHook", 0, 1, nullptr,
+                                                          [](Napi::Env, void *, Context *ctx) {});
+
+    auto tsfnPtr = std::make_shared<TSFN<CallMinimizeJs>>(std::move(tsfn));
+
     for (const auto pid : pids) {
-        auto hook = createHook(pid);
-        callbacks[hook] = tsfn;
-        hooks.push_back(hook);
+        auto hook = SetWinEventHook(EVENT_SYSTEM_MINIMIZESTART, EVENT_SYSTEM_MINIMIZEEND, nullptr,
+                                    windowsMinimizeCallback, pid, 0, WINEVENT_OUTOFCONTEXT);
+        if (hook) {
+            minimizeCallbacks[hook] = tsfnPtr;
+            hooks.push_back(hook);
+        }
     }
 
-    napi_value result;
-    NAPI_CALL(napi_create_array_with_length(env, hooks.size(), &result));
+    Napi::Array result = Napi::Array::New(env, hooks.size());
     for (std::size_t i = 0; i < hooks.size(); i++) {
-        napi_value hook;
-        NAPI_CALL(napi_create_bigint_uint64(env, (uint64_t)(void *)hooks[i], &hook));
-        NAPI_CALL(napi_set_element(env, result, i, hook));
+        result.Set(i, Napi::BigInt::New(env, reinterpret_cast<uint64_t>(hooks[i])));
     }
     return result;
-err:
-    if (tsfn)
-        napi_release_threadsafe_function(tsfn, napi_tsfn_abort);
-    return throwError(env);
 }
 
-napi_value startWindowMinimizeHook(napi_env env, napi_callback_info info) {
-    return startWindowEventHook(
-        env, info,
-        [](PID pid) {
-            return SetWinEventHook(EVENT_SYSTEM_MINIMIZESTART, EVENT_SYSTEM_MINIMIZEEND, nullptr,
-                                   windowsMinimizeCallback, pid, 0, WINEVENT_OUTOFCONTEXT);
-        },
-        callWindowMinimizeJsCallback);
-}
+Napi::Value startWindowMoveHook(const Napi::CallbackInfo &info) {
+    Napi::Env env = info.Env();
 
-napi_value startWindowMoveHook(napi_env env, napi_callback_info info) {
-    return startWindowEventHook(
-        env, info,
-        [](PID pid) {
-            return SetWinEventHook(EVENT_SYSTEM_MOVESIZESTART, EVENT_SYSTEM_MOVESIZEEND, nullptr, windowsMoveCallback,
-                                   pid, 0, WINEVENT_OUTOFCONTEXT);
-        },
-        callWindowMoveJsCallback);
-}
+    if (info.Length() < 2) {
+        Napi::TypeError::New(env, "expect 2 arguments (pids array, callback function).").ThrowAsJavaScriptException();
+        return env.Null();
+    }
+    if (!info[0].IsArray()) {
+        Napi::TypeError::New(env, "expect array for first argument").ThrowAsJavaScriptException();
+        return env.Null();
+    }
+    if (!info[1].IsFunction()) {
+        Napi::TypeError::New(env, "expect function for second argument").ThrowAsJavaScriptException();
+        return env.Null();
+    }
 
-napi_value stopWindowEventHook(napi_env env, napi_callback_info info) {
-    size_t argc = 1;
-    napi_value argv[1];
+    Napi::Array pidsArray = info[0].As<Napi::Array>();
+    Napi::Function jsCallback = info[1].As<Napi::Function>();
+
+    std::vector<PID> pids;
     std::vector<HWINEVENTHOOK> hooks;
-    NAPI_CALL_EXPECT(napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr), argc == 1, "expect 1 argument.", env);
 
-    bool isArray;
-    NAPI_CALL_EXPECT(napi_is_array(env, argv[0], &isArray), isArray, "expect array", env);
+    uint32_t len = pidsArray.Length();
+    for (uint32_t i = 0; i < len; i++) {
+        pids.push_back(pidsArray.Get(i).As<Napi::Number>().Uint32Value());
+    }
 
-    uint32_t len;
-    NAPI_CALL(napi_get_array_length(env, argv[0], &len));
+    // Create threadsafe function
+    TSFN<CallMoveJs> tsfn = TSFN<CallMoveJs>::New(env, jsCallback, "WindowMoveHook", 0, 1, nullptr,
+                                                  [](Napi::Env, void *, Context *ctx) {});
+
+    auto tsfnPtr = std::make_shared<TSFN<CallMoveJs>>(std::move(tsfn));
+
+    for (const auto pid : pids) {
+        auto hook = SetWinEventHook(EVENT_SYSTEM_MOVESIZESTART, EVENT_SYSTEM_MOVESIZEEND, nullptr, windowsMoveCallback,
+                                    pid, 0, WINEVENT_OUTOFCONTEXT);
+        if (hook) {
+            moveCallbacks[hook] = tsfnPtr;
+            hooks.push_back(hook);
+        }
+    }
+
+    Napi::Array result = Napi::Array::New(env, hooks.size());
+    for (std::size_t i = 0; i < hooks.size(); i++) {
+        result.Set(i, Napi::BigInt::New(env, reinterpret_cast<uint64_t>(hooks[i])));
+    }
+    return result;
+}
+
+Napi::Value stopWindowEventHook(const Napi::CallbackInfo &info) {
+    Napi::Env env = info.Env();
+
+    if (info.Length() < 1 || !info[0].IsArray()) {
+        Napi::TypeError::New(env, "expect 1 argument (hooks array).").ThrowAsJavaScriptException();
+        return env.Null();
+    }
+
+    Napi::Array hooksArray = info[0].As<Napi::Array>();
+    uint32_t len = hooksArray.Length();
 
     for (uint32_t i = 0; i < len; i++) {
-        napi_value n_hook;
-        NAPI_CALL(napi_get_element(env, argv[0], i, &n_hook));
-        HWINEVENTHOOK hook;
         bool lossless;
-        NAPI_CALL(napi_get_value_bigint_uint64(env, n_hook, (uint64_t *)(void *)&hook, &lossless));
-        hooks.push_back(hook);
-    }
-    for (const auto hook : hooks) {
+        uint64_t hookValue = hooksArray.Get(i).As<Napi::BigInt>().Uint64Value(&lossless);
+        HWINEVENTHOOK hook = reinterpret_cast<HWINEVENTHOOK>(hookValue);
+
         UnhookWinEvent(hook);
-        auto it = callbacks.find(hook);
-        if (it != callbacks.end()) {
-            napi_release_threadsafe_function(it->second, napi_tsfn_release);
-            callbacks.erase(it);
+
+        // Remove from minimize callbacks
+        auto it = minimizeCallbacks.find(hook);
+        if (it != minimizeCallbacks.end()) {
+            minimizeCallbacks.erase(it);
         }
-        auto it2 = lastRect.find(hook);
-        if (it2 != lastRect.end()) {
-            lastRect.erase(it2);
+
+        // Remove from move callbacks
+        auto it2 = moveCallbacks.find(hook);
+        if (it2 != moveCallbacks.end()) {
+            moveCallbacks.erase(it2);
+        }
+
+        // Remove from lastRect
+        auto it3 = lastRect.find(hook);
+        if (it3 != lastRect.end()) {
+            lastRect.erase(it3);
         }
     }
-    return nullptr;
-err:
-    return throwError(env);
+
+    return env.Undefined();
 }
 
-NAPI_MODULE_INIT() {
-    napi_property_descriptor desc[] = {
-        {"startWindowMinimizeHook", nullptr, startWindowMinimizeHook, nullptr, nullptr, nullptr, napi_enumerable,
-         nullptr},
-        {"startWindowMoveHook", nullptr, startWindowMoveHook, nullptr, nullptr, nullptr, napi_enumerable, nullptr},
-        {"stopWindowEventHook", nullptr, stopWindowEventHook, nullptr, nullptr, nullptr, napi_enumerable, nullptr}};
-    napi_define_properties(env, exports, 3, desc);
+Napi::Object Init(Napi::Env env, Napi::Object exports) {
+    exports.Set("startWindowMinimizeHook", Napi::Function::New(env, startWindowMinimizeHook));
+    exports.Set("startWindowMoveHook", Napi::Function::New(env, startWindowMoveHook));
+    exports.Set("stopWindowEventHook", Napi::Function::New(env, stopWindowEventHook));
     return exports;
 }
+
+NODE_API_MODULE(WindowEventHook, Init)

@@ -1,18 +1,17 @@
 #include <Windows.h>
-#include <algorithm>
 #include <dwmapi.h>
-#include <node_api.h>
+#include <napi.h>
+
+#include <algorithm>
 #include <vector>
 
-#include "../utils.h"
+Napi::Value findWindow(const Napi::CallbackInfo &info);
+Napi::Value capture(const Napi::CallbackInfo &info);
 
-napi_value findWindow(napi_env env, napi_callback_info info);
-napi_value capture(napi_env env, napi_callback_info info);
-
-NAPI_MODULE_INIT() {
-    napi_property_descriptor desc[] = {
-        {"findWindow", nullptr, findWindow, nullptr, nullptr, nullptr, napi_enumerable, nullptr},
-        {"capture", nullptr, capture, nullptr, nullptr, nullptr, napi_enumerable, nullptr}};
-    napi_define_properties(env, exports, 2, desc);
+Napi::Object Init(Napi::Env env, Napi::Object exports) {
+    exports.Set("findWindow", Napi::Function::New(env, findWindow));
+    exports.Set("capture", Napi::Function::New(env, capture));
     return exports;
 }
+
+NODE_API_MODULE(ScreenCapturer, Init)

@@ -64,7 +64,14 @@ async function gotLicense(url, dest) {
 
 async function checkFiles(files) {
   try {
-    await Promise.all(files.map((i) => fsPromise.stat(path.join(__dirname, '../', i))));
+    await Promise.all(
+      files.map((i) => {
+        if (!path.isAbsolute(i)) {
+          i = path.join(__dirname, '../', i);
+        }
+        return fsPromise.stat(i);
+      }),
+    );
     return true;
   } catch (e) {
     return false;
@@ -213,17 +220,19 @@ async function buildNative(arch = 'x64', force = false) {
 
   async function cmake(options) {
     await fsPromise.mkdir(options.buildDir, { recursive: true });
-    await spawn('cmake', [
-      '-G',
-      'Visual Studio 17 2022',
-      '-S',
-      options.sourceDir,
-      '-B',
-      options.buildDir,
-      '-A',
-      options.arch === 'x64' ? 'x64' : 'Win32',
-      `-DCMAKE_INSTALL_PREFIX=${options.installDir}`,
-    ]);
+    if (!(await checkFiles([path.join(options.buildDir, 'CMakeCache.txt')]))) {
+      await spawn('cmake', [
+        '-G',
+        'Visual Studio 17 2022',
+        '-S',
+        options.sourceDir,
+        '-B',
+        options.buildDir,
+        '-A',
+        options.arch === 'x64' ? 'x64' : 'Win32',
+        `-DCMAKE_INSTALL_PREFIX=${options.installDir}`,
+      ]);
+    }
     await spawn('cmake', ['--build', options.buildDir, '--config', 'Release', '--parallel']);
     await spawn('cmake', ['--install', options.buildDir]);
   }
