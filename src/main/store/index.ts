@@ -52,6 +52,7 @@ const store = new Store<{
     ui: uiStoreJSONSchema,
   },
   clearInvalidConfig: true,
+  ...(import.meta.env.E2E && process.env.AME_TEST_STORE_CWD ? { cwd: process.env.AME_TEST_STORE_CWD } : {}),
 });
 export default store;
 export type StoreType = typeof store;

@@ -47,6 +47,8 @@ jobs:
           DEBUG: ame:*
           DEBUG_COLORS: '1'
 
+      - run: yarn e2e
+
       - run: yarn build --arch=${{ matrix.arch }} --publish=never
 
       - uses: actions/upload-artifact@v4

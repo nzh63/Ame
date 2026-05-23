@@ -21,7 +21,7 @@
       "@static/*": ["./build/static/*"]
     }
   },
-  "include": ["src/**/*", "src/**/*.vue", "test/**/*.ts"],
+  "include": ["src/**/*", "src/**/*.vue", "test/**/*.ts", "e2e/**/*.ts"],
   "exclude": ["**/node_modules", "**/.*/"],
   "ts-node": {
     "transpileOnly": true,

@@ -24,8 +24,9 @@ export default ({ mode } = { mode: 'production' }) =>
     base: './',
     clearScreen: false,
     define: {
-      'import.meta.env.DEV': JSON.stringify(mode !== 'production'),
+      'import.meta.env.DEV': JSON.stringify(mode === 'development'),
       'import.meta.env.PROD': JSON.stringify(mode === 'production'),
+      'import.meta.env.E2E': JSON.stringify(false),
       'import.meta.env.IS_MAIN_PROCESS': JSON.stringify(false),
       'import.meta.env.IS_RENDER_PROCESS': JSON.stringify(true),
       'import.meta.env.IS_WORKER_PROCESS': JSON.stringify(false),

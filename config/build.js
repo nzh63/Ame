@@ -497,6 +497,12 @@ function clean() {
           await Promise.all([buildTest('development'), buildWorkers('development')]);
         })
         .command('test:native', '运行原生模块单元测试', {}, (args) => testNative(args.arch))
+        .command('e2e', '构建e2e测试', {}, async (args) => {
+          await downloadDependencies();
+          await buildMain('e2e', args.arch);
+          await buildWorkers('production');
+          await buildRender('production');
+        })
         .command(['$0', 'all'], '构建全部', {}, (args) => buildNsis(args));
     })
     .parse();

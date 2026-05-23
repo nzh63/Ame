@@ -15,6 +15,7 @@
     "build:js": "node ./config/build.js build js",
     "build:main": "node ./config/build.js build main",
     "build:native": "node ./config/build.js build native",
+    "build:e2e": "node ./config/build.js build e2e",
     "build:render": "node ./config/build.js build render",
     "build:test": "node ./config/build.js build test",
     "build:workers": "node ./config/build.js build workers",
@@ -26,10 +27,12 @@
     "test": "yarn test:native \"$@\" && yarn test:js \"$@\"",
     "test:native": "node ./config/build.js build test:native",
     "test:js": "yarn build:test && electron-mocha --colors --require source-map-support/register ./build/test",
+    "e2e": "yarn build:e2e && playwright test",
     "type-check": "tsc --noEmit && vue-tsc --noEmit",
     "prepare": "husky"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@rollup/plugin-alias": "^5.1.1",
     "@rollup/plugin-commonjs": "^28.0.6",
     "@rollup/plugin-dynamic-import-vars": "^2.1.5",
