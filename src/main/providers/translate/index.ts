@@ -4,7 +4,6 @@ import baiduAi from './baiduAi';
 import baidufanyi from './baidufanyi';
 import echo from './echo';
 import googleTranslate from './googleTranslate';
-import hunyuan from './hunyuan';
 import openai from './openai';
 import qqfanyi from './qqfanyi';
 import tencentcloud from './tencentcloud';
@@ -22,7 +21,6 @@ export function defineTranslateProvider<ID extends string, S extends Schema, D, 
 export const availableTranslateConfigs = [
   ...(import.meta.env.ENABLE_ECHO_TRANSLATOR ? [echo] : []),
   openai,
-  hunyuan,
   tencentcloud,
   baiduAi,
   qqfanyi,

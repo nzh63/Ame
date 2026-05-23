@@ -7,7 +7,6 @@ import { _electron } from 'playwright';
 export const PROVIDER_IDS = {
   translate: [
     'OpenAI-Compatible API',
-    '腾讯混元大模型',
     '腾讯云',
     '百度AI开放平台',
     '腾讯翻译君',
