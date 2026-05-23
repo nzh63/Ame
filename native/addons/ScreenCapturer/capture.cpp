@@ -27,7 +27,7 @@ class CaptureWorker : public Napi::AsyncWorker {
         }
 
         // Allocate buffer for capture data
-        size_t bufferSize = width_ * height_ * 4;
+        size_t bufferSize = static_cast<size_t>(width_) * static_cast<size_t>(height_) * static_cast<size_t>(4);
         buffer_.resize(bufferSize);
 
         // Capture window
