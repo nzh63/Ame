@@ -1921,13 +1921,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/uuid@npm:^10.0.0":
-  version: 10.0.0
-  resolution: "@types/uuid@npm:10.0.0"
-  checksum: 10c0/9a1404bf287164481cb9b97f6bb638f78f955be57c40c6513b7655160beb29df6f84c915aaf4089a1559c216557dc4d2f79b48d978742d3ae10b937420ddac60
-  languageName: node
-  linkType: hard
-
 "@types/validator@npm:^13.7.17":
   version: 13.12.0
   resolution: "@types/validator@npm:13.12.0"
@@ -2442,7 +2435,6 @@ __metadata:
     "@types/node": "npm:^24.0.7"
     "@types/shell-quote": "npm:^1.7.5"
     "@types/sinon": "npm:^21"
-    "@types/uuid": "npm:^10.0.0"
     "@typescript-eslint/eslint-plugin": "npm:^8.35.0"
     "@typescript-eslint/parser": "npm:^8.35.0"
     "@vitejs/plugin-vue": "npm:^6.0.0"
@@ -2493,7 +2485,6 @@ __metadata:
     typescript: "npm:^5.8.3"
     unplugin-auto-import: "npm:^19.3.0"
     unplugin-vue-components: "npm:^28.7.0"
-    uuid: "npm:^14.0.0"
     vite: "npm:^7.3.2"
     vite-plugin-externals: "npm:^0.6.2"
     vue: "npm:^3.5.17"
@@ -9753,15 +9744,6 @@ __metadata:
   version: 1.0.2
   resolution: "util-deprecate@npm:1.0.2"
   checksum: 10c0/41a5bdd214df2f6c3ecf8622745e4a366c4adced864bc3c833739791aeeeb1838119af7daed4ba36428114b5c67dcda034a79c882e97e43c03e66a4dd7389942
-  languageName: node
-  linkType: hard
-
-"uuid@npm:^14.0.0":
-  version: 14.0.0
-  resolution: "uuid@npm:14.0.0"
-  bin:
-    uuid: dist-node/bin/uuid
-  checksum: 10c0/a57ae7794c45005c1a9208989196c5baf79a7679c30f43c1bee9033a2c4d113a2cea216fa6fcc9663b08b0d55635df1a7c6eb7e7f3d21c3e50688c698fa39a50
   languageName: node
   linkType: hard
 
