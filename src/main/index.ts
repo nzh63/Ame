@@ -1,6 +1,5 @@
 import { description, name } from '../../package.json';
 import logger from '@logger';
-import { Session } from '@main/Session';
 import { __assets } from '@main/paths';
 import '@remote';
 import { BrowserWindow, Menu, Tray, app, dialog, shell } from 'electron';
@@ -52,7 +51,8 @@ export function createMainWindow() {
   });
 }
 
-function quit() {
+async function quit() {
+  const { Session } = await import('@main/Session');
   Session.getAllInstances().forEach((i) => i.destroy());
   app.quit();
 }
