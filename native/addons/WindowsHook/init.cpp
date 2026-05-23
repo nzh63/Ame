@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <functional>
 #include <memory>
+#include <shared_mutex>
 #include <vector>
 
 struct CallbackData {
@@ -42,6 +43,8 @@ HHOOK keyboardHookHandle = nullptr;
 std::vector<std::unique_ptr<TSFN<CallMouseJs>>> mouseCallbacks;
 HHOOK mouseHookHandle = nullptr;
 
+std::shared_mutex windowsHookMutex;
+
 // CallJs callback for keyboard events
 void CallKeyboardJs(Napi::Env env, Napi::Function jsCallback, Context *context, CallbackData *data) {
     auto *kbdData = static_cast<KeyboardData *>(data);
@@ -66,6 +69,7 @@ void CallMouseJs(Napi::Env env, Napi::Function jsCallback, Context *context, Cal
 LRESULT CALLBACK globalKeyboardHookCallback(int nCode, WPARAM wParam, LPARAM lParam) {
     if (nCode >= 0) {
         auto *kb = reinterpret_cast<KBDLLHOOKSTRUCT *>(lParam);
+        std::shared_lock<std::shared_mutex> lock(windowsHookMutex);
         for (auto &tsfn : keyboardCallbacks) {
             auto *data = new KeyboardData(wParam, kb->vkCode);
             tsfn->NonBlockingCall(data);
@@ -77,6 +81,7 @@ LRESULT CALLBACK globalKeyboardHookCallback(int nCode, WPARAM wParam, LPARAM lPa
 LRESULT CALLBACK globalMouseHookCallback(int nCode, WPARAM wParam, LPARAM lParam) {
     if (nCode >= 0) {
         if (wParam == WM_LBUTTONDOWN || wParam == WM_LBUTTONUP || wParam == WM_MOUSEWHEEL) {
+            std::shared_lock<std::shared_mutex> lock(windowsHookMutex);
             for (auto &tsfn : mouseCallbacks) {
                 auto *data = new MouseData(wParam, reinterpret_cast<MSLLHOOKSTRUCT *>(lParam)->pt);
                 tsfn->NonBlockingCall(data);
@@ -103,18 +108,25 @@ Napi::Value startHook(const Napi::CallbackInfo &info, const std::function<HHOOK(
         TSFN<CallJs>::New(env, jsCallback, "WindowHookCallback", 0, 1, nullptr, [](Napi::Env, void *, Context *ctx) {});
 
     if (!handle) {
-        handle = createHook();
+        std::lock_guard<std::shared_mutex> lock(windowsHookMutex);
         if (!handle) {
-            DWORD errorCode = GetLastError();
-            Napi::Error::New(env, "Failed to create hook, error code: " + std::to_string(errorCode))
-                .ThrowAsJavaScriptException();
-            return env.Null();
+            handle = createHook();
+            if (!handle) {
+                DWORD errorCode = GetLastError();
+                Napi::Error::New(env, "Failed to create hook, error code: " + std::to_string(errorCode))
+                    .ThrowAsJavaScriptException();
+                return env.Null();
+            }
         }
     }
 
     // Store in vector and get pointer
-    callbacks.push_back(std::make_unique<TSFN<CallJs>>(std::move(tsfn)));
-    TSFN<CallJs> *rawPtr = callbacks.back().get();
+    TSFN<CallJs> *rawPtr;
+    {
+        std::lock_guard<std::shared_mutex> lock(windowsHookMutex);
+        callbacks.push_back(std::make_unique<TSFN<CallJs>>(std::move(tsfn)));
+        rawPtr = callbacks.back().get();
+    }
 
     // Return the pointer value as BigInt for later identification
     return Napi::BigInt::New(env, reinterpret_cast<uint64_t>(rawPtr));
@@ -134,6 +146,7 @@ Napi::Value startGlobalMouseHook(const Napi::CallbackInfo &info) {
 
 template <void (*CallJs)(Napi::Env, Napi::Function, Context *, CallbackData *)>
 void findAndRemoveCallback(std::vector<std::unique_ptr<TSFN<CallJs>>> &callbacks, TSFN<CallJs> *targetPtr) {
+    std::lock_guard<std::shared_mutex> lock(windowsHookMutex);
     auto it = std::find_if(callbacks.begin(), callbacks.end(),
                            [targetPtr](const std::unique_ptr<TSFN<CallJs>> &tsfn) { return tsfn.get() == targetPtr; });
     if (it != callbacks.end()) {
@@ -162,13 +175,16 @@ Napi::Value stopHook(const Napi::CallbackInfo &info) {
     findAndRemoveCallback(mouseCallbacks, mousePtr);
 
     // Unhook if no more callbacks
-    if (keyboardCallbacks.empty() && keyboardHookHandle) {
-        UnhookWindowsHookEx(keyboardHookHandle);
-        keyboardHookHandle = nullptr;
-    }
-    if (mouseCallbacks.empty() && mouseHookHandle) {
-        UnhookWindowsHookEx(mouseHookHandle);
-        mouseHookHandle = nullptr;
+    {
+        std::lock_guard<std::shared_mutex> lock(windowsHookMutex);
+        if (keyboardCallbacks.empty() && keyboardHookHandle) {
+            UnhookWindowsHookEx(keyboardHookHandle);
+            keyboardHookHandle = nullptr;
+        }
+        if (mouseCallbacks.empty() && mouseHookHandle) {
+            UnhookWindowsHookEx(mouseHookHandle);
+            mouseHookHandle = nullptr;
+        }
     }
 
     return env.Undefined();

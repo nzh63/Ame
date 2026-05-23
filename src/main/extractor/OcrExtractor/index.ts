@@ -86,6 +86,8 @@ export class OcrExtractor extends IExtractor {
   }
 
   private setupMovementDetector() {
+    this.movementDetector?.destroy();
+    this.movementDetector = undefined;
     if (this.options.trigger.movement.interval > 0) {
       this.movementDetector = new MovementDetector(
         this.screenCapturer,

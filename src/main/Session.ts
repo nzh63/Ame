@@ -283,6 +283,8 @@ export class Session {
 
   public destroy() {
     logger('%o General destroy', this.gamePids);
+    const index = Session.instances.indexOf(this);
+    if (index !== -1) Session.instances.splice(index, 1);
     for (const key in this.originalWatchList) {
       if (!Object.hasOwn(this.originalWatchList, key)) continue;
       this.unwatchOriginal(key);

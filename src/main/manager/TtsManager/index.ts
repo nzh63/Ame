@@ -12,7 +12,7 @@ export class TtsManager extends BaseManager<TtsProvider> {
   public constructor() {
     super(availableTtsConfigs, TtsProvider);
     this.options = store.get('ttsManager');
-    this.optionsUnsubscribe = store.onDidChange('ttsProviders', () => {
+    this.optionsUnsubscribe = store.onDidChange('ttsManager', () => {
       this.options = store.get('ttsManager');
     });
   }

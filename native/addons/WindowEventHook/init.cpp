@@ -5,6 +5,7 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <vector>
 
 struct MoveDiff {
@@ -43,6 +44,7 @@ using TSFN = Napi::TypedThreadSafeFunction<Context, CallbackData, CallJs>;
 std::map<HWINEVENTHOOK, std::shared_ptr<TSFN<CallMinimizeJs>>> minimizeCallbacks;
 std::map<HWINEVENTHOOK, std::shared_ptr<TSFN<CallMoveJs>>> moveCallbacks;
 std::map<HWINEVENTHOOK, RECT> lastRect;
+std::mutex eventHookMutex;
 
 // CallJs callback for minimize events
 void CallMinimizeJs(Napi::Env env, Napi::Function jsCallback, Context *context, CallbackData *data) {
@@ -67,6 +69,7 @@ void CallMoveJs(Napi::Env env, Napi::Function jsCallback, Context *context, Call
 
 void CALLBACK windowsMinimizeCallback(HWINEVENTHOOK hWinEventHook, DWORD event, HWND hwnd, LONG idObject, LONG idChild,
                                       DWORD idEventThread, DWORD dwmsEventTime) {
+    std::lock_guard<std::mutex> lock(eventHookMutex);
     auto it = minimizeCallbacks.find(hWinEventHook);
     if (it != minimizeCallbacks.end()) {
         auto *data = new MinimizeData(event == EVENT_SYSTEM_MINIMIZESTART);
@@ -76,6 +79,7 @@ void CALLBACK windowsMinimizeCallback(HWINEVENTHOOK hWinEventHook, DWORD event, 
 
 void CALLBACK windowsMoveCallback(HWINEVENTHOOK hWinEventHook, DWORD event, HWND hwnd, LONG idObject, LONG idChild,
                                   DWORD idEventThread, DWORD dwmsEventTime) {
+    std::lock_guard<std::mutex> lock(eventHookMutex);
     auto it = moveCallbacks.find(hWinEventHook);
     if (it != moveCallbacks.end()) {
         if (event == EVENT_SYSTEM_MOVESIZESTART) {
@@ -133,6 +137,7 @@ Napi::Value startWindowMinimizeHook(const Napi::CallbackInfo &info) {
         auto hook = SetWinEventHook(EVENT_SYSTEM_MINIMIZESTART, EVENT_SYSTEM_MINIMIZEEND, nullptr,
                                     windowsMinimizeCallback, pid, 0, WINEVENT_OUTOFCONTEXT);
         if (hook) {
+            std::lock_guard<std::mutex> lock(eventHookMutex);
             minimizeCallbacks[hook] = tsfnPtr;
             hooks.push_back(hook);
         }
@@ -182,6 +187,7 @@ Napi::Value startWindowMoveHook(const Napi::CallbackInfo &info) {
         auto hook = SetWinEventHook(EVENT_SYSTEM_MOVESIZESTART, EVENT_SYSTEM_MOVESIZEEND, nullptr, windowsMoveCallback,
                                     pid, 0, WINEVENT_OUTOFCONTEXT);
         if (hook) {
+            std::lock_guard<std::mutex> lock(eventHookMutex);
             moveCallbacks[hook] = tsfnPtr;
             hooks.push_back(hook);
         }
@@ -211,6 +217,8 @@ Napi::Value stopWindowEventHook(const Napi::CallbackInfo &info) {
         HWINEVENTHOOK hook = reinterpret_cast<HWINEVENTHOOK>(hookValue);
 
         UnhookWinEvent(hook);
+
+        std::lock_guard<std::mutex> lock(eventHookMutex);
 
         // Remove from minimize callbacks
         auto it = minimizeCallbacks.find(hook);

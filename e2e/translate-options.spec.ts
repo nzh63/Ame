@@ -50,8 +50,8 @@ test.describe('/options/translate-provider/OpenAI-Compatible API', () => {
     // 7. chatConfig.systemPrompt (String) → t-input
     await expectFieldVisible(mainContent, 'System Prompt');
 
-    // 8. chatConfig.showReasoning (Boolean) → t-select
-    await expectFieldVisible(mainContent, '显示思考过程');
+    // 8. chatConfig.reasoningEffort (string) → t-select
+    await expectFieldVisible(mainContent, '思考强度');
   });
 
   test('should show correct type tags on all input fields', async ({ page }) => {

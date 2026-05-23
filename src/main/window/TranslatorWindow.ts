@@ -10,7 +10,7 @@ export class TranslatorWindow extends WindowWithSession {
     width: 800,
     height: 300,
     minWidth: 350,
-    minheight: 50,
+    minHeight: 50,
     transparent: true,
     backgroundColor: '#00000000',
     frame: false,

@@ -54,7 +54,7 @@ export function createMainWindow() {
 
 async function quit() {
   const { Session } = await import('@main/Session');
-  Session.getAllInstances().forEach((i) => i.destroy());
+  [...Session.getAllInstances()].forEach((i) => i.destroy());
   app.quit();
 }
 

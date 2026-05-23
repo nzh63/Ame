@@ -12,10 +12,10 @@ buildTest(
       organization: process.env.TEST_PROVIDERS_TRANSLATE_OPENAI_ORGANIZATION ?? '',
     },
     chatConfig: {
-      model: 'deepseek-r1',
+      model: 'hy3-preview',
       maxHistory: 100,
       systemPrompt: '请将用户输入的日文翻译为中文',
-      showReasoning: true,
+      reasoningEffort: 'none',
     },
   },
   !process.env.TEST_PROVIDERS_TRANSLATE_OPENAI_BASEURL && !process.env.TEST_PROVIDERS_TRANSLATE_OPENAI_API_KEY,
