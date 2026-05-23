@@ -1,5 +1,5 @@
 <template>
-  <t-menu theme="dark" :value="selectedKeys" class="menu" @change="(v) => onClick(v as string)">
+  <t-menu theme="dark" :value="selectedKeys" class="menu" @change="(v: any) => onClick(v as string)">
     <template #logo>
       <div class="logo">
         <img src="@assets/icon.svg" />
