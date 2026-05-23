@@ -35,8 +35,13 @@ export default defineOcrProvider({
         }
       });
     }
-    await new Promise((resolve) => {
-      worker.once('message', resolve);
+    await new Promise<void>((resolve) => {
+      worker.on('message', function handler(args) {
+        if (args.type === 'ok') {
+          worker.off('message', handler);
+          resolve();
+        }
+      });
     });
     this.worker = worker;
   },
