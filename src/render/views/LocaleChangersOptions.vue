@@ -73,7 +73,7 @@ export default defineComponent({
     Delete1Icon,
     InputWithOpenFile,
   },
-  setup() {
+  async setup() {
     const updating = ref(false);
 
     const options = ref<
@@ -85,20 +85,6 @@ export default defineComponent({
         editingName?: boolean;
       }[]
     >([]);
-    store.get('localeChangers').then((o) => {
-      updating.value = false;
-      options.value = o;
-      if (options.value[0]?.name !== 'Locale Emulator') {
-        options.value.unshift({
-          name: 'Locale Emulator',
-          execShell: '',
-          enable: false,
-          placeholder: 'LEProc.exe',
-        });
-      } else {
-        options.value[0].placeholder = 'LEProc.exe';
-      }
-    });
 
     const hasUnsavedChange = ref(false);
 
@@ -155,6 +141,18 @@ export default defineComponent({
       );
     };
 
+    const opt = await store.get('localeChangers');
+    updating.value = false;
+    if (opt[0]?.name !== 'Locale Emulator') {
+      opt.unshift({
+        name: 'Locale Emulator',
+        execShell: '',
+        enable: false,
+      });
+    }
+    options.value = opt;
+    options.value[0].placeholder = 'LEProc.exe';
+
     return {
       updating,
       options,
@@ -176,6 +174,9 @@ export default defineComponent({
 .option-content {
   width: 100%;
   overflow: auto;
+  /* for box-shadow */
+  margin: -5px;
+  padding: 5px;
 }
 .option-footer {
   background: unset;

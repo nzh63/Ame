@@ -148,8 +148,8 @@ export default defineComponent({
 
 <style scoped>
 .menu :deep(.t-menu--scroll) {
-  scrollbar-gutter: stable both-edges;
-  padding: var(--td-comp-paddingTB-l) 0;
+  scrollbar-gutter: stable;
+  padding: var(--td-comp-paddingTB-l) 0 var(--td-comp-paddingTB-l) 12px;
 }
 .logo {
   align-items: center;

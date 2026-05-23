@@ -1,87 +1,89 @@
 <template>
-  <t-steps readonly :current="current">
-    <t-step-item v-for="item in steps" :key="item" :title="item" />
-  </t-steps>
-  <div v-if="current === 0" class="steps-content">
-    <t-form :model="formState">
-      <t-form-item label="标题">
-        <t-input v-model:value="formState.name" placeholder="标题" />
-      </t-form-item>
-      <t-form-item label="路径">
-        <input-with-open-file v-model:value="formState.path" placeholder="路径" />
-      </t-form-item>
-      <t-form-item class="form-buttons">
-        <t-button theme="primary" @click="next"> 下一步 </t-button>
-      </t-form-item>
-    </t-form>
-  </div>
-  <div v-if="current === 1" class="steps-content">
-    <t-form :model="formState">
-      <t-form-item label="区域转换器">
-        <t-select v-model:value="formState.localeChanger" @change="updateExecShell">
-          <t-option v-for="i in localeChangers" :key="i.name" :value="i.name" :disabled="!i.enable">
-            {{ i.name }}
-          </t-option>
-        </t-select>
-      </t-form-item>
-      <t-form-item label="启动参数">
-        <t-textarea
-          v-model:value="formState.execShell"
-          auto-size
-          class="exec-shell"
-          :disabled="formState.localeChanger !== '自定义启动参数'"
-        />
-      </t-form-item>
-      <t-form-item label="提取方法">
-        <t-select v-model:value="formState.type">
-          <t-option value="textractor"> Textractor </t-option>
-          <t-option value="ocr"> OCR </t-option>
-        </t-select>
-      </t-form-item>
-      <t-form-item label="HookCode">
-        <t-input
-          v-model:value="formState.hookCode"
-          :disabled="formState.type !== 'textractor'"
-          placeholder="可以留空"
-        />
-      </t-form-item>
-      <t-form-item class="form-buttons">
-        <t-button theme="primary" @click="next"> 下一步 </t-button>
-        <t-button theme="default" @click="prev"> 上一步 </t-button>
-      </t-form-item>
-    </t-form>
-  </div>
-  <div v-if="current === 2" class="steps-content">
-    <t-loading size="large" text="加载中..." class="spin" />
-  </div>
-  <div
-    v-if="current === 3"
-    :class="{
-      result: true,
-      [result]: true,
-    }"
-  >
-    <check-circle-icon v-if="result === 'success'" class="icon" />
-    <error-circle-icon v-else class="icon" />
-    <div class="title">添加{{ result === 'success' ? '成功' : '失败' }}</div>
-    <div class="describe">
-      {{ resultInfo }}
+  <div>
+    <t-steps readonly :current="current">
+      <t-step-item v-for="item in steps" :key="item" :title="item" />
+    </t-steps>
+    <div v-if="current === 0" class="steps-content">
+      <t-form :model="formState">
+        <t-form-item label="标题">
+          <t-input v-model:value="formState.name" placeholder="标题" />
+        </t-form-item>
+        <t-form-item label="路径">
+          <input-with-open-file v-model:value="formState.path" placeholder="路径" />
+        </t-form-item>
+        <t-form-item class="form-buttons">
+          <t-button theme="primary" @click="next"> 下一步 </t-button>
+        </t-form-item>
+      </t-form>
     </div>
-    <t-button v-if="result === 'success'" theme="primary" @click="$router.push('/')"> 完成 </t-button>
-    <t-space v-else>
-      <div class="form-buttons">
-        <t-button theme="primary" @click="current = 0"> 重新添加 </t-button>
-        <t-button
-          theme="default"
-          @click="
-            done();
-            $router.push('/');
-          "
-        >
-          仍然使用当前配置
-        </t-button>
+    <div v-if="current === 1" class="steps-content">
+      <t-form :model="formState">
+        <t-form-item label="区域转换器">
+          <t-select v-model:value="formState.localeChanger" @change="updateExecShell">
+            <t-option v-for="i in localeChangers" :key="i.name" :value="i.name" :disabled="!i.enable">
+              {{ i.name }}
+            </t-option>
+          </t-select>
+        </t-form-item>
+        <t-form-item label="启动参数">
+          <t-textarea
+            v-model:value="formState.execShell"
+            auto-size
+            class="exec-shell"
+            :disabled="formState.localeChanger !== '自定义启动参数'"
+          />
+        </t-form-item>
+        <t-form-item label="提取方法">
+          <t-select v-model:value="formState.type">
+            <t-option value="textractor"> Textractor </t-option>
+            <t-option value="ocr"> OCR </t-option>
+          </t-select>
+        </t-form-item>
+        <t-form-item label="HookCode">
+          <t-input
+            v-model:value="formState.hookCode"
+            :disabled="formState.type !== 'textractor'"
+            placeholder="可以留空"
+          />
+        </t-form-item>
+        <t-form-item class="form-buttons">
+          <t-button theme="primary" @click="next"> 下一步 </t-button>
+          <t-button theme="default" @click="prev"> 上一步 </t-button>
+        </t-form-item>
+      </t-form>
+    </div>
+    <div v-if="current === 2" class="steps-content">
+      <t-loading size="large" text="加载中..." class="spin" />
+    </div>
+    <div
+      v-if="current === 3"
+      :class="{
+        result: true,
+        [result]: true,
+      }"
+    >
+      <check-circle-icon v-if="result === 'success'" class="icon" />
+      <error-circle-icon v-else class="icon" />
+      <div class="title">添加{{ result === 'success' ? '成功' : '失败' }}</div>
+      <div class="describe">
+        {{ resultInfo }}
       </div>
-    </t-space>
+      <t-button v-if="result === 'success'" theme="primary" @click="$router.push('/')"> 完成 </t-button>
+      <t-space v-else>
+        <div class="form-buttons">
+          <t-button theme="primary" @click="current = 0"> 重新添加 </t-button>
+          <t-button
+            theme="default"
+            @click="
+              done();
+              $router.push('/');
+            "
+          >
+            仍然使用当前配置
+          </t-button>
+        </div>
+      </t-space>
+    </div>
   </div>
 </template>
 

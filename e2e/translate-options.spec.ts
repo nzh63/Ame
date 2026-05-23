@@ -4,6 +4,7 @@ import {
   navigateTo,
   waitForContent,
   providerRoute,
+  findFieldByKey,
   findInputByKey,
   expectTags,
   testValidation,
@@ -99,6 +100,70 @@ test.describe('/options/translate-provider/OpenAI-Compatible API', () => {
     await testValidation(mainContent, 'chatConfig.maxHistory', 'not-a-number', '应当是一个数字', '50');
   });
 
+  test('should show red error message for invalid number input', async ({ page }) => {
+    await navigateTo(page, providerRoute('translate', 'OpenAI-Compatible API'));
+    await waitForContent(page);
+
+    const mainContent = page.locator('#main-content');
+
+    // Enter letters in number field
+    const input = findInputByKey(mainContent, 'chatConfig.maxHistory');
+    await input.fill('abc-hi-123');
+    await input.blur();
+
+    // The error-message span should be visible (rendered in red via CSS)
+    const field = findFieldByKey(mainContent, 'chatConfig.maxHistory');
+    const errorEl = field.locator('.error-message');
+    await expect(errorEl).toBeVisible({ timeout: 5000 });
+    await expect(errorEl).toContainText('chatConfig.maxHistory 应当是一个数字');
+
+    // The error message should have red color from tdesign --td-error-color
+    await expect(errorEl).toHaveCSS('color', 'rgb(213, 73, 65)');
+
+    // After entering valid input, error should disappear
+    await input.fill('50');
+    await input.blur();
+    await expect(errorEl).not.toBeVisible();
+  });
+
+  test('should prevent saving when there is a validation error', async ({ page }) => {
+    await navigateTo(page, providerRoute('translate', 'OpenAI-Compatible API'));
+    await waitForContent(page);
+
+    const mainContent = page.locator('#main-content');
+
+    // Enter invalid letters in number field
+    const input = findInputByKey(mainContent, 'chatConfig.maxHistory');
+    await input.fill('not-a-number');
+    await input.blur();
+
+    // Verify error is shown
+    const field = findFieldByKey(mainContent, 'chatConfig.maxHistory');
+    const errorEl = field.locator('.error-message');
+    await expect(errorEl).toBeVisible({ timeout: 5000 });
+
+    // Click save — should be blocked with a warning
+    const saveButton = mainContent.locator('button.t-button:has-text("保存并应用")');
+    await saveButton.click();
+
+    // Should show warning message instead of success
+    await expect(errorEl).toBeVisible({ timeout: 5000 });
+    const warning = page.locator('.t-message');
+    await expect(warning).toBeVisible({ timeout: 5000 });
+    await expect(warning).toContainText('请先修正输入错误再保存');
+
+    // Fix the input
+    await input.fill('50');
+    await input.blur();
+    await expect(errorEl).not.toBeVisible();
+
+    // Save should now succeed
+    await saveButton.click();
+    const success = page.locator('.t-message').last();
+    await expect(success).toBeVisible({ timeout: 5000 });
+    await expect(success).toContainText('已成功保存');
+  });
+
   test('should accept any string in String fields without validation error', async ({ page }) => {
     await navigateTo(page, providerRoute('translate', 'OpenAI-Compatible API'));
     await waitForContent(page);
@@ -140,6 +205,91 @@ test.describe('/options/translate-provider/OpenAI-Compatible API', () => {
     await discardButton.click();
     await page.waitForTimeout(300);
 
+    const hash = await page.evaluate(() => window.location.hash);
+    expect(hash).toMatch(/^#\/(|dashboard)$/);
+  });
+
+  test('should NOT prompt unsaved changes when leaving without edits', async ({ page }) => {
+    await navigateTo(page, providerRoute('translate', 'OpenAI-Compatible API'));
+    await waitForContent(page);
+
+    const mainContent = page.locator('#main-content');
+
+    // Click "放弃" without making any edits
+    const discardButton = mainContent.locator('button.t-button:has-text("放弃")');
+    await discardButton.click();
+    await page.waitForTimeout(500);
+
+    // Should NOT show unsaved changes notification
+    const notification = page.locator('.t-notification');
+    await expect(notification).toHaveCount(0);
+
+    // Should have navigated away
+    const hash = await page.evaluate(() => window.location.hash);
+    expect(hash).toMatch(/^#\/(|dashboard)$/);
+  });
+
+  test('should prompt unsaved changes when leaving after edit', async ({ page }) => {
+    await navigateTo(page, providerRoute('translate', 'OpenAI-Compatible API'));
+    await waitForContent(page);
+
+    const mainContent = page.locator('#main-content');
+
+    // Make an edit to trigger unsaved changes
+    const baseUrlInput = findInputByKey(mainContent, 'apiConfig.baseURL');
+    await baseUrlInput.fill('https://edited.example.com');
+    await baseUrlInput.blur();
+
+    // Click "放弃" — should trigger unsaved changes notification
+    const discardButton = mainContent.locator('button.t-button:has-text("放弃")');
+    await discardButton.click();
+    await page.waitForTimeout(500);
+
+    // Should show unsaved changes notification
+    const notification = page.locator('.t-notification');
+    await expect(notification).toBeVisible({ timeout: 5000 });
+    await expect(notification).toContainText('您有未保存的内容');
+
+    // Click "离开，且不要保存" to proceed
+    const leaveButton = notification.locator('button:has-text("离开，且不要保存")');
+    await leaveButton.click();
+    await page.waitForTimeout(500);
+
+    // Should have navigated away
+    const hash = await page.evaluate(() => window.location.hash);
+    expect(hash).toMatch(/^#\/(|dashboard)$/);
+  });
+
+  test('should NOT prompt unsaved changes when leaving after save', async ({ page }) => {
+    await navigateTo(page, providerRoute('translate', 'OpenAI-Compatible API'));
+    await waitForContent(page);
+
+    const mainContent = page.locator('#main-content');
+
+    // Make an edit
+    const baseUrlInput = findInputByKey(mainContent, 'apiConfig.baseURL');
+    await baseUrlInput.fill('https://edited.example.com');
+    await baseUrlInput.blur();
+
+    // Save
+    const saveButton = mainContent.locator('button.t-button:has-text("保存并应用")');
+    await saveButton.click();
+
+    // Wait for success message
+    const message = page.locator('.t-message');
+    await expect(message).toBeVisible({ timeout: 5000 });
+    await expect(message).toContainText('已成功保存');
+
+    // Now click "放弃" — should NOT prompt unsaved changes
+    const discardButton = mainContent.locator('button.t-button:has-text("放弃")');
+    await discardButton.click();
+    await page.waitForTimeout(500);
+
+    // Should NOT show unsaved changes notification after saving
+    const notification = page.locator('.t-notification');
+    await expect(notification).toHaveCount(0);
+
+    // Should have navigated away
     const hash = await page.evaluate(() => window.location.hash);
     expect(hash).toMatch(/^#\/(|dashboard)$/);
   });

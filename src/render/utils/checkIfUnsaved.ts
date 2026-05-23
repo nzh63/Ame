@@ -28,7 +28,7 @@ export function checkIfUnsaved(hasChange: Ref<boolean>, router: Router) {
                     theme: 'primary',
                     onClick: () => NotifyPlugin.close(n),
                   },
-                  () => '不要离开',
+                  () => '留在本页',
                 ),
                 h(
                   Button,

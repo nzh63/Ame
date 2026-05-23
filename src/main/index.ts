@@ -60,6 +60,7 @@ async function quit() {
 
 process.on('SIGINT', quit);
 
+app.commandLine.appendSwitch('enable-features', 'overlay-scrollbars');
 app.on('ready', () => {
   logger('app ready');
   tray = new Tray(join(__assets, '/icon.png'));

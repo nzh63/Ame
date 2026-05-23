@@ -6,7 +6,16 @@
     <t-layout>
       <t-header id="draggable" />
       <t-content id="main-content">
-        <router-view />
+        <router-view v-slot="{ Component }">
+          <suspense suspensible timeout="200">
+            <template v-if="Component">
+              <component :is="Component" />
+            </template>
+            <template #fallback>
+              <t-skeleton animation="gradient" theme="paragraph" />
+            </template>
+          </suspense>
+        </router-view>
       </t-content>
     </t-layout>
   </t-layout>
