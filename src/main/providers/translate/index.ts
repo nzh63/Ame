@@ -1,5 +1,6 @@
 import DrEye from './DrEye';
 import JBeijing from './JBeijing';
+import anthropic from './anthropic';
 import baiduAi from './baiduAi';
 import baidufanyi from './baidufanyi';
 import echo from './echo';
@@ -21,6 +22,7 @@ export function defineTranslateProvider<ID extends string, S extends Schema, D, 
 export const availableTranslateConfigs = [
   ...(import.meta.env.ENABLE_ECHO_TRANSLATOR ? [echo] : []),
   openai,
+  anthropic,
   tencentcloud,
   baiduAi,
   qqfanyi,
