@@ -14,9 +14,10 @@ export class OcrGuideWindow extends WindowWithSession {
     },
   };
 
-  private static readonly url = import.meta.env.DEV
-    ? 'http://localhost:9090/OcrGuide.html'
-    : `file://${__dirname}/../render/OcrGuide.html`;
+  private static readonly url =
+    import.meta.env.RESOURCE_MODE === 'dev-server'
+      ? 'http://localhost:9090/OcrGuide.html'
+      : `file://${__dirname}/../render/OcrGuide.html`;
 
   public constructor(session: Session) {
     super(session, OcrGuideWindow.windowOption);

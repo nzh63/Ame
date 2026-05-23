@@ -28,7 +28,7 @@ export default defineOcrProvider({
     const worker = new Worker(path.join(__workers, './tesseract.js'), {
       workerData: { lang: this.language, __static },
     });
-    if (import.meta.env.DEV) {
+    if (import.meta.env.LOGGING) {
       worker.on('message', (args) => {
         if (args.type === 'log') {
           logger('%O', args.value);

@@ -7,9 +7,10 @@ import { join } from 'path';
 
 export let mainWindow: BrowserWindow | null;
 export let tray: Tray;
-const mainWindowURL = import.meta.env.DEV
-  ? 'http://localhost:9090/MainWindow.html'
-  : `file://${__dirname}/../render/MainWindow.html`;
+const mainWindowURL =
+  import.meta.env.RESOURCE_MODE === 'dev-server'
+    ? 'http://localhost:9090/MainWindow.html'
+    : `file://${__dirname}/../render/MainWindow.html`;
 
 export function createMainWindow() {
   if (mainWindow) {
@@ -73,7 +74,7 @@ app.on('ready', () => {
   tray.on('double-click', createMainWindow);
   tray.setToolTip(name);
   createMainWindow();
-  if (import.meta.env.PROD) {
+  if (import.meta.env.CHECK_UPDATES) {
     setTimeout(async () => {
       try {
         const res = await fetch(

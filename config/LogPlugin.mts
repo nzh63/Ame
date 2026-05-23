@@ -4,7 +4,6 @@ import type { SourceMap } from 'magic-string';
 import MagicString from 'magic-string';
 import path from 'path';
 import ts from 'typescript';
-import type { Plugin } from 'vite';
 
 interface Options {
   logFunction: { [i: string]: string };
@@ -109,7 +108,7 @@ export default function replace(options: Options = { logFunction: {} }) {
 
   return {
     name: 'log',
-    enforce: 'pre',
+    enforce: 'pre' as const,
     renderChunk(code: string, chunk: { fileName: string }) {
       const id = chunk.fileName;
       if (!filter(id)) return null;
@@ -123,12 +122,12 @@ export default function replace(options: Options = { logFunction: {} }) {
       return executeModify(code, id);
     },
 
-    resolveId(id) {
+    resolveId(id: string) {
       if (id.startsWith('@logger')) {
         return id;
       }
     },
-    load(id) {
+    load(id: string) {
       if (id.startsWith('@logger')) {
         if (options.disableLog !== true) {
           const namespace = /@logger\//.test(id)
@@ -143,5 +142,5 @@ export default function replace(options: Options = { logFunction: {} }) {
         }
       }
     },
-  } satisfies Plugin;
+  };
 }

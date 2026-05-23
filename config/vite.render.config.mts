@@ -1,5 +1,7 @@
 import log from './LogPlugin.mts';
 import renderResolver from './RenderResolver.mjs';
+import { defineFlags, resolveFlags } from './build-preset.mts';
+import type { Preset } from './build-preset.mts';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import vue from '@vitejs/plugin-vue';
 import path from 'path';
@@ -8,8 +10,11 @@ import { TDesignResolver } from 'unplugin-vue-components/resolvers';
 import Components from 'unplugin-vue-components/vite';
 import type { UserConfig } from 'vite';
 
-export default ({ mode } = { mode: 'production' }) =>
-  ({
+export default ({ mode = 'production' }: { mode?: string } = {}) => {
+  // Vite's native { mode } doubles as our build preset
+  const preset = (mode as Preset) ?? 'production';
+
+  return {
     optimizeDeps: {
       entries: [
         path.join(import.meta.dirname, '../src/render/MainWindow.html'),
@@ -19,18 +24,15 @@ export default ({ mode } = { mode: 'production' }) =>
       include: ['vue', 'vue-router', 'tdesign-vue-next', 'tdesign-icons-vue-next', 'debug', 'uuid'],
       exclude: ['sharp'],
     },
-    mode,
+    mode: preset,
     root: path.join(import.meta.dirname, '../src/render'),
     base: './',
     clearScreen: false,
-    define: {
-      'import.meta.env.DEV': JSON.stringify(mode === 'development'),
-      'import.meta.env.PROD': JSON.stringify(mode === 'production'),
-      'import.meta.env.E2E': JSON.stringify(false),
-      'import.meta.env.IS_MAIN_PROCESS': JSON.stringify(false),
-      'import.meta.env.IS_RENDER_PROCESS': JSON.stringify(true),
-      'import.meta.env.IS_WORKER_PROCESS': JSON.stringify(false),
-    },
+    define: defineFlags(preset, {
+      IS_MAIN_PROCESS: false,
+      IS_RENDER_PROCESS: true,
+      IS_WORKER_PROCESS: false,
+    }),
     plugins: [
       log({
         include: [
@@ -39,7 +41,7 @@ export default ({ mode } = { mode: 'production' }) =>
         ],
         loggerPath: '@render/logger',
         logFunction: { logger: 'logger' },
-        disableLog: mode === 'production',
+        disableLog: !resolveFlags(preset).LOGGING,
       }),
       vue(),
       Components({
@@ -48,7 +50,7 @@ export default ({ mode } = { mode: 'production' }) =>
       }),
       renderResolver(),
       nodeResolve({ extensions: ['.js', '.ts', '.node'], browser: true }),
-      mode === 'production'
+      preset === 'production'
         ? license({
             thirdParty: {
               includePrivate: false,
@@ -65,8 +67,8 @@ export default ({ mode } = { mode: 'production' }) =>
     build: {
       outDir: path.join(import.meta.dirname, '../build/render'),
       emptyOutDir: true,
-      minify: mode === 'production',
-      sourcemap: mode !== 'production',
+      minify: preset === 'production',
+      sourcemap: preset !== 'production',
       target: 'chrome120',
       rollupOptions: {
         input: [
@@ -86,4 +88,5 @@ export default ({ mode } = { mode: 'production' }) =>
         '@static': path.join(import.meta.dirname, '../build/static'),
       },
     },
-  }) satisfies UserConfig;
+  } satisfies UserConfig;
+};

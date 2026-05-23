@@ -1,5 +1,7 @@
 import log from './LogPlugin.mts';
 import native from './NativePlugin.mts';
+import type { Preset } from './build-preset.mts';
+import { defineFlags, resolveFlags } from './build-preset.mts';
 import alias from '@rollup/plugin-alias';
 import commonjs from '@rollup/plugin-commonjs';
 import image from '@rollup/plugin-image';
@@ -28,7 +30,7 @@ const externalPackages = [
   ...builtinModules,
 ];
 
-export default (mode = 'production') =>
+export default (preset: Preset = 'production') =>
   ({
     plugins: [
       log({
@@ -38,7 +40,7 @@ export default (mode = 'production') =>
         ],
         loggerPath: '@main/logger',
         logFunction: { logger: 'logger' },
-        disableLog: false,
+        disableLog: !resolveFlags(preset).LOGGING,
       }),
       alias({
         customResolver: resolve as any,
@@ -51,17 +53,14 @@ export default (mode = 'production') =>
         },
       }),
       esbuild({
-        minify: mode === 'production',
-        sourceMap: mode !== 'production',
+        minify: preset === 'production',
+        sourceMap: preset !== 'production',
         target: 'es2020',
-        define: {
-          'import.meta.env.DEV': JSON.stringify(mode === 'development'),
-          'import.meta.env.PROD': JSON.stringify(mode === 'production'),
-          'import.meta.env.E2E': JSON.stringify(false),
-          'import.meta.env.IS_MAIN_PROCESS': JSON.stringify(true),
-          'import.meta.env.IS_RENDER_PROCESS': JSON.stringify(false),
-          'import.meta.env.IS_WORKER_PROCESS': JSON.stringify(false),
-        },
+        define: defineFlags(preset, {
+          IS_MAIN_PROCESS: true,
+          IS_RENDER_PROCESS: false,
+          IS_WORKER_PROCESS: false,
+        }),
       }),
       resolve,
       image(),
@@ -79,7 +78,7 @@ export default (mode = 'production') =>
       dir: path.join(import.meta.dirname, '../build/test'),
       entryFileNames: '[name].js',
       format: 'commonjs',
-      sourcemap: mode !== 'production',
+      sourcemap: preset !== 'production',
     },
     external: externalPackages,
     onwarn(e) {

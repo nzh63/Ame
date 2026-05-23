@@ -20,7 +20,7 @@ export function defineTranslateProvider<ID extends string, S extends Schema, D, 
 }
 
 export const availableTranslateConfigs = [
-  ...(import.meta.env.DEV ? [echo] : []),
+  ...(import.meta.env.ENABLE_ECHO_TRANSLATOR ? [echo] : []),
   openai,
   hunyuan,
   tencentcloud,

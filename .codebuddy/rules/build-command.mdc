@@ -28,7 +28,7 @@ yarn build:dir               # Build all without packaging
 ```bash
 yarn build:js                # Build JS files (main + workers + render)
 yarn build:main              # Build main process
-yarn build:e2e               # Build for e2e tests (main in dev mode with E2E flag, workers + render in production)
+yarn build:e2e               # Build for e2e tests (main in e2e preset, workers + render in production)
 yarn build:render            # Build renderer process  
 yarn build:workers           # Build workers
 yarn build:native            # Build native modules
@@ -81,7 +81,7 @@ yarn build:e2e && yarn playwright test -g "should load OCR"
 - Windows are moved off-screen (`setPosition(-32000, -32000)`) via monkey-patching `BrowserWindow.prototype.show` in `e2e/fixtures.ts` so they don't pop up during test runs
 - Each test uses a temporary directory for `electron-store` (via `AME_TEST_STORE_CWD` env var) to avoid polluting real user data
 - Navigation uses hash-based routing: `window.location.hash = '#/options/...'`
-- The `build:e2e` command builds the main process with `import.meta.env.E2E = true`, which allows source code to conditionally enable e2e-specific behavior (e.g., dev paths, temp store) without affecting production builds
+- The `build:e2e` command uses the `e2e` preset, which sets `import.meta.env.TEMP_STORE = true` (for temp storage) and `import.meta.env.RESOURCE_MODE = 'unpacked'` (local file loading), allowing e2e-specific behavior without affecting production builds
 
 ## Lint Commands
 

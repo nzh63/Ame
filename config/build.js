@@ -251,12 +251,12 @@ async function buildNative(arch = 'x64', force = false) {
   });
 }
 
-async function buildRender(mode = 'production') {
+async function buildRender(preset = 'production') {
   process.type = 'renderer';
   const vite = await import('vite');
   await vite.build({
-    ...(await import('./vite.render.config.mts')).default({ mode }),
-    mode,
+    ...(await import('./vite.render.config.mts')).default({ mode: preset }),
+    mode: preset,
   });
 }
 
@@ -264,10 +264,10 @@ async function clear(type) {
   await fsPromise.rm(path.join(__dirname, '../build', type), { recursive: true, force: true });
 }
 
-async function build(type, mode = 'production') {
-  console.log(`building ${type} for ${mode}...`);
-  await clear(type);
-  const config = (await import(`./rollup.${type}.config.mts`)).default(mode);
+async function build(module, preset = 'production') {
+  console.log(`building ${module} for ${preset}...`);
+  await clear(module);
+  const config = (await import(`./rollup.${module}.config.mts`)).default(preset);
   const bundle = await rollup.rollup(config);
   const { output } = await bundle.generate(config.output);
   for (const chunkOrAsset of output) {
@@ -277,17 +277,17 @@ async function build(type, mode = 'production') {
   await bundle.close();
 }
 
-async function buildMain(mode = 'production', arch = 'x64') {
+async function buildMain(preset = 'production', arch = 'x64') {
   await buildNative(arch);
-  await build('main', mode);
+  await build('main', preset);
 }
 
-async function buildWorkers(mode = 'production') {
-  await build('workers', mode);
+async function buildWorkers(preset = 'production') {
+  await build('workers', preset);
 }
 
-async function buildTest(mode = 'development') {
-  await build('test', mode);
+async function buildTest(preset = 'development') {
+  await build('test', preset);
 }
 
 async function testNative(arch = 'x64') {
@@ -309,12 +309,12 @@ async function testNative(arch = 'x64') {
   await spawn('ctest', ['-C', 'Release', '--output-on-failure'], { cwd: buildDir });
 }
 
-async function devRender(mode = 'development') {
+async function devRender(preset = 'development') {
   process.type = 'renderer';
   const vite = await import('vite');
   const server = await vite.createServer({
     configFile: path.join(__dirname, './vite.render.config.mts'),
-    mode,
+    mode: preset,
   });
   await server.listen(9090);
   process.once('SIGINT', () => {
@@ -322,11 +322,11 @@ async function devRender(mode = 'development') {
   });
 }
 
-async function devMainAndWorkers(mode = 'development') {
+async function devMainAndWorkers(preset = 'development') {
   process.type = 'main';
   await clear('main');
-  const configMain = (await import('./rollup.main.config.mts')).default(mode);
-  const configWorkers = (await import('./rollup.workers.config.mts')).default(mode);
+  const configMain = (await import('./rollup.main.config.mts')).default(preset);
+  const configWorkers = (await import('./rollup.workers.config.mts')).default(preset);
   const watcher = rollup.watch([configMain, configWorkers]);
   watcher.on('event', (ev) => {
     if (ev.code === 'END') {
@@ -438,11 +438,11 @@ function buildLicense() {
   }
 }
 
-async function buildJs(mode = 'production') {
-  await buildMain(mode);
-  await buildWorkers(mode);
-  await buildRender(mode);
-  if (mode === 'production') buildLicense();
+async function buildJs(preset = 'production') {
+  await buildMain(preset);
+  await buildWorkers(preset);
+  await buildRender(preset);
+  if (preset === 'production') buildLicense();
 }
 
 async function buildNsis(cliArgs = {}) {
@@ -453,15 +453,15 @@ async function buildNsis(cliArgs = {}) {
   args[cliArgs.arch] = true;
   // args['config'] = path.join(__dirname, '../electron-builder.js');
   delete args.arch;
-  delete args.mode;
+  delete args.preset;
   await electronBuilder(args);
 }
 
-function dev(mode = 'development') {
+function dev(preset = 'development') {
   downloadDependencies()
     .then(() => buildNative(process.arch))
-    .then(() => devMainAndWorkers(mode))
-    .then(() => devRender(mode))
+    .then(() => devMainAndWorkers(preset))
+    .then(() => devRender(preset))
     .catch((err) => {
       console.error(err);
     });
@@ -481,15 +481,15 @@ function clean() {
     .command('dev', '以开发模式启动', {}, () => dev())
     .command('build', '构建', (args) => {
       return args
-        .option('mode', { choices: ['development', 'production', undefined] })
+        .option('preset', { choices: ['development', 'production', undefined] })
         .option('arch', { choices: ['x64', 'ia32'], default: process.env.npm_config_arch || 'x64' })
         .middleware(async (args) => {
           process.env.npm_config_arch = args.arch;
         })
-        .command('js', '构建js文件', {}, (args) => buildJs(args.mode))
-        .command('main', '构建主进程', {}, (args) => buildMain(args.mode, args.arch))
-        .command('render', '构建渲染进程', {}, (args) => buildRender(args.mode))
-        .command('workers', '构建workers', {}, (args) => buildWorkers(args.mode))
+        .command('js', '构建js文件', {}, (args) => buildJs(args.preset))
+        .command('main', '构建主进程', {}, (args) => buildMain(args.preset, args.arch))
+        .command('render', '构建渲染进程', {}, (args) => buildRender(args.preset))
+        .command('workers', '构建workers', {}, (args) => buildWorkers(args.preset))
         .command('native', '构建原生模块', {}, (args) => buildNative(args.arch))
         .command('test', '构建测试', {}, async (args) => {
           await downloadDependencies();

@@ -1,5 +1,7 @@
 import log from './LogPlugin.mts';
 import native from './NativePlugin.mts';
+import { defineFlags, resolveFlags } from './build-preset.mts';
+import type { Preset } from './build-preset.mts';
 import alias from '@rollup/plugin-alias';
 import commonjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
@@ -19,7 +21,7 @@ const resolve = nodeResolve({
   exportConditions: ['import', 'module', 'node', 'require', 'files', 'default'],
 });
 
-export default (mode = 'production') =>
+export default (preset: Preset = 'production') =>
   ({
     plugins: [
       log({
@@ -29,7 +31,7 @@ export default (mode = 'production') =>
         ],
         loggerPath: '@main/logger',
         logFunction: { logger: 'logger' },
-        disableLog: mode === 'production',
+        disableLog: !resolveFlags(preset).LOGGING,
       }),
       alias({
         customResolver: resolve as any,
@@ -42,17 +44,14 @@ export default (mode = 'production') =>
         },
       }),
       esbuild({
-        minify: mode === 'production',
-        sourceMap: mode !== 'production',
+        minify: preset === 'production',
+        sourceMap: preset !== 'production',
         target: 'es2020',
-        define: {
-          'import.meta.env.DEV': JSON.stringify(mode === 'development'),
-          'import.meta.env.PROD': JSON.stringify(mode === 'production'),
-          'import.meta.env.E2E': JSON.stringify(mode === 'e2e'),
-          'import.meta.env.IS_MAIN_PROCESS': JSON.stringify(true),
-          'import.meta.env.IS_RENDER_PROCESS': JSON.stringify(false),
-          'import.meta.env.IS_WORKER_PROCESS': JSON.stringify(false),
-        },
+        define: defineFlags(preset, {
+          IS_MAIN_PROCESS: true,
+          IS_RENDER_PROCESS: false,
+          IS_WORKER_PROCESS: false,
+        }),
       }),
       resolve,
       json(),
@@ -67,7 +66,7 @@ export default (mode = 'production') =>
           },
         ],
       }),
-      mode === 'production'
+      preset === 'production'
         ? license({
             thirdParty: {
               includePrivate: false,
@@ -81,7 +80,10 @@ export default (mode = 'production') =>
           })
         : null,
     ],
-    input: path.join(import.meta.dirname, mode === 'production' ? '../src/main/index.ts' : '../src/main/index.dev.ts'),
+    input: path.join(
+      import.meta.dirname,
+      preset === 'development' ? '../src/main/index.dev.ts' : '../src/main/index.ts',
+    ),
     output: {
       dir: path.join(import.meta.dirname, '../build/main'),
       entryFileNames: 'index.js',
@@ -95,7 +97,7 @@ export default (mode = 'production') =>
       //     }
       // },
       format: 'commonjs',
-      sourcemap: mode !== 'production',
+      sourcemap: preset !== 'production',
     },
     external: externalPackages,
     onwarn(e) {

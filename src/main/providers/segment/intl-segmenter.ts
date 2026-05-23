@@ -28,7 +28,7 @@ export default defineSegmentProvider({
     const worker = new Worker(path.join(__workers, './intl-segmenter.js'), {
       workerData: { lang: this.language },
     });
-    if (import.meta.env.DEV) {
+    if (import.meta.env.LOGGING) {
       worker.on('message', (args) => {
         if (args.type === 'log') {
           logger(args.value);

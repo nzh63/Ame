@@ -14,7 +14,7 @@ const { __static, lang } = workerData;
         cacheMethod: 'none',
         gzip: false,
         workerPath: path.join(__dirname, 'tesseract-worker-script.js'),
-        logger: import.meta.env.DEV ? (m) => parentPort?.postMessage({ type: 'log', value: m }) : () => {},
+        logger: import.meta.env.LOGGING ? (m) => parentPort?.postMessage({ type: 'log', value: m }) : () => {},
       });
       scheduler.addWorker(worker);
     }),

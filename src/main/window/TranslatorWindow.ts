@@ -21,9 +21,10 @@ export class TranslatorWindow extends WindowWithSession {
     },
   };
 
-  private static readonly url = import.meta.env.DEV
-    ? 'http://localhost:9090/TranslatorWindow.html'
-    : `file://${__dirname}/../render/TranslatorWindow.html`;
+  private static readonly url =
+    import.meta.env.RESOURCE_MODE === 'dev-server'
+      ? 'http://localhost:9090/TranslatorWindow.html'
+      : `file://${__dirname}/../render/TranslatorWindow.html`;
 
   private contextMenu = Menu.buildFromTemplate([
     {
