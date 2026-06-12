@@ -67,7 +67,7 @@
     "electron-debug": "^4.1.0",
     "electron-mocha": "^13.1.0",
     "electron-store": "^10.1.0",
-    "esbuild": "^0.25.5",
+    "esbuild": "^0.28.1",
     "eslint": "^8.57.1",
     "eslint-config-alloy": "^5.1.2",
     "eslint-plugin-import": "^2.32.0",
