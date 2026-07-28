@@ -3,10 +3,12 @@ import {
   expect,
   navigateTo,
   waitForContent,
+  waitForHashNavigation,
   providerRoute,
   expectTags,
   testValidation,
   testValidInput,
+  openSelect,
 } from './fixtures';
 
 test.describe('/options/ocr-extractor', () => {
@@ -70,11 +72,9 @@ test.describe('/options/ocr-extractor', () => {
 
     // Boolean fields render as t-select with true/false options
     const select = mainContent.locator('.t-select').first();
-    await select.click();
-    await page.waitForTimeout(300);
+    const options = await openSelect(page, select);
 
     // Should show true and false options
-    const options = page.locator('.t-select-option');
     const optionTexts = await options.allTextContents();
     expect(optionTexts.some((t) => t.includes('true'))).toBeTruthy();
     expect(optionTexts.some((t) => t.includes('false'))).toBeTruthy();
@@ -132,10 +132,7 @@ test.describe('/options/ocr-extractor', () => {
     const mainContent = page.locator('#main-content');
     const discardButton = mainContent.locator('button.t-button:has-text("放弃")');
     await discardButton.click();
-    await page.waitForTimeout(300);
-
-    const hash = await page.evaluate(() => window.location.hash);
-    expect(hash).toMatch(/^#\/(|dashboard)$/);
+    await waitForHashNavigation(page);
   });
 });
 
@@ -170,15 +167,34 @@ test.describe('/options/ocr-provider/tesseract', () => {
     const mainContent = page.locator('#main-content');
     // Language select is the second select (after enable)
     const langSelect = mainContent.locator('.t-select').nth(1);
-    await langSelect.click();
-    await page.waitForTimeout(300);
+    const options = await openSelect(page, langSelect);
 
     // Should show 'jpn' as an option
-    const options = page.locator('.t-select-option');
     const optionTexts = await options.allTextContents();
     expect(optionTexts).toContain('jpn');
 
     await page.keyboard.press('Escape');
+  });
+
+  test('should save tesseract options', async ({ page }) => {
+    await navigateTo(page, providerRoute('ocr', 'tesseract'));
+    await waitForContent(page);
+
+    const mainContent = page.locator('#main-content');
+    await mainContent.locator('button.t-button:has-text("保存并应用")').click();
+
+    const message = page.locator('.t-message');
+    await expect(message).toBeVisible({ timeout: 5000 });
+    await expect(message).toContainText('已成功保存');
+  });
+
+  test('should navigate away when clicking "放弃"', async ({ page }) => {
+    await navigateTo(page, providerRoute('ocr', 'tesseract'));
+    await waitForContent(page);
+
+    const mainContent = page.locator('#main-content');
+    await mainContent.locator('button.t-button:has-text("放弃")').click();
+    await waitForHashNavigation(page);
   });
 });
 
@@ -215,10 +231,8 @@ test.describe('/options/ocr-provider/PP-OCR', () => {
 
     const mainContent = page.locator('#main-content');
     const modelSelect = mainContent.locator('.t-select').nth(1);
-    await modelSelect.click();
-    await page.waitForTimeout(300);
+    const options = await openSelect(page, modelSelect);
 
-    const options = page.locator('.t-select-option');
     const optionTexts = await options.allTextContents();
     expect(optionTexts).toContain('mobile.fp16');
     expect(optionTexts).toContain('server.fp32');
@@ -232,10 +246,8 @@ test.describe('/options/ocr-provider/PP-OCR', () => {
 
     const mainContent = page.locator('#main-content');
     const dirSelect = mainContent.locator('.t-select').nth(3);
-    await dirSelect.click();
-    await page.waitForTimeout(300);
+    const options = await openSelect(page, dirSelect);
 
-    const options = page.locator('.t-select-option');
     const optionTexts = await options.allTextContents();
     expect(optionTexts).toContain('横排文本 从左到右');
     expect(optionTexts).toContain('竖排文本 从右到左');
@@ -331,15 +343,34 @@ test.describe('/options/ocr-provider/腾讯云', () => {
 
     const mainContent = page.locator('#main-content');
     const langSelect = mainContent.locator('.t-select').nth(1);
-    await langSelect.click();
-    await page.waitForTimeout(300);
+    const options = await openSelect(page, langSelect);
 
-    const options = page.locator('.t-select-option');
     const optionTexts = await options.allTextContents();
     expect(optionTexts.some((t) => t.includes('auto'))).toBeTruthy();
     expect(optionTexts.some((t) => t.includes('jap'))).toBeTruthy();
 
     await page.keyboard.press('Escape');
+  });
+
+  test('should save 腾讯云 OCR options', async ({ page }) => {
+    await navigateTo(page, providerRoute('ocr', '腾讯云'));
+    await waitForContent(page);
+
+    const mainContent = page.locator('#main-content');
+    await mainContent.locator('button.t-button:has-text("保存并应用")').click();
+
+    const message = page.locator('.t-message');
+    await expect(message).toBeVisible({ timeout: 5000 });
+    await expect(message).toContainText('已成功保存');
+  });
+
+  test('should navigate away when clicking "放弃"', async ({ page }) => {
+    await navigateTo(page, providerRoute('ocr', '腾讯云'));
+    await waitForContent(page);
+
+    const mainContent = page.locator('#main-content');
+    await mainContent.locator('button.t-button:has-text("放弃")').click();
+    await waitForHashNavigation(page);
   });
 });
 
@@ -397,13 +428,32 @@ test.describe('/options/ocr-provider/百度AI开放平台', () => {
 
     const mainContent = page.locator('#main-content');
     const langSelect = mainContent.locator('.t-select').nth(1);
-    await langSelect.click();
-    await page.waitForTimeout(300);
+    const options = await openSelect(page, langSelect);
 
-    const options = page.locator('.t-select-option');
     const optionTexts = await options.allTextContents();
     expect(optionTexts).toContain('JAP');
 
     await page.keyboard.press('Escape');
+  });
+
+  test('should save 百度AI OCR options', async ({ page }) => {
+    await navigateTo(page, providerRoute('ocr', '百度AI开放平台'));
+    await waitForContent(page);
+
+    const mainContent = page.locator('#main-content');
+    await mainContent.locator('button.t-button:has-text("保存并应用")').click();
+
+    const message = page.locator('.t-message');
+    await expect(message).toBeVisible({ timeout: 5000 });
+    await expect(message).toContainText('已成功保存');
+  });
+
+  test('should navigate away when clicking "放弃"', async ({ page }) => {
+    await navigateTo(page, providerRoute('ocr', '百度AI开放平台'));
+    await waitForContent(page);
+
+    const mainContent = page.locator('#main-content');
+    await mainContent.locator('button.t-button:has-text("放弃")').click();
+    await waitForHashNavigation(page);
   });
 });

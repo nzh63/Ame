@@ -3,10 +3,12 @@ import {
   expect,
   navigateTo,
   waitForContent,
+  waitForHashNavigation,
   providerRoute,
   findFieldByKey,
   expectTags,
   testValidInput,
+  openSelect,
 } from './fixtures';
 
 test.describe('/options/tts-manager', () => {
@@ -38,10 +40,7 @@ test.describe('/options/tts-manager', () => {
     const mainContent = page.locator('#main-content');
     const select = mainContent.locator('.t-select').first();
 
-    await select.click();
-    await page.waitForTimeout(300);
-
-    const options = page.locator('.t-select-option');
+    const options = await openSelect(page, select);
     const optionTexts = await options.allTextContents();
     expect(optionTexts).toContain('WebSpeechSynthesisApi');
 
@@ -68,10 +67,7 @@ test.describe('/options/tts-manager', () => {
     const mainContent = page.locator('#main-content');
     const discardButton = mainContent.locator('button.t-button:has-text("放弃")');
     await discardButton.click();
-    await page.waitForTimeout(300);
-
-    const hash = await page.evaluate(() => window.location.hash);
-    expect(hash).toMatch(/^#\/(|dashboard)$/);
+    await waitForHashNavigation(page);
   });
 });
 
@@ -107,10 +103,9 @@ test.describe('/options/tts-provider/WebSpeechSynthesisApi', () => {
     const mainContent = page.locator('#main-content');
 
     // All 3 fields are rendered as t-select (voice fields are dynamically
-    // populated with system voice options at runtime)
+    // populated with system voice options at runtime — may load asynchronously)
     const selects = mainContent.locator('.t-select');
-    const selectCount = await selects.count();
-    expect(selectCount).toBe(3);
+    await expect(selects).toHaveCount(3, { timeout: 10_000 });
 
     // No t-input fields (no free-form inputs with type tags)
     const editableInputs = mainContent.locator('input[placeholder="请输入"]');
@@ -124,10 +119,7 @@ test.describe('/options/tts-provider/WebSpeechSynthesisApi', () => {
     const mainContent = page.locator('#main-content');
     const select = mainContent.locator('.t-select').first();
 
-    await select.click();
-    await page.waitForTimeout(300);
-
-    const options = page.locator('.t-select-option');
+    const options = await openSelect(page, select);
     const optionTexts = await options.allTextContents();
     expect(optionTexts.some((t) => t.includes('true'))).toBeTruthy();
     expect(optionTexts.some((t) => t.includes('false'))).toBeTruthy();
@@ -143,11 +135,9 @@ test.describe('/options/tts-provider/WebSpeechSynthesisApi', () => {
 
     // Open the originalVoiceURI select (second select)
     const voiceSelect = mainContent.locator('.t-select').nth(1);
-    await voiceSelect.click();
-    await page.waitForTimeout(300);
+    const options = await openSelect(page, voiceSelect);
 
     // Should show "null" as an option (since default is null)
-    const options = page.locator('.t-select-option');
     const optionTexts = await options.allTextContents();
     // The voice select should have at least the "null" option
     expect(optionTexts.some((t) => t.includes('null'))).toBeTruthy();

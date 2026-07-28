@@ -1,16 +1,8 @@
----
-description: Build, test, and lint commands for this project
-alwaysApply: true
-enabled: true
-updatedAt: 2025-12-06T09:41:22.999Z
-provider: 
----
-
 # Build, Test, and Lint Commands Guide
 
 ## Project Architecture
 - **Main Process**: TypeScript + Electron, built with Rollup
-- **Renderer Process**: Vue 3 + TypeScript, built with Vite  
+- **Renderer Process**: Vue 3 + TypeScript, built with Vite
 - **Native Modules**: C++, built with CMake
 - **Unit Test Framework**: Mocha + Chai
 - **E2E Test Framework**: Playwright + Electron
@@ -29,7 +21,7 @@ yarn build:dir               # Build all without packaging
 yarn build:js                # Build JS files (main + workers + render)
 yarn build:main              # Build main process
 yarn build:e2e               # Build for e2e tests (main in e2e preset, workers + render in production)
-yarn build:render            # Build renderer process  
+yarn build:render            # Build renderer process
 yarn build:workers           # Build workers
 yarn build:native            # Build native modules
 yarn build:test              # Build test files
@@ -107,74 +99,32 @@ There is no way to check a single file with tsc. Always check the whole project.
 ## Workflows
 
 ### Standard Workflow for Test File Changes
-1. **Write/Modify Tests**
-   ```bash
-   # Edit test file (e.g., test/main/foo/bar.spec.ts)
-   ```
-
-2. **Type Check**
-   ```bash
-   yarn tsc --noEmit
-   ```
-  
-3. **Check Lint**
-   ```bash
-   yarn eslint test/main/foo/bar.spec.ts
-   ```
-
-4. **Build and Run Tests**
-   ```bash
-   yarn build:test
-   yarn electron-mocha --colors --require source-map-support/register ./build/test/bar.spec.js
-   ```
-
-   Or use combined command:
+1. **Write/Modify Tests** (e.g., `test/main/foo/bar.spec.ts`)
+2. **Type Check**: `yarn tsc --noEmit`
+3. **Lint Check**: `yarn eslint test/main/foo/bar.spec.ts`
+4. **Build and Run Tests**:
    ```bash
    yarn build:test && yarn electron-mocha --colors --require source-map-support/register ./build/test/bar.spec.js
    ```
 
 ### Standard Workflow for E2E Test Changes
-1. **Write/Modify E2E Tests** (in `e2e/` directory)
-   ```bash
-   # Edit test file (e.g., e2e/ocr-options.spec.ts)
-   ```
-
-2. **Type Check**
-   ```bash
-   yarn tsc --noEmit
-   ```
-
-3. **Build and Run**
+1. **Write/Modify E2E Tests** (in `e2e/` directory, e.g., `e2e/ocr-options.spec.ts`)
+2. **Type Check**: `yarn tsc --noEmit`
+3. **Build and Run**:
    ```bash
    yarn build:e2e && yarn playwright test e2e/ocr-options.spec.ts
    ```
 
 ### Standard Workflow for Source Code Changes
 1. **Modify source code**
-2. **Type Check**
-   ```bash
-   yarn tsc --noEmit            # For TypeScript files
-   yarn vue-tsc --noEmit        # For Vue components
-   ```
-3. **Lint Check**
-   ```bash
-   yarn lint
-   ```
-4. **Build and Test**
-   ```bash
-   yarn test
-   ```
+2. **Type Check**: `yarn tsc --noEmit` (TypeScript) / `yarn vue-tsc --noEmit` (Vue components)
+3. **Lint Check**: `yarn lint`
+4. **Build and Test**: `yarn test`
 
 ### Standard Workflow for Vue Component Changes
 1. **Modify Vue component**
-2. **Build Renderer Process**
-   ```bash
-   yarn build:render
-   ```
-3. **Run Full Tests**
-   ```bash
-   yarn test
-   ```
+2. **Build Renderer Process**: `yarn build:render`
+3. **Run Full Tests**: `yarn test`
 
 ## Build System Features
 
@@ -198,22 +148,3 @@ There is no way to check a single file with tsc. Always check the whole project.
 
 1. **First Run**: Need to run `yarn download:dep` to download dependencies first
 2. **Native Modules**: After modifying C++ code, need to rebuild with `yarn build:native`
-3. **Test Files**: Unit test files must be rebuilt after modification with `yarn build:test`; E2E test files (in `e2e/`) are run directly by Playwright and do not need a build step
-4. **Environment Variables**: DEBUG environment variable automatically set in development mode
-5. **Parallel Build**: Parallel building supported for improved speed
-
-## Troubleshooting
-
-### Build Failures
-- Check Node.js version compatibility
-- Ensure Visual Studio 2022 is installed (for native module building)
-- Clean build directory: `yarn clean`
-
-### Test Failures
-- **Unit tests**: Ensure test files are built (`yarn build:test`), check import paths, verify Mocha + Chai syntax
-- **E2E tests**: Ensure e2e build is done (`yarn build:e2e`), check Playwright trace in `test-results/` for debugging
-
-### Lint Errors
-- Common errors: max-nested-callbacks, no-promise-executor-return
-- Fix suggestions: extract functions, simplify nesting, use Promise constructor correctly
-- Auto-fix: `yarn lint` will automatically fix most issues

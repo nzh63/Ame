@@ -3,12 +3,14 @@ import {
   expect,
   navigateTo,
   waitForContent,
+  waitForHashNavigation,
   providerRoute,
   findFieldByKey,
   findInputByKey,
   expectTags,
   testValidation,
   testValidInput,
+  openSelect,
 } from './fixtures';
 import type { Locator } from '@playwright/test';
 
@@ -79,10 +81,7 @@ test.describe('/options/translate-provider/OpenAI-Compatible API', () => {
     const mainContent = page.locator('#main-content');
     const select = mainContent.locator('.t-select').first();
 
-    await select.click();
-    await page.waitForTimeout(300);
-
-    const options = page.locator('.t-select-option');
+    const options = await openSelect(page, select);
     const optionTexts = await options.allTextContents();
     expect(optionTexts.some((t) => t.includes('true'))).toBeTruthy();
     expect(optionTexts.some((t) => t.includes('false'))).toBeTruthy();
@@ -203,10 +202,7 @@ test.describe('/options/translate-provider/OpenAI-Compatible API', () => {
     const mainContent = page.locator('#main-content');
     const discardButton = mainContent.locator('button.t-button:has-text("放弃")');
     await discardButton.click();
-    await page.waitForTimeout(300);
-
-    const hash = await page.evaluate(() => window.location.hash);
-    expect(hash).toMatch(/^#\/(|dashboard)$/);
+    await waitForHashNavigation(page);
   });
 
   test('should NOT prompt unsaved changes when leaving without edits', async ({ page }) => {
@@ -218,15 +214,11 @@ test.describe('/options/translate-provider/OpenAI-Compatible API', () => {
     // Click "放弃" without making any edits
     const discardButton = mainContent.locator('button.t-button:has-text("放弃")');
     await discardButton.click();
-    await page.waitForTimeout(500);
+    await waitForHashNavigation(page);
 
     // Should NOT show unsaved changes notification
     const notification = page.locator('.t-notification');
     await expect(notification).toHaveCount(0);
-
-    // Should have navigated away
-    const hash = await page.evaluate(() => window.location.hash);
-    expect(hash).toMatch(/^#\/(|dashboard)$/);
   });
 
   test('should prompt unsaved changes when leaving after edit', async ({ page }) => {
@@ -243,7 +235,6 @@ test.describe('/options/translate-provider/OpenAI-Compatible API', () => {
     // Click "放弃" — should trigger unsaved changes notification
     const discardButton = mainContent.locator('button.t-button:has-text("放弃")');
     await discardButton.click();
-    await page.waitForTimeout(500);
 
     // Should show unsaved changes notification
     const notification = page.locator('.t-notification');
@@ -253,11 +244,7 @@ test.describe('/options/translate-provider/OpenAI-Compatible API', () => {
     // Click "离开，且不要保存" to proceed
     const leaveButton = notification.locator('button:has-text("离开，且不要保存")');
     await leaveButton.click();
-    await page.waitForTimeout(500);
-
-    // Should have navigated away
-    const hash = await page.evaluate(() => window.location.hash);
-    expect(hash).toMatch(/^#\/(|dashboard)$/);
+    await waitForHashNavigation(page);
   });
 
   test('should NOT prompt unsaved changes when leaving after save', async ({ page }) => {
@@ -283,15 +270,11 @@ test.describe('/options/translate-provider/OpenAI-Compatible API', () => {
     // Now click "放弃" — should NOT prompt unsaved changes
     const discardButton = mainContent.locator('button.t-button:has-text("放弃")');
     await discardButton.click();
-    await page.waitForTimeout(500);
+    await waitForHashNavigation(page);
 
     // Should NOT show unsaved changes notification after saving
     const notification = page.locator('.t-notification');
     await expect(notification).toHaveCount(0);
-
-    // Should have navigated away
-    const hash = await page.evaluate(() => window.location.hash);
-    expect(hash).toMatch(/^#\/(|dashboard)$/);
   });
 });
 
@@ -361,10 +344,7 @@ test.describe('/options/translate-provider/腾讯云', () => {
     const mainContent = page.locator('#main-content');
     const sourceSelect = mainContent.locator('.t-select').nth(1);
 
-    await sourceSelect.click();
-    await page.waitForTimeout(300);
-
-    const options = page.locator('.t-select-option');
+    const options = await openSelect(page, sourceSelect);
     const optionTexts = await options.allTextContents();
     expect(optionTexts).toContain('auto');
     expect(optionTexts).toContain('ja');
@@ -440,6 +420,27 @@ test.describe('/options/translate-provider/腾讯翻译君', () => {
     await expectFieldVisible(mainContent, '源语言');
     await expectFieldVisible(mainContent, '目标语言');
   });
+
+  test('should save 腾讯翻译君 options', async ({ page }) => {
+    await navigateTo(page, providerRoute('translate', '腾讯翻译君'));
+    await waitForContent(page);
+
+    const mainContent = page.locator('#main-content');
+    await mainContent.locator('button.t-button:has-text("保存并应用")').click();
+
+    const message = page.locator('.t-message');
+    await expect(message).toBeVisible({ timeout: 5000 });
+    await expect(message).toContainText('已成功保存');
+  });
+
+  test('should navigate away when clicking "放弃"', async ({ page }) => {
+    await navigateTo(page, providerRoute('translate', '腾讯翻译君'));
+    await waitForContent(page);
+
+    const mainContent = page.locator('#main-content');
+    await mainContent.locator('button.t-button:has-text("放弃")').click();
+    await waitForHashNavigation(page);
+  });
 });
 
 test.describe('/options/translate-provider/有道翻译', () => {
@@ -457,6 +458,27 @@ test.describe('/options/translate-provider/有道翻译', () => {
     await expectFieldVisible(mainContent, '启用');
     await expectFieldVisible(mainContent, '源语言');
     await expectFieldVisible(mainContent, '目标语言');
+  });
+
+  test('should save 有道翻译 options', async ({ page }) => {
+    await navigateTo(page, providerRoute('translate', '有道翻译'));
+    await waitForContent(page);
+
+    const mainContent = page.locator('#main-content');
+    await mainContent.locator('button.t-button:has-text("保存并应用")').click();
+
+    const message = page.locator('.t-message');
+    await expect(message).toBeVisible({ timeout: 5000 });
+    await expect(message).toContainText('已成功保存');
+  });
+
+  test('should navigate away when clicking "放弃"', async ({ page }) => {
+    await navigateTo(page, providerRoute('translate', '有道翻译'));
+    await waitForContent(page);
+
+    const mainContent = page.locator('#main-content');
+    await mainContent.locator('button.t-button:has-text("放弃")').click();
+    await waitForHashNavigation(page);
   });
 });
 
@@ -476,6 +498,27 @@ test.describe('/options/translate-provider/百度翻译', () => {
     await expectFieldVisible(mainContent, '源语言');
     await expectFieldVisible(mainContent, '目标语言');
   });
+
+  test('should save 百度翻译 options', async ({ page }) => {
+    await navigateTo(page, providerRoute('translate', '百度翻译'));
+    await waitForContent(page);
+
+    const mainContent = page.locator('#main-content');
+    await mainContent.locator('button.t-button:has-text("保存并应用")').click();
+
+    const message = page.locator('.t-message');
+    await expect(message).toBeVisible({ timeout: 5000 });
+    await expect(message).toContainText('已成功保存');
+  });
+
+  test('should navigate away when clicking "放弃"', async ({ page }) => {
+    await navigateTo(page, providerRoute('translate', '百度翻译'));
+    await waitForContent(page);
+
+    const mainContent = page.locator('#main-content');
+    await mainContent.locator('button.t-button:has-text("放弃")').click();
+    await waitForHashNavigation(page);
+  });
 });
 
 test.describe('/options/translate-provider/谷歌翻译', () => {
@@ -493,6 +536,27 @@ test.describe('/options/translate-provider/谷歌翻译', () => {
     await expectFieldVisible(mainContent, '启用');
     await expectFieldVisible(mainContent, '源语言');
     await expectFieldVisible(mainContent, '目标语言');
+  });
+
+  test('should save 谷歌翻译 options', async ({ page }) => {
+    await navigateTo(page, providerRoute('translate', '谷歌翻译'));
+    await waitForContent(page);
+
+    const mainContent = page.locator('#main-content');
+    await mainContent.locator('button.t-button:has-text("保存并应用")').click();
+
+    const message = page.locator('.t-message');
+    await expect(message).toBeVisible({ timeout: 5000 });
+    await expect(message).toContainText('已成功保存');
+  });
+
+  test('should navigate away when clicking "放弃"', async ({ page }) => {
+    await navigateTo(page, providerRoute('translate', '谷歌翻译'));
+    await waitForContent(page);
+
+    const mainContent = page.locator('#main-content');
+    await mainContent.locator('button.t-button:has-text("放弃")').click();
+    await waitForHashNavigation(page);
   });
 });
 
@@ -628,10 +692,7 @@ test.describe('/options/translate-provider/DrEye', () => {
     // translateType is the second select (index 1)
     const typeSelect = mainContent.locator('.t-select').nth(1);
 
-    await typeSelect.click();
-    await page.waitForTimeout(300);
-
-    const options = page.locator('.t-select-option');
+    const options = await openSelect(page, typeSelect);
     const optionTexts = await options.allTextContents();
     expect(optionTexts).toContain('日->中');
     expect(optionTexts).toContain('中->日');

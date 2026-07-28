@@ -7,6 +7,7 @@ import {
   findInputByKey,
   expectTags,
   testValidInput,
+  openSelect,
 } from './fixtures';
 
 test.describe('/options/segment-manager', () => {
@@ -38,10 +39,7 @@ test.describe('/options/segment-manager', () => {
     const mainContent = page.locator('#main-content');
     const select = mainContent.locator('.t-select').first();
 
-    await select.click();
-    await page.waitForTimeout(300);
-
-    const options = page.locator('.t-select-option');
+    const options = await openSelect(page, select);
     const optionTexts = await options.allTextContents();
     expect(optionTexts).toContain('intl-segmenter');
     expect(optionTexts).toContain('mecab');
@@ -93,10 +91,7 @@ test.describe('/options/segment-provider/intl-segmenter', () => {
     const mainContent = page.locator('#main-content');
     const select = mainContent.locator('.t-select').first();
 
-    await select.click();
-    await page.waitForTimeout(300);
-
-    const options = page.locator('.t-select-option');
+    const options = await openSelect(page, select);
     const optionTexts = await options.allTextContents();
     expect(optionTexts.some((t) => t.includes('true'))).toBeTruthy();
     expect(optionTexts.some((t) => t.includes('false'))).toBeTruthy();
@@ -169,10 +164,7 @@ test.describe('/options/segment-provider/mecab', () => {
     // encoding is the second select
     const encodingSelect = mainContent.locator('.t-select').nth(1);
 
-    await encodingSelect.click();
-    await page.waitForTimeout(300);
-
-    const options = page.locator('.t-select-option');
+    const options = await openSelect(page, encodingSelect);
     const optionTexts = await options.allTextContents();
     expect(optionTexts).toContain('Shift_JIS');
     expect(optionTexts).toContain('UTF-8');

@@ -1,4 +1,13 @@
-import { test, expect, navigateTo, waitForContent, PROVIDER_IDS, providerRoute } from './fixtures';
+import {
+  test,
+  expect,
+  navigateTo,
+  waitForContent,
+  waitForHashNavigation,
+  openSelect,
+  PROVIDER_IDS,
+  providerRoute,
+} from './fixtures';
 import type { Locator } from '@playwright/test';
 
 /**
@@ -57,11 +66,9 @@ test.describe('/options/dict-manager', () => {
     const select = mainContent.locator('.t-select').first();
 
     // Click to open the dropdown
-    await select.click();
-    await page.waitForTimeout(300);
+    const options = await openSelect(page, select);
 
     // Should show enum options in the dropdown
-    const options = page.locator('.t-select-option');
     const optionCount = await options.count();
     expect(optionCount).toBeGreaterThan(0);
 
@@ -83,10 +90,7 @@ test.describe('/options/dict-manager', () => {
     const mainContent = page.locator('#main-content');
     const discardButton = mainContent.locator('button.t-button:has-text("放弃")');
     await discardButton.click();
-    await page.waitForTimeout(300);
-
-    const hash = await page.evaluate(() => window.location.hash);
-    expect(hash).toMatch(/^#\/(|dashboard)$/);
+    await waitForHashNavigation(page);
   });
 });
 

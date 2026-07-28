@@ -62,12 +62,12 @@ test.describe('/options/locale-changers', () => {
     const mainContent = page.locator('#main-content');
     const addButton = mainContent.locator('button:has-text("新建")');
     await addButton.click();
-    await page.waitForTimeout(500);
+
+    // Wait for the new entry to appear
+    const name1Label = page.locator('.t-space.t-space-horizontal').filter({ hasText: 'name1' });
+    await name1Label.waitFor({ state: 'visible', timeout: 5000 });
 
     // TDesign's t-space wraps each child in a <div class="t-space-item">
-    // Each entry's label area is a .t-space-horizontal containing: span, edit button, delete button
-    // Find the horizontal t-space for "name1", then click the third t-space-item's button (delete)
-    const name1Label = page.locator('.t-space.t-space-horizontal').filter({ hasText: 'name1' });
     const deleteItem = name1Label.locator('.t-space-item').nth(2);
     const deleteButton = deleteItem.locator('button');
     await deleteButton.click({ force: true });

@@ -42,13 +42,76 @@ export function providerRoute(type: ProviderType, providerId: string): string {
   return `/options/${type}-provider/${encodeURIComponent(providerId)}`;
 }
 
-/** Navigate to a hash route within the Electron app */
+/**
+ * Wait until the Vue app has mounted and the router is ready.
+ * The side menu (.t-menu) is rendered by the root layout once Vue is up.
+ */
+export async function waitForAppReady(page: Page): Promise<void> {
+  await page.locator('.t-menu').waitFor({ state: 'visible', timeout: 15_000 });
+}
+
+/**
+ * Navigate to a hash route within the Electron app.
+ *
+ * Uses a full page reload to guarantee a completely fresh Vue app mount.
+ * This eliminates ALL shared-state issues between tests in the same worker:
+ *  - stale component state (Vue reuses Options.vue across routes)
+ *  - unsaved-changes route guards blocking navigation
+ *  - leftover notifications / messages in the DOM
+ *
+ * The hash is set synchronously before reload, so the app boots directly into
+ * the target route. This is still far cheaper than the original per-test
+ * Electron process launch (~1s reload vs ~5s process start).
+ */
 export async function navigateTo(page: Page, route: string): Promise<void> {
-  await page.evaluate((r: string) => {
-    window.location.hash = '#' + r;
-  }, route);
-  // Wait for the route change to take effect
-  await page.waitForTimeout(300);
+  // Force a guaranteed full document reload onto the target route.
+  //
+  // Two subtleties make the naive approaches flaky in Electron:
+  //  - evaluate(hash) + reload(): reload() can fire before the hash is
+  //    committed, loading the PREVIOUS route (wrong content).
+  //  - goto(base + '#route'): a hash-only change does not reload the document,
+  //    so Vue stays mounted with stale component state.
+  //
+  // Navigating to about:blank first unloads the app entirely; the subsequent
+  // goto() to the full target URL then performs a real load with the hash
+  // committed as part of the navigation. This yields a fresh Vue mount on the
+  // correct route every time.
+  const base = page.url().split('#')[0];
+  await page.goto('about:blank');
+  await page.goto(base + '#' + route, { waitUntil: 'domcontentloaded' });
+
+  // Wait for the Vue app to mount (side menu is in the root layout).
+  await waitForAppReady(page);
+
+  // Route components are lazy-loaded via dynamic import(); wait for the target
+  // route's actual content to render so tests don't race the async load.
+  await page
+    .locator('#main-content .t-form__item, #main-content .title, .drag-area, .t-steps')
+    .first()
+    .or(page.getByText('没有可以调整的选项哦'))
+    .waitFor({ state: 'visible', timeout: 15_000 })
+    .catch(() => {
+      // Some routes (e.g. dev-only) may not match any marker; tests assert specifics.
+    });
+}
+
+/** Wait for hash-based navigation to complete (e.g. after clicking "放弃") */
+export async function waitForHashNavigation(page: Page, pattern = /^#\/(|dashboard)$/): Promise<void> {
+  await page.waitForFunction(
+    (p: string) => new RegExp(p).test(decodeURIComponent(window.location.hash)),
+    pattern.source,
+    {
+      timeout: 0,
+    },
+  );
+}
+
+/** Click a t-select and wait for dropdown options to appear */
+export async function openSelect(page: Page, select: Locator): Promise<Locator> {
+  await select.click();
+  const options = page.locator('.t-select-option');
+  await options.first().waitFor({ state: 'visible', timeout: 3000 });
+  return options;
 }
 
 /** Wait for TDesign skeleton loader to disappear (page content loaded) */
@@ -78,63 +141,71 @@ interface E2EFixtures {
   tempDir: string;
 }
 
-export const test = base.extend<E2EFixtures>({
-  // eslint-disable-next-line no-empty-pattern
-  tempDir: async ({}, use) => {
-    const dir = createTempDir();
-    await use(dir);
-    removeTempDir(dir);
-  },
-  app: async ({ tempDir }, use) => {
-    const electronPath = path.join(process.cwd(), 'node_modules', 'electron', 'dist', 'electron.exe');
-    const mainPath = path.join(process.cwd(), 'build', 'main', 'index.js');
+export const test = base.extend<{}, E2EFixtures>({
+  // Worker-scoped: one temp dir per worker, shared across all tests in that worker
+  tempDir: [
+    // eslint-disable-next-line no-empty-pattern
+    async ({}, use) => {
+      const dir = createTempDir();
+      await use(dir);
+      removeTempDir(dir);
+    },
+    { scope: 'worker' },
+  ],
+  // Worker-scoped: one Electron process per worker instead of per test
+  app: [
+    async ({ tempDir }, use) => {
+      const electronPath = path.join(process.cwd(), 'node_modules', 'electron', 'dist', 'electron.exe');
+      const mainPath = path.join(process.cwd(), 'build', 'main', 'index.js');
 
-    const app = await _electron.launch({
-      executablePath: electronPath,
-      args: [mainPath],
-      env: {
-        ...process.env,
-        AME_TEST_STORE_CWD: tempDir,
-        NODE_ENV: 'test',
-      },
-    });
+      const app = await _electron.launch({
+        executablePath: electronPath,
+        args: [mainPath],
+        env: {
+          ...process.env,
+          AME_TEST_STORE_CWD: tempDir,
+          NODE_ENV: 'test',
+        },
+      });
 
-    // Monkey-patch BrowserWindow.show so windows render correctly but are moved
-    // off-screen, preventing them from popping up during test runs.
-    // Retry because app.evaluate may fail if a renderer navigation destroys
-    // the execution context during app startup.
-    const patchBrowserWindow = async (retries = 3): Promise<void> => {
-      for (let i = 0; i < retries; i++) {
-        try {
-          await app.evaluate(({ BrowserWindow }) => {
-            const origShow = BrowserWindow.prototype.show;
-            BrowserWindow.prototype.show = function () {
-              this.setPosition(-32000, -32000);
-              return origShow.call(this);
-            };
-            BrowserWindow.prototype.moveTop = function () {
-              // no-op: irrelevant when off-screen
-            };
-          });
-          return;
-        } catch {
-          if (i === retries - 1) throw new Error('Failed to patch BrowserWindow after ' + retries + ' retries');
-          await new Promise((r) => {
-            setTimeout(r, 500);
-          });
+      // Monkey-patch BrowserWindow.show so windows render correctly but are moved
+      // off-screen, preventing them from popping up during test runs.
+      // Retry because app.evaluate may fail if a renderer navigation destroys
+      // the execution context during app startup.
+      const patchBrowserWindow = async (retries = 3): Promise<void> => {
+        for (let i = 0; i < retries; i++) {
+          try {
+            await app.evaluate(({ BrowserWindow }) => {
+              const origShow = BrowserWindow.prototype.show;
+              BrowserWindow.prototype.show = function () {
+                this.setPosition(-32000, -32000);
+                return origShow.call(this);
+              };
+              BrowserWindow.prototype.moveTop = function () {
+                // no-op: irrelevant when off-screen
+              };
+            });
+            return;
+          } catch {
+            if (i === retries - 1) throw new Error('Failed to patch BrowserWindow after ' + retries + ' retries');
+            await new Promise((r) => {
+              setTimeout(r, 500);
+            });
+          }
         }
-      }
-    };
-    await patchBrowserWindow();
+      };
+      await patchBrowserWindow();
 
-    await use(app);
-    await app.close();
-  },
+      await use(app);
+      await app.close();
+    },
+    { scope: 'worker' },
+  ],
   page: async ({ app }, use) => {
     const page = await app.firstWindow();
-    // Wait for the window to fully load
+    // Wait for the window to fully load and the Vue app to mount
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(1000);
+    await waitForAppReady(page);
     await use(page);
   },
 });
@@ -173,6 +244,14 @@ export function findInputByKey(mainContent: Locator, keyPath: string): Locator {
  */
 export async function getTagTextsByKey(mainContent: Locator, keyPath: string): Promise<string[]> {
   const tags = findFieldByKey(mainContent, keyPath).locator('.t-tag');
+  // Wait for at least one tag to render — tags are added asynchronously after
+  // the form item mounts, so reading immediately can return an empty list.
+  await tags
+    .first()
+    .waitFor({ state: 'visible', timeout: 10_000 })
+    .catch(() => {
+      // Field may legitimately have no tags; count will be 0.
+    });
   const count = await tags.count();
   const texts: string[] = [];
   for (let i = 0; i < count; i++) {
