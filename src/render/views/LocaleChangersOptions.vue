@@ -8,7 +8,7 @@
             <template #label>
               <t-input
                 v-if="i.editingName"
-                :value="i.name"
+                v-model="i.name"
                 @change="hasUnsavedChange = true"
                 @blur="i.editingName = false"
               />

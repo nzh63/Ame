@@ -30,10 +30,10 @@ export default defineComponent({
         if (typeof meta.jsonSchema !== 'object') return meta;
         const voice = meta.jsonSchema.properties?.voice;
         if (typeof voice === 'object') {
-          if (voice?.properties?.originalVoiceURI && voice?.properties?.originalVoiceURI !== true) {
+          if (voice?.properties?.originalVoiceURI) {
             voice.properties.originalVoiceURI.enum = [null, ...voices];
           }
-          if (voice?.properties?.translateVoiceURI && voice?.properties?.translateVoiceURI !== true) {
+          if (voice?.properties?.translateVoiceURI) {
             voice.properties.translateVoiceURI.enum = [null, ...voices];
           }
         }

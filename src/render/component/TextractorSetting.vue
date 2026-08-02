@@ -11,7 +11,7 @@ export default defineComponent({
   setup() {
     const option = ref<PostProcessOption>({ removeDuplication: false });
     getTextractorPostProcessOption().then((o) => {
-      option.value = o;
+      if (o) option.value = o;
     });
 
     const saveOption = () => {

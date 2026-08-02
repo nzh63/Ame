@@ -13,15 +13,14 @@
     "lib": ["esnext", "dom"],
     "baseUrl": ".",
     "paths": {
-      "@main/*": ["./src/main/*"],
+      "@main/*": ["./src/type/main/*"],
       "@render/*": ["./src/render/*"],
-      "@remote/*": ["./src/remote/*"],
-      "@remote": ["./src/remote/index"],
-      "@type/*": ["./src/type/*"],
-      "@static/*": ["./build/static/*"]
+      "@remote/*": ["./src/render/remote/*"],
+      "@remote": ["./src/render/remote/index"],
+      "@type/*": ["./src/type/*"]
     }
   },
-  "include": ["src/**/*", "src/**/*.vue", "test/**/*.ts", "e2e/**/*.ts"],
+  "include": ["src/**/*", "src/**/*.vue", "e2e/**/*.ts"],
   "exclude": ["**/node_modules", "**/.*/"],
   "ts-node": {
     "transpileOnly": true,

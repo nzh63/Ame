@@ -2,7 +2,6 @@
   <div
     ref="dragArea"
     :class="{ 'drag-area': true, draging }"
-    @drop="drop"
     @dragenter="dragenter"
     @dragleave="dragleave"
     @dragover.prevent
@@ -48,7 +47,7 @@
 import { findWindowByClick, startExtract } from '@remote';
 import GameCard from '@render/component/GameCard.vue';
 import store from '@render/store';
-import electron from 'electron';
+import { getCurrentWebview } from '@tauri-apps/api/webview';
 import { quote } from 'shell-quote';
 import { MessagePlugin } from 'tdesign-vue-next';
 import { v4 as uuidv4 } from 'uuid';
@@ -65,12 +64,30 @@ export default defineComponent({
       visible: false,
       dragArea: null as null | HTMLElement,
       draging: false,
+      dragDropUnlisten: null as null | (() => void),
     };
   },
   mounted() {
     this.reloadGames();
+    this.initDragDrop();
+  },
+  beforeUnmount() {
+    this.dragDropUnlisten?.();
   },
   methods: {
+    async initDragDrop() {
+      const unlisten = await getCurrentWebview().onDragDropEvent((event) => {
+        if (event.payload.type === 'drop') {
+          this.draging = false;
+          this.addGames(event.payload.paths);
+        } else if (event.payload.type === 'enter' || event.payload.type === 'over') {
+          this.draging = true;
+        } else {
+          this.draging = false;
+        }
+      });
+      this.dragDropUnlisten = unlisten;
+    },
     async save(id: number, value: Ame.GameSetting) {
       this.games[id] = value;
       await store.set('games', toRaw(this.games));
@@ -85,7 +102,8 @@ export default defineComponent({
       this.games = await store.get('games');
     },
     start() {
-      startExtract('', [this.pid]);
+      // The number input yields a string; Rust's start_extract takes u32 pids.
+      startExtract('', [Number(this.pid)]);
       this.visible = false;
     },
     dragenter(e: DragEvent) {
@@ -96,25 +114,24 @@ export default defineComponent({
       if (e.target !== this.$refs.dragArea) return;
       this.draging = false;
     },
-    async drop(e: DragEvent) {
-      e.preventDefault();
-      this.draging = false;
-      const files = Array.from(e.dataTransfer?.files ?? []);
+    async addGames(paths: string[]) {
       const newGames: Ame.GameSetting[] = [];
-      for (const i of files) {
-        const path = electron.webUtils.getPathForFile(i);
-        if (!/\.exe$/.test(path)) continue;
+      for (const p of paths) {
+        if (!/\.exe$/i.test(p)) continue;
+        const name = p.split(/[\\/]/).pop() ?? p;
         newGames.push({
           uuid: uuidv4(),
-          path,
-          name: i.name,
-          execShell: '& ' + quote([path]),
+          path: p,
+          name,
+          execShell: '& ' + quote([p]),
           type: 'textractor',
           hookCode: '',
         });
       }
-      await store.set('games', [...(await store.get('games', [])), ...newGames]);
-      await this.reloadGames();
+      if (newGames.length > 0) {
+        await store.set('games', [...(await store.get('games', [])), ...newGames]);
+        await this.reloadGames();
+      }
     },
     async findWindowByClick() {
       const pid = await findWindowByClick();

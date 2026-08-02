@@ -6,52 +6,54 @@ on:
   pull_request:
     branches: [master]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: 22
+
 jobs:
   build:
-    runs-on: windows-2025
-
-    strategy:
-      matrix:
-        arch: [x64, ia32]
-
-    env:
-      npm_config_arch: ${{ matrix.arch }}
+    runs-on: windows-2022
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Use Node.js 20.x
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ env.NODE_VERSION }}
 
       - name: Enable Corepack
         run: corepack enable
 
-      - name: Use Node.js 20.x
+      - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ env.NODE_VERSION }}
           cache: yarn
 
       - run: yarn install --frozen-lockfile
 
       - run: yarn lint
 
+      - name: Check formatting
+        run: yarn format:check
+
       - run: yarn type-check
 
-      - run: yarn download:dep
+      - run: cargo fmt --manifest-path src-tauri/Cargo.toml --check
+
+      - run: cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
 
       - run: yarn test
-        env:
-          DEBUG: ame:*
-          DEBUG_COLORS: '1'
 
       - run: yarn e2e
 
-      - run: yarn build --arch=${{ matrix.arch }} --publish=never
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: build-${{ matrix.arch }}
-          path: build/nsis/*.exe
+      - run: yarn build

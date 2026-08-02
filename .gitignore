@@ -3,6 +3,11 @@ node_modules
 build
 *.local
 .vs
+__pycache__/
+
+# Legacy Electron-era build artifacts (old Vitest/electron-builder output)
+test/
+electron-builder.js
 
 .yarn/*
 !.yarn/patches
@@ -18,3 +23,5 @@ build
 #!.yarn/cache
 .pnp.*
 test-results
+src-tauri/target
+src-tauri/gen

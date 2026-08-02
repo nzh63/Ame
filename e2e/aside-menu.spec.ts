@@ -66,7 +66,7 @@ test.describe('AsideMenu navigation', () => {
 
     // Should show translate provider menu items
     await expect(page.locator('.t-menu__item:has-text("OpenAI-Compatible API")')).toBeVisible();
-    await expect(page.locator('.t-menu__item:has-text("谷歌翻译")')).toBeVisible();
+    await expect(page.locator('.t-menu__item:has-text("有道翻译")')).toBeVisible();
   });
 
   test('should navigate to a translate provider via submenu', async ({ page }) => {
@@ -90,7 +90,8 @@ test.describe('AsideMenu navigation', () => {
     const ocrSubmenu = page.locator('.t-submenu', { hasText: 'OCR设置' });
     await expect(ocrSubmenu.locator('.t-menu__item:has-text("通用设置")')).toBeVisible();
     await expect(ocrSubmenu.locator('.t-menu__item:has-text("PP-OCR")')).toBeVisible();
-    await expect(ocrSubmenu.locator('.t-menu__item:has-text("tesseract")')).toBeVisible();
+    // Tesseract was removed with the frontend WASM worker; it must not reappear.
+    await expect(ocrSubmenu.locator('.t-menu__item:has-text("tesseract")')).toHaveCount(0);
   });
 
   test('should highlight the active menu item', async ({ page }) => {

@@ -15,13 +15,13 @@
       :key="i.id"
       class="line"
       :title="i.id"
-      @click.right="onRightClick(i.err ? (i.err?.message ?? i.err) : i.text, 'translate')"
-      @touchstart="(e) => onTouchstart(e, i.err ? (i.err?.message ?? i.err) : i.text, 'translate')"
+      @click.right="onRightClick(i.err ? errDisplay(i.err) : i.text, 'translate')"
+      @touchstart="(e) => onTouchstart(e, i.err ? errDisplay(i.err) : i.text, 'translate')"
       @touchend="onTouchend"
       @touchmove="onTouchmove"
       @touchcancel="onTouchend"
     >
-      <span v-if="i.err" class="error"> {{ i.id }}发生错误：{{ i.err?.message ?? i.err }} </span>
+      <span v-if="i.err" class="error"> {{ i.id }}发生错误：{{ errDisplay(i.err) }} </span>
       <span v-else>{{ i.text }}</span>
     </div>
   </div>
@@ -42,7 +42,7 @@ export default defineComponent({
       required: true,
     },
     translate: {
-      type: Array as PropType<{ id: string; text: string; err?: any }[]>,
+      type: Array as PropType<Ame.Translator.TextLine['translate']>,
       required: true,
     },
   },
@@ -52,6 +52,10 @@ export default defineComponent({
   setup(props, context) {
     const _fontSize = inject<Ref<number>>('fontSize');
     const fontSize = computed(() => (_fontSize?.value ?? 16) + 'px');
+
+    /** 把翻译错误（string 或 Error-like）规整成可展示的字符串。 */
+    const errDisplay = (err: Ame.Translator.TranslateError): string =>
+      typeof err === 'object' && err !== null && err.message ? err.message : String(err);
 
     const onRightClick = (s: string, t: 'original' | 'translate') => {
       context.emit('tts-speak', s, t);
@@ -88,6 +92,7 @@ export default defineComponent({
       onTouchstart,
       onTouchmove,
       onTouchend,
+      errDisplay,
       fontSize,
     };
   },

@@ -48,8 +48,6 @@ export default defineComponent({
       type.value = t;
     });
 
-    const setHookCodeInject = inject<(h: string) => void>('setHookCode');
-    const setRunning = inject<(h: boolean) => void>('setRunning');
     const _fontSize = inject<Ref<number>>('fontSize');
     const fontSize = ref(_fontSize?.value);
 
@@ -60,8 +58,9 @@ export default defineComponent({
     };
 
     const changeType = async (newType: Ame.Extractor.ExtractorType) => {
-      setRunning?.(false);
-      setHookCodeInject?.('');
+      // 切换提取方法会重建 Rust 会话；已订阅的 key（记住的选择）由 Rust
+      // 端迁移保留，前端保持 running/hookCodes 不变，订阅不中断。
+      // （旧版 switchExtractor 只换 extractor，session 级 watchList 保留。）
       await switchExtractorType(newType);
       type.value = newType;
     };

@@ -3,11 +3,7 @@
     <text-display
       v-for="(text, index) of texts"
       :key="text.id"
-      :ref="
-        (el) => {
-          if (index === 0) currentTextElement = el;
-        }
-      "
+      :ref="(el) => index === 0 && (currentTextElement = toDomElement(el))"
       class="text-display"
       :original="text.original"
       :translate="text.translate"
@@ -29,11 +25,9 @@ import {
   showContextMenu,
 } from '@remote';
 import TextDisplay from '@render/component/TextDisplay';
-import type { Ref } from 'vue';
+import type { ComponentPublicInstance, Ref } from 'vue';
 import { defineComponent, ref, inject, onUnmounted, nextTick, watch, reactive, onBeforeUpdate } from 'vue';
 import { onBeforeRouteLeave } from 'vue-router';
-
-type Translate = { id: string; text: string; err?: any }[];
 
 export default defineComponent({
   components: {
@@ -46,13 +40,13 @@ export default defineComponent({
 
     const MAX_LENGTH = 10;
 
-    const texts = reactive<{ original: string; translate: Translate; id: number }[]>([]);
+    const texts = reactive<Ame.Translator.TextLine[]>([]);
     let id = 0;
     const watchChange = () => {
       if (hookCodes.value && running.value) {
         for (const hookCode of hookCodes.value) {
-          watchOriginal(hookCode, ({ text }) => {
-            texts.unshift({ original: text, translate: [], id });
+          watchOriginal(hookCode, ({ key, text }) => {
+            texts.unshift({ id, key, original: text, translate: [] });
             id++;
             id %= MAX_LENGTH + 1;
             while (texts.length > MAX_LENGTH) texts.pop();
@@ -61,8 +55,11 @@ export default defineComponent({
           watchTranslate(
             hookCode,
             (result) => {
-              const text = texts.find((i) => i.original === result.originalText);
-              if (result.key === hookCode && text) {
+              // 匹配同 key 下最新一条相同原文的记录（`unshift` → 数组头部最新）。
+              // 用 key + originalText 双条件，避免 hookCode 相同但原文不同的串线。
+              const key = String(result.key);
+              const text = texts.find((i) => String(i.key) === key && i.original === result.originalText);
+              if (text) {
                 const translate = text.translate.find((i) => i.id === result.providerId);
                 if (translate) {
                   translate.text = result.translateText;
@@ -73,8 +70,9 @@ export default defineComponent({
               }
             },
             (err, result) => {
-              const text = texts.find((i) => i.original === result.originalText);
-              if (result.key === hookCode && text) {
+              const key = String(result.key);
+              const text = texts.find((i) => String(i.key) === key && i.original === result.originalText);
+              if (text) {
                 text.translate.push({ err, id: result.providerId, text: result.translateText });
                 updateWindowHeight();
               }
@@ -93,8 +91,17 @@ export default defineComponent({
     onUnmounted(unwatchChange);
 
     watch(running, (r) => (r ? watchChange() : unwatchChange()));
+    // selectKeys 是异步恢复的（TranslatorWindow 的 getGameSetting）：若
+    // hookCodes 在首次 watchChange 之后才填充，必须重新订阅，否则提取事件
+    // 会被 Rust 端判为 "skip translation for unselected key"。
+    watch(hookCodes, () => {
+      if (running.value) watchChange();
+    });
 
-    const currentTextElement = ref<any>(null);
+    const currentTextElement = ref<HTMLElement | null>(null);
+    /** 归一化函数 ref 回调值：组件实例取 `$el`，DOM 元素直接用。 */
+    const toDomElement = (el: Element | ComponentPublicInstance | null): HTMLElement | null =>
+      el instanceof HTMLElement ? el : el && '$el' in el ? (el.$el as HTMLElement) : null;
     onBeforeUpdate(() => {
       currentTextElement.value = null;
     });
@@ -103,7 +110,7 @@ export default defineComponent({
       nextTick(() => {
         if (currentTextElement.value) {
           const titleBarHeight = document.documentElement.getAttribute('tablet-mode') === 'true' ? 32 : 24;
-          const height: number = titleBarHeight + currentTextElement.value.$el.offsetHeight;
+          const height: number = titleBarHeight + currentTextElement.value.offsetHeight;
           resizeWindow({ height });
         }
       });
@@ -111,7 +118,7 @@ export default defineComponent({
 
     onBeforeRouteLeave(() => {
       const titleBarHeight = document.documentElement.getAttribute('tablet-mode') === 'true' ? 32 : 24;
-      const height: number = titleBarHeight + (currentTextElement.value?.$el.offsetHeight ?? 0);
+      const height: number = titleBarHeight + (currentTextElement.value?.offsetHeight ?? 0);
       if (height < 300) {
         resizeWindow({ height: 300 });
       }
@@ -137,6 +144,7 @@ export default defineComponent({
       hookCodes,
       texts,
       currentTextElement,
+      toDomElement,
       onTts,
     };
   },

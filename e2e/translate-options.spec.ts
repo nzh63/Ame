@@ -482,84 +482,6 @@ test.describe('/options/translate-provider/有道翻译', () => {
   });
 });
 
-test.describe('/options/translate-provider/百度翻译', () => {
-  test('should display all options with correct fields', async ({ page }) => {
-    await navigateTo(page, providerRoute('translate', '百度翻译'));
-    await waitForContent(page);
-
-    const mainContent = page.locator('#main-content');
-
-    const title = mainContent.locator('.title');
-    await expect(title).toContainText('百度翻译');
-
-    await expect(mainContent.locator('button.t-button:has-text("保存并应用")')).toBeVisible();
-
-    await expectFieldVisible(mainContent, '启用');
-    await expectFieldVisible(mainContent, '源语言');
-    await expectFieldVisible(mainContent, '目标语言');
-  });
-
-  test('should save 百度翻译 options', async ({ page }) => {
-    await navigateTo(page, providerRoute('translate', '百度翻译'));
-    await waitForContent(page);
-
-    const mainContent = page.locator('#main-content');
-    await mainContent.locator('button.t-button:has-text("保存并应用")').click();
-
-    const message = page.locator('.t-message');
-    await expect(message).toBeVisible({ timeout: 5000 });
-    await expect(message).toContainText('已成功保存');
-  });
-
-  test('should navigate away when clicking "放弃"', async ({ page }) => {
-    await navigateTo(page, providerRoute('translate', '百度翻译'));
-    await waitForContent(page);
-
-    const mainContent = page.locator('#main-content');
-    await mainContent.locator('button.t-button:has-text("放弃")').click();
-    await waitForHashNavigation(page);
-  });
-});
-
-test.describe('/options/translate-provider/谷歌翻译', () => {
-  test('should display all options with correct fields', async ({ page }) => {
-    await navigateTo(page, providerRoute('translate', '谷歌翻译'));
-    await waitForContent(page);
-
-    const mainContent = page.locator('#main-content');
-
-    const title = mainContent.locator('.title');
-    await expect(title).toContainText('谷歌翻译');
-
-    await expect(mainContent.locator('button.t-button:has-text("保存并应用")')).toBeVisible();
-
-    await expectFieldVisible(mainContent, '启用');
-    await expectFieldVisible(mainContent, '源语言');
-    await expectFieldVisible(mainContent, '目标语言');
-  });
-
-  test('should save 谷歌翻译 options', async ({ page }) => {
-    await navigateTo(page, providerRoute('translate', '谷歌翻译'));
-    await waitForContent(page);
-
-    const mainContent = page.locator('#main-content');
-    await mainContent.locator('button.t-button:has-text("保存并应用")').click();
-
-    const message = page.locator('.t-message');
-    await expect(message).toBeVisible({ timeout: 5000 });
-    await expect(message).toContainText('已成功保存');
-  });
-
-  test('should navigate away when clicking "放弃"', async ({ page }) => {
-    await navigateTo(page, providerRoute('translate', '谷歌翻译'));
-    await waitForContent(page);
-
-    const mainContent = page.locator('#main-content');
-    await mainContent.locator('button.t-button:has-text("放弃")').click();
-    await waitForHashNavigation(page);
-  });
-});
-
 test.describe('/options/translate-provider/JBeijing', () => {
   test('should display all options with correct fields and type tags', async ({ page }) => {
     await navigateTo(page, providerRoute('translate', 'JBeijing'));
@@ -715,5 +637,97 @@ test.describe('/options/translate-provider echo (DEV only)', () => {
       .catch(() => {
         // If not in DEV mode, the page might show an error or different state
       });
+  });
+});
+
+test.describe('/options/translate-provider/Anthropic Message API', () => {
+  test('should display all options with correct fields and type tags', async ({ page }) => {
+    await navigateTo(page, providerRoute('translate', 'Anthropic Message API'));
+    await waitForContent(page);
+
+    const mainContent = page.locator('#main-content');
+
+    // Title
+    const title = mainContent.locator('.title');
+    await expect(title).toContainText('Anthropic Message API');
+
+    await expect(mainContent.locator('button.t-button:has-text("保存并应用")')).toBeVisible();
+
+    // Options (old Electron layout: apiConfig + chatConfig):
+    await expectFieldVisible(mainContent, '启用');
+    await expectFieldVisible(mainContent, 'Base URL');
+    await expectFieldVisible(mainContent, 'API Key');
+    await expectFieldVisible(mainContent, 'Auth Token');
+    await expectFieldVisible(mainContent, '模型');
+    await expectFieldVisible(mainContent, '最长历史大小');
+    await expectFieldVisible(mainContent, '最大 Token 数');
+    await expectFieldVisible(mainContent, 'System Prompt');
+    await expectFieldVisible(mainContent, '思考模式');
+    await expectFieldVisible(mainContent, '思考预算 Token');
+    await expectFieldVisible(mainContent, '输出强度');
+    await expectFieldVisible(mainContent, '缓存控制');
+  });
+
+  test('should show correct type tags on all input fields', async ({ page }) => {
+    await navigateTo(page, providerRoute('translate', 'Anthropic Message API'));
+    await waitForContent(page);
+
+    const mainContent = page.locator('#main-content');
+
+    await expectTags(mainContent, 'apiConfig.baseURL', ['string']);
+    await expectTags(mainContent, 'apiConfig.apiKey', ['string']);
+    await expectTags(mainContent, 'apiConfig.authToken', ['string']);
+    await expectTags(mainContent, 'chatConfig.model', ['string']);
+    await expectTags(mainContent, 'chatConfig.systemPrompt', ['string']);
+    await expectTags(mainContent, 'chatConfig.maxHistory', ['number']);
+    await expectTags(mainContent, 'chatConfig.maxTokens', ['number']);
+    await expectTags(mainContent, 'chatConfig.thinkingBudgetTokens', ['number']);
+  });
+
+  test('should show thinkingType enum options', async ({ page }) => {
+    await navigateTo(page, providerRoute('translate', 'Anthropic Message API'));
+    await waitForContent(page);
+
+    const mainContent = page.locator('#main-content');
+    const thinkingSelect = findFieldByKey(mainContent, 'chatConfig.thinkingType').locator('.t-select');
+    const options = await openSelect(page, thinkingSelect);
+    const optionTexts = await options.allTextContents();
+    expect(optionTexts).toEqual(expect.arrayContaining(['disabled', 'enabled', 'adaptive']));
+
+    await page.keyboard.press('Escape');
+  });
+
+  test('should show outputEffort enum options', async ({ page }) => {
+    await navigateTo(page, providerRoute('translate', 'Anthropic Message API'));
+    await waitForContent(page);
+
+    const mainContent = page.locator('#main-content');
+    const effortSelect = findFieldByKey(mainContent, 'chatConfig.outputEffort').locator('.t-select');
+    const options = await openSelect(page, effortSelect);
+    const optionTexts = await options.allTextContents();
+    expect(optionTexts).toEqual(expect.arrayContaining(['low', 'medium', 'high', 'xhigh', 'max']));
+
+    await page.keyboard.press('Escape');
+  });
+
+  test('should reject non-numeric input for maxHistory and maxTokens', async ({ page }) => {
+    await navigateTo(page, providerRoute('translate', 'Anthropic Message API'));
+    await waitForContent(page);
+
+    const mainContent = page.locator('#main-content');
+    await testValidation(mainContent, 'chatConfig.maxHistory', 'not-a-number', '应当是一个数字', '50');
+    await testValidation(mainContent, 'chatConfig.maxTokens', 'not-a-number', '应当是一个数字', '4096');
+  });
+
+  test('should save Anthropic options', async ({ page }) => {
+    await navigateTo(page, providerRoute('translate', 'Anthropic Message API'));
+    await waitForContent(page);
+
+    const mainContent = page.locator('#main-content');
+    await mainContent.locator('button.t-button:has-text("保存并应用")').click();
+
+    const message = page.locator('.t-message');
+    await expect(message).toBeVisible({ timeout: 5000 });
+    await expect(message).toContainText('已成功保存');
   });
 });

@@ -1,0 +1,30 @@
+{
+  "$schema": "https://raw.githubusercontent.com/nicegram/nicegram-tauri/refs/heads/dev/crates/tauri-schema-generator/schemas/config.schema.json",
+  "productName": "Ame",
+  "version": "0.5.12",
+  "identifier": "nzh63.ame",
+  "build": {
+    "frontendDist": "../build/render",
+    "devUrl": "http://localhost:9090",
+    "beforeDevCommand": "yarn dev:render",
+    "beforeBuildCommand": "yarn build:render"
+  },
+  "app": {
+    "security": {
+      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fanyi.qq.com https://fanyi.youdao.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost https://fanyi.qq.com https://fanyi.youdao.com; object-src 'none'; base-uri 'self'; form-action 'self'"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "icon": ["icons/icon.png"],
+    "windows": {
+      "nsis": {
+        "installMode": "both"
+      }
+    },
+    "resources": {
+      "../build/static": "static/"
+    }
+  }
+}

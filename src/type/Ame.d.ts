@@ -14,8 +14,8 @@ declare namespace Ame {
       };
     };
     ocr?: {
-      rect?: import('sharp').Region;
-      preprocess?: import('@main/extractor/OcrExtractor').PreprocessOption;
+      rect?: { left: number; top: number; width: number; height: number };
+      preprocess?: import('@main/extractor').PreprocessOption;
     };
   }
   export type Awaitable<T> = T | PromiseLike<T>;
@@ -36,6 +36,15 @@ declare namespace Ame {
       originalText: string;
       translateText: string;
       providerId: string;
+    }
+    /** Error payload from `translate-watch-list-update-error` (string or Error-like). */
+    export type TranslateError = string | { message?: string };
+    /** A single text line paired with its per-provider translations. */
+    export interface TextLine {
+      id: number;
+      key: Ame.Extractor.Key;
+      original: string;
+      translate: { id: string; text: string; err?: Ame.Translator.TranslateError }[];
     }
   }
 

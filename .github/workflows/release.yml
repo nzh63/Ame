@@ -5,42 +5,45 @@ on:
     tags:
       - 'v*'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: 22
+
 jobs:
   build:
-    runs-on: windows-2025
-
-    strategy:
-      matrix:
-        arch: [x64, ia32]
-
-    env:
-      npm_config_arch: ${{ matrix.arch }}
+    runs-on: windows-2022
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Use Node.js 20.x
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ env.NODE_VERSION }}
 
       - name: Enable Corepack
         run: corepack enable
 
-      - name: Use Node.js 20.x
+      - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ env.NODE_VERSION }}
           cache: yarn
 
       - run: yarn install --frozen-lockfile
 
-      - run: yarn build --arch=${{ matrix.arch }} --publish=never
+      - run: yarn tauri:build
 
       - uses: actions/upload-artifact@v4
         with:
-          name: release-${{ matrix.arch }}
-          path: build/nsis/*.exe
+          name: release
+          path: src-tauri/target/release/bundle/nsis/*.exe
 
   release:
     runs-on: windows-latest
@@ -55,20 +58,15 @@ jobs:
           fetch-depth: 0
 
       - name: Generate Changelog
-        run: npx conventional-changelog-cli -p angular -o CHANGELOG.md -r 2
+        run: npx --yes conventional-changelog-cli@5.0.0 -p angular -o CHANGELOG.md -r 2
       - run: cat CHANGELOG.md
 
       - uses: actions/download-artifact@v4
         with:
-          name: release-x64
+          name: release
           path: release-artifact
 
-      - uses: actions/download-artifact@v4
-        with:
-          name: release-ia32
-          path: release-artifact
-
-      - uses: softprops/action-gh-release@v1
+      - uses: softprops/action-gh-release@v2
         with:
           draft: false
           token: ${{ secrets.GITHUB_TOKEN }}
