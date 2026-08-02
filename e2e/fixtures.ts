@@ -1,22 +1,67 @@
-import { test as base, expect, type Locator, type Page, type ElectronApplication } from '@playwright/test';
+import { test as base, expect, type Locator, type Page } from '@playwright/test';
+import { execFile, spawn } from 'child_process';
 import fs from 'fs';
+import net from 'net';
 import os from 'os';
 import path from 'path';
-import { _electron } from 'playwright';
+import { chromium, type Browser } from 'playwright';
+
+/** Absolute path of the Tauri debug binary used by e2e tests. */
+export function ameBinaryPath(): string {
+  return path.join(process.cwd(), 'src-tauri', 'target', 'debug', 'ame.exe');
+}
+
+/** Reserve a free TCP port for this worker's WebView2 CDP endpoint. */
+function getFreePort(): Promise<number> {
+  return new Promise((resolve) => {
+    const server = net.createServer();
+    server.listen(0, '127.0.0.1', () => {
+      const address = server.address();
+      const port = typeof address === 'object' && address ? address.port : 0;
+      server.close(() => resolve(port));
+    });
+  });
+}
+
+/** Wait until the WebView2 CDP endpoint is accepting connections. */
+async function waitForCdp(port: number, timeoutMs: number): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const ok = await new Promise<boolean>((resolve) => {
+      const socket = net.connect(port, '127.0.0.1');
+      socket.setTimeout(1000, () => {
+        socket.destroy();
+        resolve(false);
+      });
+      socket.on('connect', () => {
+        socket.destroy();
+        resolve(true);
+      });
+      socket.on('error', () => resolve(false));
+    });
+    if (ok) return;
+    await new Promise((r) => {
+      setTimeout(r, 250);
+    });
+  }
+  throw new Error(`Timed out waiting for WebView2 CDP endpoint on port ${port}`);
+}
+
+/** Find the app page among the CDP browser's targets. */
+function findAppPage(browser: Browser): Page {
+  for (const context of browser.contexts()) {
+    for (const page of context.pages()) {
+      if (page.url().includes('tauri.localhost')) return page;
+    }
+  }
+  const pages = browser.contexts().flatMap((c) => c.pages());
+  if (pages.length > 0) return pages[0];
+  throw new Error('No WebView2 page target found via CDP');
+}
 
 export const PROVIDER_IDS = {
-  translate: [
-    'OpenAI-Compatible API',
-    '腾讯云',
-    '百度AI开放平台',
-    '腾讯翻译君',
-    '有道翻译',
-    '百度翻译',
-    '谷歌翻译',
-    'JBeijing',
-    'DrEye',
-  ],
-  ocr: ['PP-OCR', 'tesseract', '腾讯云', '百度AI开放平台'],
+  translate: ['OpenAI-Compatible API', '腾讯云', '百度AI开放平台', '腾讯翻译君', '有道翻译', 'JBeijing', 'DrEye'],
+  ocr: ['PP-OCR', '腾讯云', '百度AI开放平台'],
   segment: ['intl-segmenter', 'mecab'],
   tts: ['WebSpeechSynthesisApi'],
   dict: ['有道词典', '沪江小D'],
@@ -24,7 +69,7 @@ export const PROVIDER_IDS = {
 
 export type ProviderType = keyof typeof PROVIDER_IDS;
 
-/** Create a temporary directory for electron-store */
+/** Create a temporary directory for the persistent store */
 export function createTempDir(): string {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ame-e2e-'));
   return dir;
@@ -34,6 +79,40 @@ export function createTempDir(): string {
 export function removeTempDir(dir: string): void {
   if (fs.existsSync(dir)) {
     fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+/** Poll until `pid` no longer exists or `timeoutMs` elapses. */
+async function waitForProcessExit(pid: number, timeoutMs: number): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    try {
+      process.kill(pid, 0); // throws if the process is gone
+    } catch {
+      return;
+    }
+    await new Promise((r) => {
+      setTimeout(r, 250);
+    });
+  }
+}
+
+/**
+ * Remove a directory, retrying briefly to ride out Windows file locks.
+ * WebView2 child processes can outlive the killed app process by a moment
+ * and still hold the user-data dir open; a plain rmSync then throws EBUSY.
+ */
+async function removeDirWithRetry(dir: string, retries: number): Promise<void> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      fs.rmSync(dir, { recursive: true, force: true });
+      return;
+    } catch {
+      if (attempt >= retries) return; // temp dir; the OS reclaims it eventually
+      await new Promise((r) => {
+        setTimeout(r, 400);
+      });
+    }
   }
 }
 
@@ -47,7 +126,7 @@ export function providerRoute(type: ProviderType, providerId: string): string {
  * The side menu (.t-menu) is rendered by the root layout once Vue is up.
  */
 export async function waitForAppReady(page: Page): Promise<void> {
-  await page.locator('.t-menu').waitFor({ state: 'visible', timeout: 15_000 });
+  await page.locator('.t-menu').waitFor({ state: 'visible', timeout: 30_000 });
 }
 
 /**
@@ -136,7 +215,7 @@ export async function waitForMessage(page: Page, expectedText?: string, timeout 
 }
 
 interface E2EFixtures {
-  app: ElectronApplication;
+  browser: Browser;
   page: Page;
   tempDir: string;
 }
@@ -152,57 +231,50 @@ export const test = base.extend<{}, E2EFixtures>({
     },
     { scope: 'worker' },
   ],
-  // Worker-scoped: one Electron process per worker instead of per test
-  app: [
+  // Worker-scoped: one Tauri app process per worker instead of per test.
+  // The main window is created hidden (visible: false) so nothing pops up
+  // during test runs; the webview is still fully functional over CDP.
+  browser: [
     async ({ tempDir }, use) => {
-      const electronPath = path.join(process.cwd(), 'node_modules', 'electron', 'dist', 'electron.exe');
-      const mainPath = path.join(process.cwd(), 'build', 'main', 'index.js');
+      const binary = ameBinaryPath();
+      if (!fs.existsSync(binary)) {
+        throw new Error(`Tauri binary not found at ${binary}. Run \`yarn build:e2e\` first.`);
+      }
+      const cdpPort = await getFreePort();
+      const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ame-e2e-webview-'));
 
-      const app = await _electron.launch({
-        executablePath: electronPath,
-        args: [mainPath],
+      const app = spawn(binary, [], {
         env: {
           ...process.env,
           AME_TEST_STORE_CWD: tempDir,
+          AME_E2E_CDP_PORT: String(cdpPort),
+          AME_E2E_USER_DATA: userDataDir,
           NODE_ENV: 'test',
         },
+        stdio: 'ignore',
+        windowsHide: true,
       });
 
-      // Monkey-patch BrowserWindow.show so windows render correctly but are moved
-      // off-screen, preventing them from popping up during test runs.
-      // Retry because app.evaluate may fail if a renderer navigation destroys
-      // the execution context during app startup.
-      const patchBrowserWindow = async (retries = 3): Promise<void> => {
-        for (let i = 0; i < retries; i++) {
-          try {
-            await app.evaluate(({ BrowserWindow }) => {
-              const origShow = BrowserWindow.prototype.show;
-              BrowserWindow.prototype.show = function () {
-                this.setPosition(-32000, -32000);
-                return origShow.call(this);
-              };
-              BrowserWindow.prototype.moveTop = function () {
-                // no-op: irrelevant when off-screen
-              };
-            });
-            return;
-          } catch {
-            if (i === retries - 1) throw new Error('Failed to patch BrowserWindow after ' + retries + ' retries');
-            await new Promise((r) => {
-              setTimeout(r, 500);
-            });
-          }
-        }
-      };
-      await patchBrowserWindow();
+      await waitForCdp(cdpPort, 30_000);
+      const browser = await chromium.connectOverCDP(`http://127.0.0.1:${cdpPort}`);
+      await use(browser);
 
-      await use(app);
-      await app.close();
+      // Teardown: close the CDP connection, then kill the app process tree.
+      await browser.close().catch(() => {});
+      if (app.pid) {
+        await new Promise<void>((resolve) => {
+          execFile('taskkill', ['/pid', String(app.pid), '/T', '/F'], () => resolve());
+        });
+        // Give WebView2 children a moment to exit so they release the locks
+        // they hold on the user-data directory (otherwise rmSync throws EBUSY).
+        await waitForProcessExit(app.pid, 5000);
+      }
+      await removeDirWithRetry(userDataDir, 5);
     },
     { scope: 'worker' },
   ],
-  page: async ({ app }, use) => {
-    const page = await app.firstWindow();
+  page: async ({ browser }, use) => {
+    const page = findAppPage(browser);
     // Wait for the window to fully load and the Vue app to mount
     await page.waitForLoadState('domcontentloaded');
     await waitForAppReady(page);

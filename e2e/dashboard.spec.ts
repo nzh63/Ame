@@ -41,6 +41,9 @@ test.describe('/dashboard', () => {
 
     // Close dialog by clicking confirm (force click to avoid animation stability issues)
     const confirmButton = dialog.locator('button.t-button:has-text("确认")');
+    // Let the dialog entrance animation settle so the force click lands on the
+    // button instead of a moving target (flaky: dialog could stay open).
+    await page.waitForTimeout(400);
     await confirmButton.click({ force: true });
     await expect(dialog).not.toBeVisible();
   });

@@ -1,0 +1,30 @@
+{
+  "$schema": "https://raw.githubusercontent.com/nicegram/nicegram-tauri/refs/heads/dev/crates/tauri-schema-generator/schemas/config.schema.json",
+  "productName": "Ame",
+  "version": "0.5.12",
+  "identifier": "nzh63.ame",
+  "build": {
+    "frontendDist": "../build/render",
+    "devUrl": "http://localhost:9090",
+    "beforeDevCommand": "yarn dev:render",
+    "beforeBuildCommand": "yarn build:render"
+  },
+  "app": {
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "icon": ["icons/icon.png"],
+    "windows": {
+      "nsis": {
+        "installMode": "both"
+      }
+    },
+    "resources": {
+      "../build/static": "static/"
+    }
+  }
+}

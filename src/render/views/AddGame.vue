@@ -91,7 +91,6 @@
 import { startGame } from '@remote';
 import InputWithOpenFile from '@render/component/InputWithOpenFile.vue';
 import store from '@render/store';
-import path from 'path';
 import { quote } from 'shell-quote';
 import { v4 as uuidv4 } from 'uuid';
 import { defineComponent, toRaw } from 'vue';
@@ -125,7 +124,10 @@ export default defineComponent({
   },
   watch: {
     'formState.path'(): void {
-      this.formState.name = path.basename(this.formState.path);
+      // `path` from Node is not bundled in the renderer; compute basename
+      // manually (works for both `/` and `\` separators).
+      const parts = String(this.formState.path).split(/[\\/]/);
+      this.formState.name = parts[parts.length - 1] ?? '';
     },
   },
   async mounted() {

@@ -101,9 +101,22 @@ import {
   getScreenCapturePreprocessOption,
   setScreenCapturePreprocessOption,
   getPreprocessedImage,
+  closeWindow,
 } from '@remote';
-import electron from 'electron';
 import { defineComponent, ref, watch, toRaw, computed } from 'vue';
+
+function bytesToBase64(bytes: Uint8Array<ArrayBuffer>): string {
+  let binary = '';
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary);
+}
+
+async function pngSize(bytes: Uint8Array<ArrayBuffer>): Promise<{ width: number; height: number }> {
+  const bitmap = await createImageBitmap(new Blob([bytes]));
+  const size = { width: bitmap.width, height: bitmap.height };
+  bitmap.close();
+  return size;
+}
 
 export default defineComponent({
   setup() {
@@ -113,14 +126,14 @@ export default defineComponent({
       current.value++;
       if (current.value === 2) {
         saveOption();
-        window.close();
+        closeWindow();
       }
     };
     const prev = () => {
       current.value--;
     };
 
-    let imageBuffer: Buffer;
+    let imageBuffer: Uint8Array<ArrayBuffer>;
     const screen = ref('');
     const preprocess = ref('');
     const size = ref([0, 0]);
@@ -135,9 +148,9 @@ export default defineComponent({
     const reload = (force = false) =>
       getScreenCapture(force)
         .then((img) => {
-          imageBuffer = Buffer.from(img);
-          preprocess.value = screen.value = 'data:image/png;base64,' + imageBuffer.toString('base64');
-          return electron.nativeImage.createFromBuffer(imageBuffer).getSize();
+          imageBuffer = new Uint8Array(img);
+          preprocess.value = screen.value = 'data:image/png;base64,' + bytesToBase64(imageBuffer);
+          return pngSize(imageBuffer);
         })
         .then((meta) => {
           size.value[0] = meta.width ?? 1;
@@ -195,7 +208,7 @@ export default defineComponent({
         color: color.value,
         threshold: thresholdEnable.value ? threshold.value : undefined,
       });
-      preprocess.value = 'data:image/png;base64,' + Buffer.from(image).toString('base64');
+      preprocess.value = 'data:image/png;base64,' + bytesToBase64(new Uint8Array(image));
     };
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
     const updatePreprocess = () => {

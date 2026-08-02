@@ -93,6 +93,12 @@ export default defineComponent({
     onUnmounted(unwatchChange);
 
     watch(running, (r) => (r ? watchChange() : unwatchChange()));
+    // selectKeys 是异步恢复的（TranslatorWindow 的 getGameSetting）：若
+    // hookCodes 在首次 watchChange 之后才填充，必须重新订阅，否则提取事件
+    // 会被 Rust 端判为 "skip translation for unselected key"。
+    watch(hookCodes, () => {
+      if (running.value) watchChange();
+    });
 
     const currentTextElement = ref<any>(null);
     onBeforeUpdate(() => {

@@ -1,0 +1,73 @@
+[package]
+name = "ame"
+version = "0.5.12"
+description = "Ame - Visual Novel Translator"
+authors = ["nzh63"]
+edition = "2021"
+license = "MIT"
+
+[lib]
+name = "ame_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[[test]]
+name = "unit"
+path = "tests/unit.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+cmake = "0.1"
+ureq = "2"
+zip = "2"
+
+[dependencies]
+ame-macros = { path = "macros" }
+tauri = { version = "2", features = ["tray-icon", "image-png"] }
+tauri-plugin-dialog = "2"
+tauri-plugin-notification = "2"
+tauri-plugin-shell = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+tokio = { version = "1", features = ["full"] }
+thiserror = "2"
+anyhow = "1"
+uuid = { version = "1", features = ["v4"] }
+reqwest = { version = "0.12", features = ["json", "stream", "native-tls"], default-features = false }
+futures = "0.3"
+dirs = "6"
+parking_lot = "0.12"
+schemars = "0.8"
+sha2 = "0.10"
+md-5 = "0.10"
+hmac = "0.12"
+hex = "0.4"
+base64 = "0.22"
+image = "0.25"
+encoding_rs = "0.8"
+chrono = "0.4"
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.61", features = [
+  "Win32_Foundation",
+  "Win32_Graphics_Gdi",
+  "Win32_Graphics_Dwm",
+  "Win32_Storage_Xps",
+  "Win32_Storage_FileSystem",
+  "Win32_UI_WindowsAndMessaging",
+  "Win32_UI_Input_KeyboardAndMouse",
+  "Win32_UI_Accessibility",
+  "Win32_UI_Shell",
+  "Win32_System_Threading",
+  "Win32_System_WindowsProgramming",
+  "Win32_System_LibraryLoader",
+] }
+
+[features]
+# by default Tauri runs in production mode
+# when `tauri dev` runs it is executed with `cargo run --no-default-features` if `devPath` is an URL
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
+
+[dev-dependencies]
+# Loads `.env.test.local` for the opt-in provider integration tests.
+dotenvy = "0.15"

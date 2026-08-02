@@ -3,6 +3,7 @@ node_modules
 build
 *.local
 .vs
+__pycache__/
 
 .yarn/*
 !.yarn/patches
@@ -18,3 +19,5 @@ build
 #!.yarn/cache
 .pnp.*
 test-results
+src-tauri/target
+src-tauri/gen

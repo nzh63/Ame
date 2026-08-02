@@ -19,22 +19,22 @@ interface Store<T = StoreType['store']> {
 }
 
 const store: Store = {
-  get(key: string, defaultValue?: any) {
+  get(key: any, defaultValue?: any): any {
     return storeGet(key, defaultValue);
   },
-  set(key: string, value?: any) {
+  set(key: any, value?: any): any {
     return storeSet(key, value);
   },
-  has(key: string) {
+  has(key: any): any {
     return storeHas(key);
   },
-  reset(...keys: string[]) {
+  reset(...keys: any[]): any {
     return storeReset(...keys);
   },
-  delete(key: string) {
+  delete(key: any): any {
     return storeDelete(key);
   },
-  clear() {
+  clear(): any {
     return storeClear();
   },
 };

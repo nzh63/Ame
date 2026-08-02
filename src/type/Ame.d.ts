@@ -14,8 +14,8 @@ declare namespace Ame {
       };
     };
     ocr?: {
-      rect?: import('sharp').Region;
-      preprocess?: import('@main/extractor/OcrExtractor').PreprocessOption;
+      rect?: { left: number; top: number; width: number; height: number };
+      preprocess?: import('@main/extractor').PreprocessOption;
     };
   }
   export type Awaitable<T> = T | PromiseLike<T>;

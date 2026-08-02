@@ -16,7 +16,7 @@ on:
 jobs:
   analyze:
     name: CodeQL
-    runs-on: windows-2025
+    runs-on: windows-2022
 
     strategy:
       fail-fast: false
@@ -38,18 +38,13 @@ jobs:
         uses: github/codeql-action/autobuild@v3
         if: ${{ matrix.language == 'javascript' }}
 
-      - name: Use Node.js 20.x
+      - name: Install Rust
         if: ${{ matrix.language == 'cpp' }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Build
         if: ${{ matrix.language == 'cpp' }}
-        run: |
-          corepack enable
-          yarn install --frozen-lockfile
-          yarn build:native
+        run: cargo build --manifest-path src-tauri/Cargo.toml
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3

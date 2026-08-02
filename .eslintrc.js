@@ -26,14 +26,6 @@ module.exports = {
   extends: ['alloy', 'alloy/typescript'],
   overrides: [
     {
-      files: ['./test/**/*'],
-      rules: {
-        'no-unused-expressions': 'off',
-        '@typescript-eslint/no-unused-expressions': 'off',
-        'max-nested-callbacks': ['error', 6],
-      },
-    },
-    {
       files: ['**/*.vue'],
       extends: ['alloy', 'alloy/typescript', 'alloy/vue'],
       parserOptions: {

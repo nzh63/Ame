@@ -136,68 +136,6 @@ test.describe('/options/ocr-extractor', () => {
   });
 });
 
-test.describe('/options/ocr-provider/tesseract', () => {
-  test('should display tesseract options with correct fields', async ({ page }) => {
-    await navigateTo(page, providerRoute('ocr', 'tesseract'));
-    await waitForContent(page);
-
-    const mainContent = page.locator('#main-content');
-
-    // Title
-    const title = mainContent.locator('.title');
-    await expect(title).toContainText('tesseract');
-
-    // Save/discard buttons
-    await expect(mainContent.locator('button.t-button:has-text("保存并应用")')).toBeVisible();
-
-    // tesseract options:
-    // 1. enable (Boolean) → t-select
-    await expect(mainContent.locator('text=启用').first()).toBeVisible();
-    await expect(mainContent.locator('text=enable').first()).toBeVisible();
-
-    // 2. language (enum) → t-select
-    await expect(mainContent.locator('text=识别语言类型').first()).toBeVisible();
-    await expect(mainContent.locator('text=language').first()).toBeVisible();
-  });
-
-  test('should open language enum select and show jpn option', async ({ page }) => {
-    await navigateTo(page, providerRoute('ocr', 'tesseract'));
-    await waitForContent(page);
-
-    const mainContent = page.locator('#main-content');
-    // Language select is the second select (after enable)
-    const langSelect = mainContent.locator('.t-select').nth(1);
-    const options = await openSelect(page, langSelect);
-
-    // Should show 'jpn' as an option
-    const optionTexts = await options.allTextContents();
-    expect(optionTexts).toContain('jpn');
-
-    await page.keyboard.press('Escape');
-  });
-
-  test('should save tesseract options', async ({ page }) => {
-    await navigateTo(page, providerRoute('ocr', 'tesseract'));
-    await waitForContent(page);
-
-    const mainContent = page.locator('#main-content');
-    await mainContent.locator('button.t-button:has-text("保存并应用")').click();
-
-    const message = page.locator('.t-message');
-    await expect(message).toBeVisible({ timeout: 5000 });
-    await expect(message).toContainText('已成功保存');
-  });
-
-  test('should navigate away when clicking "放弃"', async ({ page }) => {
-    await navigateTo(page, providerRoute('ocr', 'tesseract'));
-    await waitForContent(page);
-
-    const mainContent = page.locator('#main-content');
-    await mainContent.locator('button.t-button:has-text("放弃")').click();
-    await waitForHashNavigation(page);
-  });
-});
-
 test.describe('/options/ocr-provider/PP-OCR', () => {
   test('should display PP-OCR options with correct fields', async ({ page }) => {
     await navigateTo(page, providerRoute('ocr', 'PP-OCR'));

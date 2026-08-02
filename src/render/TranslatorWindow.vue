@@ -8,12 +8,11 @@
 </template>
 
 <script lang="ts">
-import logger from '@logger/TranslatorWindow';
-import { getGameSetting, onWindowBlur, onWindowFocus, setGameSelectKeys } from '@remote';
+import { getGameSetting, onWindowBlur, onWindowFocus, setGameSelectKeys, showWindow } from '@remote';
 import TranslatorTitleBar from '@render/component/TranslatorTitleBar.vue';
 import store from '@render/store';
 import type { ComponentPublicInstance } from 'vue';
-import { defineComponent, provide, ref } from 'vue';
+import { defineComponent, onMounted, provide, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 export default defineComponent({
@@ -21,6 +20,11 @@ export default defineComponent({
     TranslatorTitleBar,
   },
   setup() {
+    // Mirror the old Electron TranslatorWindow `ready-to-show` → `show()`.
+    onMounted(() => {
+      showWindow();
+    });
+
     const hideTitleBar = ref(true);
     let hideTimeout: ReturnType<typeof setTimeout> | null = null;
     const mouseover = () => {
@@ -63,7 +67,6 @@ export default defineComponent({
 
     const router = useRouter();
     getGameSetting().then((setting) => {
-      logger('%s %O', router.currentRoute.value.path, setting);
       if (setting?.selectKeys?.length) {
         if (['/', '/hook-select'].find((i) => i === router.currentRoute.value.path) && hookCodes.value.length === 0) {
           hookCodes.value = setting.selectKeys;
