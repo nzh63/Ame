@@ -18,6 +18,7 @@ mod providers;
 mod schema;
 mod session;
 mod store;
+mod update;
 mod win32;
 mod window;
 
@@ -195,6 +196,11 @@ pub fn run() {
             app.manage(tray);
 
             create_main_window(app.handle())?;
+
+            // 启动检查更新（仅 release 构建；dev/e2e 与旧版 build preset
+            // 一致地跳过）。
+            #[cfg(not(debug_assertions))]
+            crate::update::spawn_update_check(app.handle().clone());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

@@ -24,6 +24,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
+          targets: i686-pc-windows-msvc
 
       - name: Use Node.js
         uses: actions/setup-node@v4
@@ -51,6 +52,9 @@ jobs:
       - run: cargo fmt --manifest-path src-tauri/Cargo.toml --check
 
       - run: cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
+
+      # x86 (i686) 是受支持的发布架构，PR 阶段就做编译门禁，避免发布时才发现回归。
+      - run: cargo check --manifest-path src-tauri/Cargo.toml --target i686-pc-windows-msvc
 
       - run: yarn test
 

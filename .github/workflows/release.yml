@@ -16,11 +16,18 @@ jobs:
   build:
     runs-on: windows-2022
 
+    strategy:
+      matrix:
+        arch: [x64, ia32]
+
     steps:
       - uses: actions/checkout@v4
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
+        with:
+          # x64 腿也统一安装 i686 target（rustup 幂等，多余但无害）。
+          targets: i686-pc-windows-msvc
 
       - name: Use Node.js
         uses: actions/setup-node@v4
@@ -38,12 +45,34 @@ jobs:
 
       - run: yarn install --frozen-lockfile
 
-      - run: yarn tauri:build
+      - name: Build (${{ matrix.arch }})
+        shell: bash
+        run: |
+          if [ "${{ matrix.arch }}" = "ia32" ]; then
+            yarn tauri:build:x86
+          else
+            yarn tauri:build
+          fi
+
+      # update.electronjs.org 通过资产文件名匹配架构（`*-win32-(ia32|x64)`
+      # 等），Tauri 默认产物名（`Ame_<ver>_x86-setup.exe`）会被其兜底规则
+      # 一律判为 WIN_X64，导致 32/64 位安装包混淆。重命名为旧 Electron
+      # 版一致的名字（Ame-win32-<arch>-<version>.exe）。
+      - name: Rename artifacts
+        shell: bash
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          dir=src-tauri/target/release/bundle/nsis
+          if [ "${{ matrix.arch }}" = "ia32" ]; then
+            dir=src-tauri/target/i686-pc-windows-msvc/release/bundle/nsis
+          fi
+          mv "$dir"/*-setup.exe "$dir/Ame-win32-${{ matrix.arch }}-$version.exe"
+          ls "$dir"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: release
-          path: src-tauri/target/release/bundle/nsis/*.exe
+          name: release-${{ matrix.arch }}
+          path: src-tauri/target/**/bundle/nsis/*.exe
 
   release:
     runs-on: windows-latest
@@ -63,8 +92,9 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: release
+          pattern: release-*
           path: release-artifact
+          merge-multiple: true
 
       - uses: softprops/action-gh-release@v2
         with:

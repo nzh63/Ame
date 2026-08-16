@@ -44,6 +44,10 @@ yarn test                    # Run all Rust unit tests (cargo test, src-tauri)
 yarn test:rs                 # Same as `yarn test`
 ```
 
+**IMPORTANT: Always wrap test runs in a timeout** (e.g. in Git Bash
+`timeout 300 cargo test --manifest-path src-tauri/Cargo.toml --lib`) so a
+hung or livelocked test cannot spin forever burning CPU.
+
 ### Manually Run Specific Unit Tests
 ```bash
 # Run all unit tests in the lib target
