@@ -394,6 +394,27 @@ fn build_ppocr() {
         .map(std::path::PathBuf::from)
         .unwrap_or_else(|_| std::path::Path::new(&manifest_dir).join("target"));
 
+    // DLL 必须与被编译的应用同架构（进程内加载）。跟随 cargo 的目标架构：
+    // x86_64 → x64，x86（i686-pc-windows-msvc，32 位构建）→ x86。ncnn 与
+    // opencv-mobile 的预编译包两个架构都有，由 CMake 的 -DARCH 选择。
+    let target_arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap_or_else(|_| "x86_64".into());
+    let (cmake_arch, generator_platform) = match target_arch.as_str() {
+        "x86" => ("x86", "Win32"),
+        _ => ("x64", "x64"),
+    };
+    // 显式 `--target <triple>` 时产物在 <target>/<triple>/<profile>，否则
+    // 在 <target>/<profile>`。按 OUT_DIR 判断本次调用的实际布局，避免把
+    // 交叉构建的 DLL 覆盖到宿主布局（反之亦然）。
+    let target_triple = env::var("TARGET").unwrap_or_default();
+    let out_dir = env::var("OUT_DIR").unwrap_or_default();
+    let uses_triple_layout = !target_triple.is_empty()
+        && std::path::Path::new(&out_dir).starts_with(target_dir.join(&target_triple));
+    let profile_dir = if uses_triple_layout {
+        target_dir.join(&target_triple).join(&profile)
+    } else {
+        target_dir.join(&profile)
+    };
+
     // Native sources are tracked so Cargo only re-runs this script when one
     // of them actually changes (otherwise `yarn dev` re-enters build.rs on
     // every invocation).
@@ -409,12 +430,22 @@ fn build_ppocr() {
         .unwrap()
         .join("build/static/native/bin");
     let canonical = static_bin.join("ppocr_ffi.dll");
-    let target_copies = [
-        target_dir.join(&profile).join("ppocr_ffi.dll"),
-        target_dir.join(&profile).join("deps").join("ppocr_ffi.dll"),
-    ];
+    // 缓存戳记录已构建 DLL 的架构：先构建 x64 再构建 x86（或反过来）时，
+    // 不能把另一架构的缓存 DLL 打包/复制给当前目标。
+    let arch_stamp = static_bin.join("ppocr_ffi.dll.arch");
+    let stamp_matches = std::fs::read_to_string(&arch_stamp)
+        .map(|s| s.trim() == cmake_arch)
+        .unwrap_or(false);
+    let target_copies: Vec<std::path::PathBuf> = [
+        profile_dir.join("ppocr_ffi.dll"),
+        profile_dir.join("deps").join("ppocr_ffi.dll"),
+    ]
+    .to_vec();
 
-    if !sources.is_empty() && artifacts_fresh(&sources, std::slice::from_ref(&canonical)) {
+    if !sources.is_empty()
+        && stamp_matches
+        && artifacts_fresh(&sources, std::slice::from_ref(&canonical))
+    {
         // Cache hit: reuse the already-built DLL; just make sure the copies
         // next to the app/test binaries are still in place.
         for dest in target_copies {
@@ -431,12 +462,16 @@ fn build_ppocr() {
                 });
             }
         }
-        println!("using cached ppocr_ffi.dll (PP-OCR engine)");
+        println!("using cached ppocr_ffi.dll ({cmake_arch}, PP-OCR engine)");
         return;
     }
 
     let dst = cmake::Config::new(&ppocr_dir)
         .define("CMAKE_INSTALL_PREFIX", "")
+        .define("ARCH", cmake_arch)
+        // VS 生成器的目标平台（相当于命令行 -A Win32/-A x64）；决定 MSVC
+        // 工具集编出的 DLL 位数。
+        .define("CMAKE_GENERATOR_PLATFORM", generator_platform)
         .build_target("ppocr_ffi")
         .build();
 
@@ -450,11 +485,13 @@ fn build_ppocr() {
     }
 
     // Distribute the DLL next to the app binary (dev), next to the test
-    // binaries, and into the bundled resources (packaged apps).
+    // binaries, and into the bundled resources (packaged apps). static_bin
+    // 只有一份（随包分发、与包架构一致）：先构建一种架构再构建另一种时
+    // 会触发整体重建，属于预期代价。
     let mut dests = vec![
-        target_dir.join(&profile),
-        target_dir.join(&profile).join("deps"),
-        static_bin,
+        profile_dir.clone(),
+        profile_dir.join("deps"),
+        static_bin.clone(),
     ];
     dests.dedup();
     for dest in dests {
@@ -463,8 +500,9 @@ fn build_ppocr() {
         std::fs::copy(&dll, dest.join("ppocr_ffi.dll"))
             .unwrap_or_else(|e| panic!("failed to copy ppocr_ffi.dll to {}: {e}", dest.display()));
     }
+    let _ = std::fs::write(&arch_stamp, cmake_arch);
     // Info-level (shown only with `cargo build -v`).
-    println!("built ppocr_ffi.dll (PP-OCR engine)");
+    println!("built ppocr_ffi.dll ({cmake_arch}, PP-OCR engine)");
 }
 
 #[cfg(not(target_os = "windows"))]

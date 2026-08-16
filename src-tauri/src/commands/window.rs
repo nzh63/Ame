@@ -166,12 +166,15 @@ fn read_icon_impl(path: &str) -> Result<String, String> {
             std::mem::size_of::<SHFILEINFOW>() as u32,
             SHGFI_FLAGS(SHGFI_ICON.0),
         );
-        if result == 0 || shfi.hIcon.is_invalid() {
+        // SHFILEINFOW 是 packed 结构：i686 布局下 hIcon 字段不对齐，直接
+        // 对字段调用方法（隐式取引用）是未定义行为（x64 布局碰巧合法）。
+        // 先按值拷出再使用。
+        let icon = { shfi.hIcon };
+        if result == 0 || icon.is_invalid() {
             // No icon available; the frontend falls back to a default icon.
             return Ok(String::new());
         }
 
-        let icon = shfi.hIcon;
         let mut info = ICONINFO::default();
         if GetIconInfo(icon, &mut info).is_err() {
             let _ = DestroyIcon(icon);
