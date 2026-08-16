@@ -288,6 +288,16 @@ fn try_register_menu_handler(label: &str) -> bool {
     !set.insert(label.to_string())
 }
 
+/// Forget a window label so a future window with the same label registers a
+/// fresh handler.
+///
+/// 去重集合按 label 记录，但 label 在会话重建/游戏重启时会被复用
+/// （`translator-{uuid}`）：旧窗口销毁后若不清除记录，新窗口永远注册
+/// 不上处理器，右键"大声朗读"静默失效。窗口 Destroyed 时调用本函数。
+fn unregister_menu_handler(label: &str) {
+    menu_registered().lock().unwrap().remove(label);
+}
+
 /// Show the translator's native context menu (旧版 "大声朗读") at the cursor,
 /// or at the given screen coordinates for touch long-press.
 #[tauri::command]
@@ -313,6 +323,14 @@ pub fn show_context_menu<R: tauri::Runtime>(
     // Register the handler once per window to avoid accumulating duplicates.
     let already_registered = try_register_menu_handler(&label);
     if !already_registered {
+        // 窗口销毁时清除去重记录：label 会被复用（translator-{uuid}），
+        // 不清除的话新窗口注册不上处理器（右键菜单静默失效）。
+        let label_destroyed = label.clone();
+        win.on_window_event(move |event| {
+            if matches!(event, tauri::WindowEvent::Destroyed) {
+                unregister_menu_handler(&label_destroyed);
+            }
+        });
         win.on_menu_event(move |window, event| {
             if event.id.as_ref() == "ttsSpeak" {
                 let _ = window.emit("tts-speak-reply", ());
@@ -563,6 +581,7 @@ mod tests {
     use super::segment_words;
     use super::try_register_menu_handler;
     use super::tts_speak_js;
+    use super::unregister_menu_handler;
     use crate::store::Store;
     use serde_json::json;
 
@@ -650,5 +669,20 @@ mod tests {
         // 不同窗口互不影响。
         assert!(!try_register_menu_handler("translator-def")); // different window: first
         assert!(try_register_menu_handler("translator-def"));
+    }
+
+    #[test]
+    fn menu_handler_reregisters_after_window_destroyed() {
+        // 回归：label 会被复用（translator-{uuid}）。旧窗口 Destroyed 后
+        // 必须清除记录，否则新窗口（同 label）的右键菜单静默失效。
+        let label = "translator-reg";
+        assert!(!try_register_menu_handler(label));
+        assert!(try_register_menu_handler(label));
+        unregister_menu_handler(label);
+        // 新窗口同 label：必须允许重新注册。
+        assert!(
+            !try_register_menu_handler(label),
+            "recreated window must register a fresh handler"
+        );
     }
 }

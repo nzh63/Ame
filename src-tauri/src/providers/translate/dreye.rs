@@ -120,6 +120,7 @@ pub struct DrEye {
     child: Arc<Mutex<Option<Child>>>,
     src_enc: &'static Encoding,
     dest_enc: &'static Encoding,
+    static_dir: PathBuf,
 }
 
 impl DrEye {
@@ -129,12 +130,15 @@ impl DrEye {
             .as_ref()
             .map(|d| (d.src_enc, d.dest_enc))
             .unwrap_or((UTF_8, UTF_8));
-        let child = dir.and_then(|d| Self::spawn_process(&d, &static_dir));
+        let child = dir
+            .as_ref()
+            .and_then(|d| Self::spawn_process(d, &static_dir));
         Self {
             options,
             child: Arc::new(Mutex::new(child)),
             src_enc,
             dest_enc,
+            static_dir,
         }
     }
 
@@ -171,7 +175,35 @@ impl DrEye {
 }
 
 /// Free-function variant used from the blocking thread (Arc-cloned child).
+///
+/// 超时/EOF 后子进程 stdout 里残留的响应字节会让后续调用的长度前缀读错
+/// 位（协议永久错位，之后每次都乱码/立刻超时）。因此任何失败后都杀掉
+/// 进程，下一次调用时用保存的参数重新拉起（与 JBeijing 相同）。
 fn transact_child(
+    child: &Arc<Mutex<Option<Child>>>,
+    text: &str,
+    src_enc: &'static Encoding,
+    dest_enc: &'static Encoding,
+    deadline: std::time::Instant,
+    respawn: impl FnOnce() -> Option<Child>,
+) -> Result<String, String> {
+    {
+        let mut guard = child.lock();
+        if guard.is_none() {
+            *guard = respawn();
+        }
+    }
+    let result = transact_child_inner(child, text, src_enc, dest_enc, deadline);
+    if result.is_err() {
+        if let Some(mut dead) = child.lock().take() {
+            let _ = dead.kill();
+            let _ = dead.wait();
+        }
+    }
+    result
+}
+
+fn transact_child_inner(
     child: &Arc<Mutex<Option<Child>>>,
     text: &str,
     src_enc: &'static Encoding,
@@ -264,9 +296,15 @@ impl TranslateProvider for DrEye {
         let child = self.child.clone();
         let src_enc = self.src_enc;
         let dest_enc = self.dest_enc;
+        let options = self.options.clone();
+        let static_dir = self.static_dir.clone();
         tokio::task::spawn_blocking(move || {
             let deadline = std::time::Instant::now() + std::time::Duration::from_millis(1000);
-            transact_child(&child, &text, src_enc, dest_enc, deadline)
+            transact_child(&child, &text, src_enc, dest_enc, deadline, || {
+                options
+                    .direction()
+                    .and_then(|d| DrEye::spawn_process(&d, &static_dir))
+            })
         })
         .await
         .map_err(|e| e.to_string())?
@@ -281,5 +319,54 @@ impl Drop for DrEye {
             let _ = child.kill();
             let _ = child.wait();
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// 一个可被 kill 的长驻子进程（stdin/stdout 均为管道，模拟 CLI 协议）。
+    fn spawn_sleeper() -> Child {
+        let mut cmd = Command::new("cmd");
+        crate::win32::hide_console(&mut cmd);
+        cmd.args(["/C", "ping -n 10 127.0.0.1 > nul"])
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::null())
+            .spawn()
+            .expect("spawn sleeper process")
+    }
+
+    #[test]
+    fn failed_transact_kills_child_and_next_call_respawns() {
+        // 与 JBeijing 相同的回归点：失败（超时/EOF）后残留字节会让下一次
+        // 调用协议错位，必须杀掉进程；下次调用要能重拉起。
+        let child = Arc::new(Mutex::new(Some(spawn_sleeper())));
+        let deadline = std::time::Instant::now() - std::time::Duration::from_millis(1);
+
+        let err = transact_child(&child, "テスト", UTF_8, UTF_8, deadline, || {
+            Some(spawn_sleeper())
+        })
+        .expect_err("expired deadline must fail");
+        assert!(err.contains("timeout"), "unexpected error: {err}");
+        assert!(
+            child.lock().is_none(),
+            "failed transact must kill and remove the child"
+        );
+
+        let respawns = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+        let counter = respawns.clone();
+        let result = transact_child(&child, "テスト", UTF_8, UTF_8, deadline, move || {
+            counter.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+            Some(spawn_sleeper())
+        });
+        assert!(result.is_err());
+        assert_eq!(
+            respawns.load(std::sync::atomic::Ordering::SeqCst),
+            1,
+            "respawn must be invoked exactly once"
+        );
+        assert!(child.lock().is_none());
     }
 }

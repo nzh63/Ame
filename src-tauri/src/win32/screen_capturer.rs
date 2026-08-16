@@ -99,7 +99,9 @@ pub fn capture(hwnd_value: u64) -> Result<CapturedImage, String> {
         let _old = SelectObject(save_dc, save_bitmap.into());
         // 必须带 PW_RENDERFULLCONTENT：D3D/DXGI 硬件加速窗口只有在该标志下
         // 才会把渲染内容画进 PrintWindow 的 DC，否则截出来是白屏。
-        let _ = PrintWindow(hwnd, save_dc, PRINT_WINDOW_FLAGS(PW_RENDERFULLCONTENT));
+        // 失败必须报错：静默返回全黑图会让 movement 检测误判"无移动"、
+        // OCR 读出空文本，调用方的失败计数器完全失效。
+        let printed = PrintWindow(hwnd, save_dc, PRINT_WINDOW_FLAGS(PW_RENDERFULLCONTENT));
 
         let bi = BITMAPINFO {
             bmiHeader: BITMAPINFOHEADER {
@@ -118,7 +120,8 @@ pub fn capture(hwnd_value: u64) -> Result<CapturedImage, String> {
             ..Default::default()
         };
 
-        GetDIBits(
+        // 返回值是拷贝的扫描行数，0 = 失败（缓冲区保持全零 → 黑图）。
+        let lines_copied = GetDIBits(
             hwnd_dc,
             save_bitmap,
             0,
@@ -128,14 +131,35 @@ pub fn capture(hwnd_value: u64) -> Result<CapturedImage, String> {
             DIB_RGB_COLORS,
         );
 
+        let result = if !printed.as_bool() {
+            Err("PrintWindow failed".to_string())
+        } else if lines_copied == 0 {
+            Err("GetDIBits failed".to_string())
+        } else {
+            Ok(CapturedImage {
+                width: width as u32,
+                height: height as u32,
+                buffer,
+            })
+        };
+
         let _ = DeleteObject(save_bitmap.into());
         let _ = DeleteDC(save_dc);
         let _ = ReleaseDC(Some(hwnd), hwnd_dc);
 
-        Ok(CapturedImage {
-            width: width as u32,
-            height: height as u32,
-            buffer,
-        })
+        result
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn capture_invalid_hwnd_is_an_error_not_a_black_frame() {
+        // 回归：无效句柄必须走 Err 路径——旧实现对 PrintWindow/GetDIBits 的
+        // 失败一概忽略，返回全零缓冲（假"黑屏图"）。
+        assert!(capture(0).is_err());
+        assert!(capture(0xDEADBEEF).is_err());
     }
 }

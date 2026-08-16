@@ -13,6 +13,8 @@ use std::sync::mpsc::channel;
 use parking_lot::Mutex;
 use tauri::{AppHandle, Emitter};
 use windows::Win32::Foundation::{HWND, LPARAM, RECT, WPARAM};
+
+use crate::win32::windows_hook::HookRefCount;
 use windows::Win32::System::Threading::GetCurrentThreadId;
 use windows::Win32::UI::Accessibility::{SetWinEventHook, UnhookWinEvent, HWINEVENTHOOK};
 use windows::Win32::UI::WindowsAndMessaging::{
@@ -42,6 +44,26 @@ struct ThreadCtl {
 
 static STATE: OnceLock<Mutex<Option<HookState>>> = OnceLock::new();
 static THREAD: OnceLock<Mutex<Option<ThreadCtl>>> = OnceLock::new();
+
+/// 占用计数：多个并发会话各自 start/stop；计数归零才真正拆钩。
+/// 旧实现是无条件单实例——会话 B 启动会顶掉 A 的 pids，A 销毁时又把
+/// B 正在用的钩子整个拆掉（B 的窗口跟随/最小化镜像全部失效）。
+static REFCOUNT: HookRefCount = HookRefCount::new();
+/// 泵线程尚未就绪时暂存后续会话的 pids（就绪后并入过滤集合）。
+static PENDING_PIDS: OnceLock<Mutex<Vec<u32>>> = OnceLock::new();
+
+fn pending_pids() -> &'static Mutex<Vec<u32>> {
+    PENDING_PIDS.get_or_init(|| Mutex::new(Vec::new()))
+}
+
+/// 合并两组 pid（去重、排序）——并入过滤集合时使用。
+fn merged_pids(existing: Vec<u32>, extra: Vec<u32>) -> Vec<u32> {
+    let mut v = existing;
+    v.extend(extra);
+    v.sort_unstable();
+    v.dedup();
+    v
+}
 
 /// 自定义消息（WM_APP + 1）：唤醒 pump 线程处理积压的窗口事件。
 const WM_HOOK_EVENTS: u32 = 0x8001;
@@ -203,10 +225,27 @@ fn drain_and_emit() {
 }
 
 /// Start watching minimize/move events for the given PIDs on a background thread.
+///
+/// Reference-counted: the first caller spins up the pump thread, later
+/// callers just merge their PIDs into the filter set. Pair with [`stop`].
 pub fn start(app: AppHandle, pids: Vec<u32>) {
     crate::log_info!("hook", "WindowEvent hook for pids {pids:?}");
-    // Single-instance hooks: join any previous pump thread first.
-    stop();
+    if !REFCOUNT.acquire() {
+        // 已有泵线程在跟踪：并入本会话的 pids 即可。泵线程尚未装好钩子
+        // 的极小窗口内先暂存，线程就绪后自行并入（见下方启动段）。
+        let mut guard = state().lock();
+        if let Some(st) = guard.as_mut() {
+            st.pids = merged_pids(std::mem::take(&mut st.pids), pids);
+        } else {
+            drop(guard);
+            pending_pids().lock().extend(pids);
+        }
+        return;
+    }
+
+    // 单实例保证：如果旧线程还在（例如上次 stop 未完成），先停掉再启动，
+    // 避免两个泵线程同时存在、互相覆盖 thread_ctl。
+    stop_inner();
 
     let running = Arc::new(AtomicBool::new(true));
     let running_thread = running.clone();
@@ -245,6 +284,9 @@ pub fn start(app: AppHandle, pids: Vec<u32>) {
 
             {
                 let mut guard = state().lock();
+                // 并入在钩子装好之前提交的后续会话 pids（见 start 的暂存）。
+                let pending = std::mem::take(&mut *pending_pids().lock());
+                let pids = merged_pids(pids, pending);
                 *guard = Some(HookState {
                     app,
                     pids,
@@ -296,8 +338,18 @@ pub fn start(app: AppHandle, pids: Vec<u32>) {
     let _ = ready_rx.recv_timeout(std::time::Duration::from_secs(2));
 }
 
-/// Unhook and join the pump thread (safe to call multiple times).
+/// Release one reference and, when the last one is dropped, unhook and join
+/// the pump thread (safe to call multiple times).
 pub fn stop() {
+    if !REFCOUNT.release() {
+        return;
+    }
+    stop_inner();
+}
+
+/// 无条件停止并 join 当前泵线程（不调整引用计数）。
+/// 供 `start` 在启动新线程前清理可能残留的旧线程。
+fn stop_inner() {
     let ctl = thread_ctl().lock().take();
     let Some(ctl) = ctl else { return };
     ctl.running.store(false, Ordering::SeqCst);
@@ -325,5 +377,20 @@ unsafe fn cleanup() {
         if let Some(h) = st.move_hook {
             let _ = UnhookWinEvent(h.0);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn merged_pids_dedups_and_sorts() {
+        // 回归：多会话并入过滤集合时不能丢 pid、不能留重复。
+        assert_eq!(merged_pids(vec![3, 1], vec![1, 2]), vec![1, 2, 3]);
+        assert_eq!(merged_pids(vec![], vec![7, 7]), vec![7]);
+        assert!(merged_pids(vec![], vec![]).is_empty());
+        // 原有 pid 顺序无关紧要，但结果必须稳定（排序 + 去重）。
+        assert_eq!(merged_pids(vec![9, 5, 9], vec![5, 1]), vec![1, 5, 9]);
     }
 }

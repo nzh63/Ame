@@ -69,7 +69,49 @@ fn events() -> &'static Mutex<VecDeque<PendingEvent>> {
 
 /// 占用计数：会话钩子（`hook::start`）与临时捕获（点击选取窗口）都会
 /// `start`/`stop`；计数归零才真正拆钩子，避免临时捕获把会话钩子拆掉。
-static REFCOUNT: AtomicUsize = AtomicUsize::new(0);
+static REFCOUNT: HookRefCount = HookRefCount::new();
+
+/// 成对 start/stop 钩子模块共用的占用计数。
+///
+/// release 全程用 `compare_exchange` 完成：旧实现 `fetch_sub` 在计数为 0
+/// 时会下溢回绕到 `usize::MAX` 再 `store(0)`，与并发 start 的 `fetch_add`
+/// 竞争时可能观测到巨大计数（永不拆钩、泵线程泄漏）或最终计数为 1 但
+/// 线程已死。钳在 0 上的多余 release 是安全的幂等操作。
+pub(crate) struct HookRefCount(AtomicUsize);
+
+impl HookRefCount {
+    pub const fn new() -> Self {
+        Self(AtomicUsize::new(0))
+    }
+
+    /// 增加一次占用；返回是否应由调用者真正启动（0 → 1）。
+    pub fn acquire(&self) -> bool {
+        self.0.fetch_add(1, Ordering::SeqCst) == 0
+    }
+
+    /// 释放一次占用；返回是否应由调用者真正停止（1 → 0）。
+    /// 多余释放（当前已是 0）安全钳位并返回 `false`。
+    pub fn release(&self) -> bool {
+        loop {
+            let current = self.0.load(Ordering::SeqCst);
+            if current == 0 {
+                return false;
+            }
+            if self
+                .0
+                .compare_exchange(current, current - 1, Ordering::SeqCst, Ordering::SeqCst)
+                .is_ok()
+            {
+                return current == 1;
+            }
+        }
+    }
+
+    /// 当前占用数（测试用）。
+    pub fn count(&self) -> usize {
+        self.0.load(Ordering::SeqCst)
+    }
+}
 
 fn state() -> &'static Mutex<Option<HookState>> {
     STATE.get_or_init(|| Mutex::new(None))
@@ -178,8 +220,7 @@ fn drain_and_emit() {
 /// callers just bump the count. Pair with [`stop`].
 pub fn start(app: AppHandle) {
     crate::log_info!("hook", "start GlobalKeyboard/GlobalMouse hooks");
-    let prev = REFCOUNT.fetch_add(1, Ordering::SeqCst);
-    if prev > 0 {
+    if !REFCOUNT.acquire() {
         return;
     }
     // 单实例保证：如果旧线程还在（例如上次 stop 未完成），先停掉再启动，
@@ -269,14 +310,7 @@ pub fn start(app: AppHandle) {
 /// Release one reference and, when the last one is dropped, unhook and join
 /// the pump thread (safe to call multiple times).
 pub fn stop() {
-    let prev = REFCOUNT.fetch_sub(1, Ordering::SeqCst);
-    if prev == 0 {
-        // 没有占用者还调用 stop（例如会话销毁时钩子本就没启动）——
-        // 不真正拆钩子，保持幂等。
-        REFCOUNT.store(0, Ordering::SeqCst);
-        return;
-    }
-    if prev > 1 {
+    if !REFCOUNT.release() {
         return;
     }
     stop_inner();
@@ -307,5 +341,71 @@ unsafe fn cleanup() {
         if let Some(h) = st.mouse_hook {
             let _ = UnhookWindowsHookEx(h.0);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn refcount_acquire_release_pairing() {
+        let rc = HookRefCount::new();
+        assert!(rc.acquire(), "first acquire must request a real start");
+        assert!(!rc.acquire(), "second acquire must not start again");
+        assert!(!rc.release(), "releasing one of two must not stop");
+        assert!(rc.release(), "releasing the last one must stop");
+        assert_eq!(rc.count(), 0);
+    }
+
+    #[test]
+    fn refcount_extra_release_clamps_at_zero() {
+        // 回归：旧实现的 fetch_sub 在 0 时下溢回绕 usize::MAX，再与并发
+        // acquire 竞争会把计数搞乱（观测到巨大计数 → 永不拆钩）。
+        let rc = HookRefCount::new();
+        assert!(!rc.release(), "release without acquire must be a no-op");
+        assert_eq!(rc.count(), 0, "release at zero must not underflow");
+        assert!(!rc.release());
+        assert!(rc.acquire());
+        assert!(rc.release());
+        assert_eq!(rc.count(), 0);
+    }
+
+    #[test]
+    fn refcount_concurrent_acquire_release_never_wraps() {
+        let rc = std::sync::Arc::new(HookRefCount::new());
+        let barrier = std::sync::Arc::new(std::sync::Barrier::new(4));
+        let handles: Vec<_> = (0..4)
+            .map(|_| {
+                let rc = rc.clone();
+                let barrier = barrier.clone();
+                std::thread::spawn(move || {
+                    barrier.wait();
+                    let mut starts = 0;
+                    let mut stops = 0;
+                    for _ in 0..2000 {
+                        if rc.acquire() {
+                            starts += 1;
+                        }
+                        if rc.release() {
+                            stops += 1;
+                        }
+                    }
+                    (starts, stops)
+                })
+            })
+            .collect();
+        let mut starts = 0;
+        let mut stops = 0;
+        for h in handles {
+            let (s, t) = h.join().unwrap();
+            starts += s;
+            stops += t;
+        }
+        // 计数必须归零，且回绕（计数瞬间变成巨大值）从未发生——一旦下溢，
+        // 后续 release 的 CAS 会一直失败或计数远超线程数。
+        assert_eq!(rc.count(), 0, "refcount must return to zero");
+        assert!(starts >= 1, "at least one real start must happen");
+        assert_eq!(starts, stops, "real starts and stops must pair up");
     }
 }

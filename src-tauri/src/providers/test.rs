@@ -480,3 +480,54 @@ fn ppocr_recognize_local() {
     let text = block_on(provider.recognize(image, w, h)).expect("pp-ocr failed");
     assert!(!text.trim().is_empty(), "PP-OCR returned empty result");
 }
+
+#[test]
+fn ppocr_timeout_drop_keeps_single_model_instance() {
+    load_dotenv();
+    use crate::providers::ocr::ppocr::{PpOcr, PpOcrDevice, PpOcrModel, PpOcrOptions};
+
+    let static_dir = static_dir();
+    let models_exist = [
+        "ppocr/PP-OCRv5_server_det.fp32.ncnn.param",
+        "ppocr/PP-OCRv5_server_det.fp32.ncnn.bin",
+        "ppocr/PP-OCRv5_server_rec.fp32.ncnn.param",
+        "ppocr/PP-OCRv5_server_rec.fp32.ncnn.bin",
+    ]
+    .iter()
+    .all(|f| static_dir.join(f).exists());
+    if !models_exist {
+        skip("PP-OCR models not found under build/static/ppocr");
+        return;
+    }
+
+    let options = PpOcrOptions {
+        enable: true,
+        model: PpOcrModel::Server,
+        device: PpOcrDevice::Cpu,
+        ..Default::default()
+    };
+    let mut provider = PpOcr::new(options, &static_dir);
+    assert!(provider.models_ready(), "models must load in new()");
+
+    // 模拟 run_ocr_cycle 的 20s 超时：recognize future 启动后在完成前被
+    // 丢弃（poll_immediate 轮询一次，未完成即返回 None 并 drop future）。
+    // 回归：旧实现把模型 take() 进闭包，future 被 drop 后模型丢失，
+    // 下一次识别重建第二份实例——反复超时会让模型越积越多。
+    {
+        let (image, w, h) = ocr_test_image();
+        let pending = block_on(futures::future::poll_immediate(
+            provider.recognize(image, w, h),
+        ));
+        // None = 已启动但未完成（真实推理耗时秒级，几乎必然如此）。
+        assert!(pending.is_none(), "inference should not complete instantly");
+    }
+    assert!(
+        provider.models_ready(),
+        "dropping the recognize future must not lose the shared models"
+    );
+
+    // 丢弃后紧接着的识别必须仍然可用（同一份模型，无需重建）。
+    let (image, w, h) = ocr_test_image();
+    let text = block_on(provider.recognize(image, w, h)).expect("pp-ocr failed after drop");
+    assert!(!text.trim().is_empty());
+}

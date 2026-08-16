@@ -183,28 +183,63 @@ impl OcrProvider for BaiduOcr {
         width: u32,
         height: u32,
     ) -> Result<String, String> {
-        let token = self.get_access_token().await?;
         let image_b64 = bgra_to_base64_png(&data, width, height)?;
-        let url =
-            format!("https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic?access_token={token}");
-        let resp = self
-            .client
-            .post(&url)
-            .form(&[
-                ("image", image_b64.as_str()),
-                ("language_type", self.options.api_config.language.as_str()),
-            ])
-            .send()
-            .await
-            .map_err(|e| e.to_string())?;
-        let json: Value = resp.json().await.map_err(|e| e.to_string())?;
-        if let Some(arr) = json["words_result"].as_array() {
-            let lines: Vec<&str> = arr.iter().filter_map(|w| w["words"].as_str()).collect();
-            return Ok(lines.join("\n"));
+        // token 缓存曾永不过期：跨过有效期（约 30 天）后会一直失败到重启。
+        // 现在 token 失效错误（110/111）会作废缓存并换新 token 重试一次。
+        let mut retried = false;
+        loop {
+            let token = self.get_access_token().await?;
+            let url = format!(
+                "https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic?access_token={token}"
+            );
+            let resp = self
+                .client
+                .post(&url)
+                .form(&[
+                    ("image", image_b64.as_str()),
+                    ("language_type", self.options.api_config.language.as_str()),
+                ])
+                .send()
+                .await
+                .map_err(|e| e.to_string())?;
+            let json: Value = resp.json().await.map_err(|e| e.to_string())?;
+            if let Some(arr) = json["words_result"].as_array() {
+                let lines: Vec<&str> = arr.iter().filter_map(|w| w["words"].as_str()).collect();
+                return Ok(lines.join("\n"));
+            }
+            if is_token_error(&json) && !retried {
+                retried = true;
+                self.access_token = None;
+                continue;
+            }
+            return Err(json["error_msg"]
+                .as_str()
+                .unwrap_or("Baidu OCR error")
+                .to_string());
         }
-        Err(json["error_msg"]
-            .as_str()
-            .unwrap_or("Baidu OCR error")
-            .to_string())
+    }
+}
+
+/// 百度 access token 失效错误码：110 = 过期，111 = 非法。
+fn is_token_error(json: &Value) -> bool {
+    matches!(json["error_code"].as_i64(), Some(110) | Some(111))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn token_error_codes_are_recognized() {
+        // 回归：token 过期(110)/非法(111) 必须触发缓存作废+重试；
+        // 其他错误码（如 17=每日限额）不能误触发。
+        assert!(is_token_error(&serde_json::json!({ "error_code": 110 })));
+        assert!(is_token_error(&serde_json::json!({ "error_code": 111 })));
+        assert!(!is_token_error(&serde_json::json!({ "error_code": 17 })));
+        assert!(!is_token_error(
+            &serde_json::json!({ "error_code": 282131 })
+        ));
+        assert!(!is_token_error(&serde_json::json!({ "words_result": [] })));
+        assert!(!is_token_error(&serde_json::json!({})));
     }
 }

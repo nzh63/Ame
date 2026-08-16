@@ -50,7 +50,6 @@ impl Default for JBeijingOptions {
 pub struct JBeijing {
     pub options: JBeijingOptions,
     child: Arc<Mutex<Option<Child>>>,
-    #[allow(dead_code)]
     static_dir: PathBuf,
 }
 
@@ -93,7 +92,34 @@ impl JBeijing {
 /// Send text and read the translated response using the binary protocol,
 /// with a deadline so a wedged CLI can't block the pipeline forever
 /// (mirrors the Electron provider's 1000ms guard).
+///
+/// 超时/EOF 后子进程的 stdout 里还残留着这次请求的响应字节；若放任进程
+/// 存活，下一次调用会把这些陈旧字节当作新的长度前缀读入，协议永久错位
+/// （之后每次调用都返回乱码或立刻超时）。因此任何失败后都直接杀掉进程，
+/// 下一次调用时用保存的参数重新拉起。
 fn transact_child(
+    child: &Arc<Mutex<Option<Child>>>,
+    text: &str,
+    deadline: std::time::Instant,
+    respawn: impl FnOnce() -> Option<Child>,
+) -> Result<String, String> {
+    {
+        let mut guard = child.lock();
+        if guard.is_none() {
+            *guard = respawn();
+        }
+    }
+    let result = transact_child_inner(child, text, deadline);
+    if result.is_err() {
+        if let Some(mut dead) = child.lock().take() {
+            let _ = dead.kill();
+            let _ = dead.wait();
+        }
+    }
+    result
+}
+
+fn transact_child_inner(
     child: &Arc<Mutex<Option<Child>>>,
     text: &str,
     deadline: std::time::Instant,
@@ -181,9 +207,13 @@ impl TranslateProvider for JBeijing {
         // 否则会占住 Tauri async runtime 的 worker（Electron 用异步回调，
         // 不阻塞；且带 1000ms 超时保护，CLI 卡住时翻译管线不会挂死）。
         let child = self.child.clone();
+        let options = self.options.clone();
+        let static_dir = self.static_dir.clone();
         tokio::task::spawn_blocking(move || {
             let deadline = std::time::Instant::now() + std::time::Duration::from_millis(1000);
-            transact_child(&child, &text, deadline)
+            transact_child(&child, &text, deadline, || {
+                JBeijing::spawn_process(&options, &static_dir)
+            })
         })
         .await
         .map_err(|e| e.to_string())?
@@ -199,5 +229,55 @@ impl Drop for JBeijing {
             let _ = child.kill();
             let _ = child.wait();
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// 一个可被 kill 的长驻子进程（stdin/stdout 均为管道，模拟 CLI 协议）。
+    fn spawn_sleeper() -> Child {
+        let mut cmd = Command::new("cmd");
+        crate::win32::hide_console(&mut cmd);
+        cmd.args(["/C", "ping -n 10 127.0.0.1 > nul"])
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::null())
+            .spawn()
+            .expect("spawn sleeper process")
+    }
+
+    #[test]
+    fn failed_transact_kills_child_and_next_call_respawns() {
+        let child = Arc::new(Mutex::new(Some(spawn_sleeper())));
+        // 已过期的 deadline：读长度前缀时立刻超时（不依赖子进程行为）。
+        let deadline = std::time::Instant::now() - std::time::Duration::from_millis(1);
+
+        let err = transact_child(&child, "テスト", deadline, || Some(spawn_sleeper()))
+            .expect_err("expired deadline must fail");
+        assert!(err.contains("timeout"), "unexpected error: {err}");
+        // 回归点 1：失败后必须杀掉并移除子进程。旧实现让进程带残留字节
+        // 存活，下一次调用会把这次响应错读成新的长度前缀（协议永久错位）。
+        assert!(
+            child.lock().is_none(),
+            "failed transact must kill and remove the child"
+        );
+
+        // 回归点 2：下一次调用通过 respawn 重新拉起进程，而不是拿着
+        // None 直接报 "process not running"（旧实现进程死后永久失效）。
+        let respawns = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+        let counter = respawns.clone();
+        let result = transact_child(&child, "テスト", deadline, move || {
+            counter.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+            Some(spawn_sleeper())
+        });
+        assert!(result.is_err());
+        assert_eq!(
+            respawns.load(std::sync::atomic::Ordering::SeqCst),
+            1,
+            "respawn must be invoked exactly once"
+        );
+        assert!(child.lock().is_none());
     }
 }

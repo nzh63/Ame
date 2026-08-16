@@ -80,6 +80,10 @@ pub struct Session {
     ocr_queue_frame: Arc<Mutex<Option<(image::GrayImage, u32, u32)>>>,
     /// 周期性 movement 检测任务句柄（destroy 时取消）。
     ocr_movement_task: Option<tauri::async_runtime::JoinHandle<()>>,
+    /// OCR 队列 worker 任务句柄。任务本体挂在 `Notify::notified()` 上永久
+    /// 等待，不保存句柄并在 destroy 时 abort 的话，会话结束后它仍持有
+    /// `AppHandle`/OCR providers/帧槽，反复开关会话会不断累积（泄漏）。
+    ocr_worker_task: Option<tauri::async_runtime::JoinHandle<()>>,
     /// Periodic frame-diff movement detector (interval configured in options).
     /// Whether the game window is currently visible (minimized → no triggers).
     game_window_visible: Arc<AtomicBool>,
@@ -277,6 +281,7 @@ impl Session {
             Arc::new(Mutex::new(None));
         let translate_watch_keys = Arc::new(Mutex::new(HashMap::<String, ()>::new()));
         let mut ocr_movement_task: Option<tauri::async_runtime::JoinHandle<()>> = None;
+        let mut ocr_worker_task: Option<tauri::async_runtime::JoinHandle<()>> = None;
         let mut listener_ids: Vec<tauri::EventId> = Vec::new();
 
         // Wire extractor output → translation pipeline.
@@ -476,7 +481,7 @@ impl Session {
                 let worker_ext = ocr_ext.clone();
                 let worker_providers = ocr_providers.clone();
                 let worker_app = app.clone();
-                tauri::async_runtime::spawn(async move {
+                ocr_worker_task = Some(tauri::async_runtime::spawn(async move {
                     loop {
                         worker_notify.notified().await;
                         crate::log_info!("ocr", "OCR worker woke (pending=true)");
@@ -493,7 +498,7 @@ impl Session {
                             .await;
                         }
                     }
-                });
+                }));
             }
         }
 
@@ -512,6 +517,7 @@ impl Session {
             ocr_queue_notify,
             ocr_queue_frame,
             ocr_movement_task,
+            ocr_worker_task,
             game_window_visible,
             translate_watch_keys,
             store,
@@ -586,16 +592,18 @@ impl Session {
     /// (memory only), and persist to the store debounced so dragging the
     /// guide slider doesn't rewrite the whole store file on every tick.
     pub fn set_ocr_rect(&self, rect: Value) -> Result<(), String> {
+        // 先校验再落盘：非法 rect（缺字段/负数/浮点）若被持久化，会在每次
+        // 会话启动时重新反序列化失败，等于把垃圾数据写死进 store。
+        let parsed: crate::extractor::ocr::CropRect =
+            serde_json::from_value(rect.clone()).map_err(|e| format!("invalid crop rect: {e}"))?;
         if let Some(ext) = self.ocr_extractor.as_ref() {
             // 用 try_lock：movement 检测可能正持锁截图（几十到几百 ms），
             // 滑块拖动时不能阻塞等锁（否则每 tick 都卡一下）。
-            if let Ok(r) = serde_json::from_value::<crate::extractor::ocr::CropRect>(rect.clone()) {
-                if let Some(mut guard) = ext.try_lock() {
-                    guard.rect = Some(r);
-                } else {
-                    // 锁被占用：本轮跳过，下一 tick 的 rect 仍会带最新值，
-                    // 且持久化照常进行——不阻塞滑块。
-                }
+            if let Some(mut guard) = ext.try_lock() {
+                guard.rect = Some(parsed);
+            } else {
+                // 锁被占用：本轮跳过，下一 tick 的 rect 仍会带最新值，
+                // 且持久化照常进行——不阻塞滑块。
             }
         }
         // 防抖持久化：只保留一个延迟写入线程；拖动期间新请求到来时，
@@ -762,6 +770,12 @@ impl Session {
         // Cancel the movement OCR task (worker/queue are session-scoped and
         // die with the async runtime, so nothing to join here).
         if let Some(task) = self.ocr_movement_task.take() {
+            task.abort();
+        }
+        // Abort the parked OCR queue worker: it otherwise waits on
+        // `Notify::notified()` forever while holding the AppHandle, the OCR
+        // providers and the frame slot (one leaked task per session start).
+        if let Some(task) = self.ocr_worker_task.take() {
             task.abort();
         }
         // Cancel + join the in-flight OCR-rect debounce writer so it never
@@ -1433,6 +1447,84 @@ mod tests {
         let _ = std::fs::remove_dir_all(dir);
     }
 
+    #[test]
+    fn destroy_aborts_ocr_worker_task() {
+        // 回归：OCR worker 停在 Notify::notified() 上永久等待，destroy()
+        // 必须 abort 它——否则任务连同捕获的 AppHandle/providers 一起泄漏，
+        // 反复开关会话不断累积。
+        struct OnDrop(Arc<AtomicBool>);
+        impl Drop for OnDrop {
+            fn drop(&mut self) {
+                self.0.store(true, Ordering::SeqCst);
+            }
+        }
+
+        let mut session = Session::dummy();
+        let dropped = Arc::new(AtomicBool::new(false));
+        let started = Arc::new(AtomicBool::new(false));
+        let flag = dropped.clone();
+        let began = started.clone();
+        let task = tauri::async_runtime::spawn(async move {
+            // 先等任务真正被 poll 一次再 park：若 abort 赢在首次 poll 之前，
+            // future 里的局部变量从未构造，Drop 守卫不会触发（与泄漏无关）。
+            began.store(true, Ordering::SeqCst);
+            let _guard = OnDrop(flag);
+            loop {
+                std::future::pending::<()>().await;
+            }
+        });
+        session.ocr_worker_task = Some(task);
+        for _ in 0..200 {
+            if started.load(Ordering::SeqCst) {
+                break;
+            }
+            std::thread::sleep(std::time::Duration::from_millis(10));
+        }
+        assert!(
+            started.load(Ordering::SeqCst),
+            "test harness: worker task must start before destroy"
+        );
+        session.destroy();
+        assert!(session.ocr_worker_task.is_none());
+
+        // abort 会 drop future → guard 置位；短暂轮询等待 abort 生效。
+        for _ in 0..100 {
+            if dropped.load(Ordering::SeqCst) {
+                break;
+            }
+            std::thread::sleep(std::time::Duration::from_millis(10));
+        }
+        assert!(
+            dropped.load(Ordering::SeqCst),
+            "destroy() must abort the parked OCR worker task"
+        );
+    }
+
+    #[test]
+    fn set_ocr_rect_rejects_invalid_rect_without_persisting() {
+        // 回归：非法 rect（负数/浮点/缺字段）不允许写进 store——旧实现会把
+        // 原始值照常落盘，之后每次会话启动反序列化都失败，等于永久坏数据。
+        let (session, dir) = session_with_game();
+        let bad_rects = [
+            serde_json::json!({ "left": -1, "top": 0, "width": 10, "height": 10 }),
+            serde_json::json!({ "left": 0, "top": 0, "width": 10.5, "height": 10 }),
+            serde_json::json!({ "left": 0, "top": 0, "height": 10 }),
+        ];
+        for bad in bad_rects {
+            assert!(
+                session.set_ocr_rect(bad).is_err(),
+                "invalid rect must be rejected"
+            );
+        }
+        let games = session.store.get("games", None);
+        assert!(
+            games[0].get("ocr").is_none(),
+            "rejected rect must not be persisted"
+        );
+        drop(session);
+        let _ = std::fs::remove_dir_all(dir);
+    }
+
     impl Session {
         #[cfg(test)]
         fn dummy() -> Self {
@@ -1460,6 +1552,7 @@ mod tests {
                 ocr_queue_notify: Arc::new(Notify::new()),
                 ocr_queue_frame: Arc::new(Mutex::new(None)),
                 ocr_movement_task: None,
+                ocr_worker_task: None,
                 game_window_visible: Arc::new(AtomicBool::new(true)),
                 translate_watch_keys: Arc::new(Mutex::new(HashMap::new())),
                 store: crate::store::Store::load_from_dir(dir).unwrap(),

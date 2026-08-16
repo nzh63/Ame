@@ -7,6 +7,7 @@
 //! panics — PP-OCR is a hard dependency, never a silent feature gap.
 
 use std::path::Path;
+use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -89,11 +90,16 @@ impl Default for PpOcrOptions {
 
 pub struct PpOcr {
     pub options: PpOcrOptions,
-    detector: Option<Detector>,
-    recognizer: Option<Recognizer>,
+    /// 模型经 Arc<Mutex> 共享：调用方（run_ocr_cycle）给 recognize 包了
+    /// 20s 超时，future 被 drop 后 blocking 线程里的推理仍在继续并持有
+    /// 模型；若用 take() 把模型移进闭包，下一次识别只能重建一份——旧
+    /// 实现会在推理反复超时的情况下越积越多模型（内存翻倍）。共享句柄
+    /// 保证全进程始终只有一份模型，后续识别排队等锁即可。
+    models: Arc<parking_lot::Mutex<Option<(Detector, Recognizer)>>>,
     /// 模型文件路径（det param, det model, rec param, rec model），
-    /// 用于模型丢失（如 timeout 丢弃 future）后重建。
+    /// 用于首次构建失败后每次识别前重试。
     model_paths: Option<(String, String, String, String)>,
+    gpu: Option<i32>,
 }
 
 impl PpOcr {
@@ -101,15 +107,27 @@ impl PpOcr {
         // GPU (自动) → first Vulkan device; CPU → software inference.
         let gpu = (options.device == PpOcrDevice::Gpu).then_some(0);
         let paths = model_paths(options.model, static_dir);
-        let (det_param, det_model, rec_param, rec_model) = paths.clone();
-        let detector = Detector::create(&det_param, &det_model, gpu);
-        let recognizer = Recognizer::create(&rec_param, &rec_model, gpu);
+        let models = build_models_from(&paths, gpu);
         Self {
             options,
-            detector,
-            recognizer,
+            models: Arc::new(parking_lot::Mutex::new(models)),
             model_paths: Some(paths),
+            gpu,
         }
+    }
+}
+
+/// 按路径构建模型对；任一模型创建失败返回 None（下次识别前重试）。
+fn build_models_from(
+    paths: &(String, String, String, String),
+    gpu: Option<i32>,
+) -> Option<(Detector, Recognizer)> {
+    let (det_param, det_model, rec_param, rec_model) = paths;
+    let detector = Detector::create(det_param, det_model, gpu);
+    let recognizer = Recognizer::create(rec_param, rec_model, gpu);
+    match (detector, recognizer) {
+        (Some(d), Some(r)) => Some((d, r)),
+        _ => None,
     }
 }
 
@@ -167,52 +185,43 @@ impl OcrProvider for PpOcr {
         width: u32,
         height: u32,
     ) -> Result<String, String> {
-        // 模型可能因 timeout 丢弃 future 而丢失，先确保可用再识别。
-        self.ensure_models();
+        // 确保模型存在（首次构建失败后每次识别前重试；timeout 丢弃 future
+        // 不再需要重建——共享句柄下模型从未丢失）。
+        {
+            let mut guard = self.models.lock();
+            if guard.is_none() {
+                if let Some(paths) = self.model_paths.as_ref() {
+                    *guard = build_models_from(paths, self.gpu);
+                }
+            }
+        }
         // PP-OCR 推理是同步 CPU 密集操作（ncnn）。若直接在主 async 线程执行，
         // 会占满 Tauri async runtime 的 worker（事件、翻译、UI 全部卡顿）。
-        // 必须放到 blocking 线程池，async 侧只做等待。
-        // 用 Option::take 把模型移进 blocking 线程，识别完无条件放回。
-        // 注意：调用方（run_ocr_cycle）可能用 timeout 包裹本 future——
-        // 一旦 timeout 触发，future 被 drop，spawn_blocking 闭包里的模型
-        // 无法回到 self，后续识别会永久失败。因此这里不依赖放回，而是
-        // 让 spawn_blocking 在 join 超时后自动重建模型（见下方）。
-        let detector = self.detector.take();
-        let recognizer = self.recognizer.take();
-        let result = tokio::task::spawn_blocking(move || {
-            let (mut detector, mut recognizer) = match (detector, recognizer) {
-                (Some(d), Some(r)) => (d, r),
-                _ => return Err("PP-OCR models not initialized".to_string()),
+        // 锁在 blocking 线程内获取：推理期间其他识别排队，模型不重复构建。
+        let models = self.models.clone();
+        let text = tokio::task::spawn_blocking(move || {
+            let mut guard = models.lock();
+            let Some((detector, recognizer)) = guard.as_mut() else {
+                return Err("PP-OCR models not initialized".to_string());
             };
             let boxes = detector.detect(&data, width, height);
             if boxes.is_empty() {
-                return Ok((detector, recognizer, String::new()));
+                return Ok(String::new());
             }
             let texts = recognizer.recognize(&data, width, height, &boxes);
-            Ok((detector, recognizer, texts.join("\n")))
+            Ok(texts.join("\n"))
         })
         .await
         .map_err(|e| format!("PP-OCR worker failed: {e}"))??;
-        // 正常完成：放回模型。若 future 被 timeout 丢弃，这里不会执行，
-        // 但下一条路径会重建。
-        self.detector = Some(result.0);
-        self.recognizer = Some(result.1);
-        Ok(result.2)
+        Ok(text)
     }
 }
 
 impl PpOcr {
-    /// 重建 ncnn 模型（timeout 丢弃 future 导致模型丢失后，下次识别时重建）。
-    fn ensure_models(&mut self) {
-        if self.detector.is_some() && self.recognizer.is_some() {
-            return;
-        }
-        let Some((det_param, det_model, rec_param, rec_model)) = self.model_paths.clone() else {
-            return;
-        };
-        let gpu = (self.options.device == PpOcrDevice::Gpu).then_some(0);
-        self.detector = Detector::create(&det_param, &det_model, gpu);
-        self.recognizer = Recognizer::create(&rec_param, &rec_model, gpu);
+    /// 仅供测试/诊断：模型是否就绪。
+    #[cfg(test)]
+    pub(crate) fn models_ready(&self) -> bool {
+        self.models.lock().is_some()
     }
 }
 

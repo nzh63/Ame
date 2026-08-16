@@ -13,15 +13,18 @@ pub async fn start_game(arg: Value) -> Result<Value, String> {
     let exec_shell = arg["execShell"].as_str().unwrap_or("").to_string();
 
     // Record PIDs before launch so we can detect the new one.
-    let old_pids = find_process_pids(&path);
+    // PowerShell 子进程是秒级阻塞调用，必须放 blocking 线程池——直接在
+    // async 命令里跑会占住 Tauri runtime 的 worker，拖累事件分发/翻译流。
+    let old_pids = find_process_pids(path.clone()).await;
 
     // Launch via shell (PowerShell Start-Process style).
-    launch_game(&exec_shell, &path)?;
+    launch_game(exec_shell, path.clone()).await?;
 
     // Poll for a new PID up to 10 times.
     for i in 0..10 {
         crate::log_info!("game", "wait for game to start, retry: {i}");
-        let new_pids: Vec<u32> = find_process_pids(&path)
+        let new_pids: Vec<u32> = find_process_pids(path.clone())
+            .await
             .into_iter()
             .filter(|p| !old_pids.contains(p))
             .collect();
@@ -76,7 +79,17 @@ pub fn set_game_select_keys<R: tauri::Runtime>(
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 /// Find PIDs of running processes whose executable matches the given path.
-fn find_process_pids(path: &str) -> Vec<u32> {
+///
+/// PowerShell is a multi-second blocking call, so this is a `spawn_blocking`
+/// wrapper; the actual script lives in [`find_process_pids_blocking`].
+async fn find_process_pids(path: String) -> Vec<u32> {
+    tokio::task::spawn_blocking(move || find_process_pids_blocking(&path))
+        .await
+        .unwrap_or_default()
+}
+
+/// Find PIDs of running processes whose executable matches the given path.
+fn find_process_pids_blocking(path: &str) -> Vec<u32> {
     // Use PowerShell Get-Process to match by path. This mirrors the original
     // `findProcess` implementation in src/main/win32.
     let name = std::path::Path::new(path)
@@ -100,8 +113,15 @@ fn find_process_pids(path: &str) -> Vec<u32> {
     }
 }
 
-/// Launch the game using the configured shell command.
-fn launch_game(exec_shell: &str, path: &str) -> Result<(), String> {
+/// Launch the game using the configured shell command (blocking; see
+/// [`find_process_pids`]).
+async fn launch_game(exec_shell: String, path: String) -> Result<(), String> {
+    tokio::task::spawn_blocking(move || launch_game_blocking(&exec_shell, &path))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+fn launch_game_blocking(exec_shell: &str, path: &str) -> Result<(), String> {
     let dir = std::path::Path::new(path)
         .parent()
         .map(|p| p.to_string_lossy().to_string())
@@ -124,5 +144,28 @@ fn launch_game(exec_shell: &str, path: &str) -> Result<(), String> {
         Ok(())
     } else {
         Err("Failed to launch game".into())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn find_process_pids_matches_running_process_by_path() {
+        // 回归：按"进程名 + 完整路径"匹配必须能找到自身（Start-Game 靠它
+        // 识别新启动的游戏进程）。
+        let exe = std::env::current_exe().unwrap();
+        let pids = find_process_pids_blocking(exe.to_str().unwrap());
+        assert!(
+            pids.contains(&std::process::id()),
+            "own pid {} not found in {pids:?}",
+            std::process::id()
+        );
+    }
+
+    #[test]
+    fn find_process_pids_unknown_path_returns_empty() {
+        assert!(find_process_pids_blocking("C:\\nonexistent\\no-such-game.exe").is_empty());
     }
 }

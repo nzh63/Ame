@@ -65,7 +65,11 @@ impl DiskWriter {
             let mut pending = self.pending.lock().unwrap();
             *pending = Some(raw);
         }
-        self.cond.notify_one();
+        // 必须 notify_all：condvar 上有两个等待者（写线程 + flush）。用
+        // notify_one 时可能唤醒的是 flush——它看到 pending=Some 继续睡，
+        // 而真正该干活的写线程仍带着待写快照沉睡，直到下一次提交才可能
+        // 被唤醒（高频提交场景表现为写盘长时间停摆的活锁）。
+        self.cond.notify_all();
         self.spawn_if_needed();
     }
 
@@ -94,10 +98,16 @@ impl DiskWriter {
                 while pending.is_none() && !self.stopped.load(Ordering::SeqCst) {
                     pending = self.cond.wait(pending).unwrap();
                 }
-                pending.take()
+                let raw = pending.take();
+                // busy 必须与 take() 同临界区置位：否则 flush() 恰好在两者
+                // 之间拿锁时会看到 pending=None && busy=false 而提前返回，
+                // 退出前的最后一次保存被随后的 app.exit() 丢掉。
+                if raw.is_some() {
+                    self.busy.store(true, Ordering::SeqCst);
+                }
+                raw
             };
             let Some(raw) = raw else { break };
-            self.busy.store(true, Ordering::SeqCst);
             // 先写临时文件再 rename，崩溃/断电不会截断正式文件。
             let tmp = self.path.with_extension("json.tmp");
             if let Err(err) = std::fs::write(&tmp, &raw) {
@@ -476,6 +486,46 @@ mod tests {
         let raw = std::fs::read_to_string(dir.join("config.json")).unwrap();
         let value: Value = serde_json::from_str(&raw).unwrap();
         assert_eq!(value["counter"], json!(49));
+        drop(store);
+        let _ = std::fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn concurrent_flush_waits_for_inflight_write() {
+        // 回归：flush() 与后台写线程并发时，绝不允许在"已 take 快照但
+        // 还没写盘"的窗口里提前返回——旧实现在该窗口看到
+        // pending=None && busy=false 就直接返回，最后一次保存会被
+        // 退出路径的 app.exit() 丢掉。
+        let (store, dir) = temp_store();
+        // 先由主线程提交一次，保证写线程一定启动、文件一定会生成
+        // （否则 hammer 线程若未被调度测试就退化成空转）。
+        store.set("v", json!(0)).unwrap();
+        let stop = Arc::new(std::sync::atomic::AtomicBool::new(false));
+        let stop_writer = stop.clone();
+        let writer_store = store.clone();
+        let writer = std::thread::spawn(move || {
+            let mut i = 1u64;
+            while !stop_writer.load(Ordering::SeqCst) {
+                writer_store.set("v", json!(i)).unwrap();
+                i += 1;
+                // 毫秒级 sleep：制造与写盘/flush 的真实交错，同时给 flush
+                // 留出抓取 pending 空窗的机会（更短的热循环会饿死 flush，
+                // 把测试变成活锁）。
+                std::thread::sleep(std::time::Duration::from_millis(1));
+            }
+        });
+        // 并发 flush：每次 flush 返回时，此刻已提交的值必须在盘上。
+        for _ in 0..30 {
+            store.flush();
+        }
+        stop.store(true, Ordering::SeqCst);
+        writer.join().unwrap();
+        // 退出路径：最后一次提交 + flush 后，盘上必须包含该值。
+        store.set("v", json!("final")).unwrap();
+        store.flush();
+        let raw = std::fs::read_to_string(dir.join("config.json")).unwrap();
+        let value: Value = serde_json::from_str(&raw).unwrap();
+        assert_eq!(value["v"], json!("final"));
         drop(store);
         let _ = std::fs::remove_dir_all(dir);
     }

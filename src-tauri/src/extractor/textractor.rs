@@ -59,17 +59,34 @@ impl Textractor {
             .spawn()
             .map_err(|e| format!("Failed to start TextractorCLI: {e}"))?;
 
-        // Send attach commands for each PID (UTF-16LE).
-        if let Some(stdin) = child.stdin.as_mut() {
+        // Send attach commands for each PID (UTF-16LE). 写入失败（CLI 提前
+        // 退出/管道破裂）不能吞掉——旧实现 `let _ =` 会让 attach 静默失败，
+        // 会话看起来正常但永远提取不到文本。
+        let attach_result: Result<(), String> = (|| {
+            let Some(stdin) = child.stdin.as_mut() else {
+                return Ok(());
+            };
             for &pid in &game_pids {
                 let cmd = format!("attach {hook_code} -P{pid}\r\n");
                 crate::log_info!("extractor", "exec TextractorCli command: {cmd:?}");
                 let utf16: Vec<u16> = cmd.encode_utf16().collect();
                 let bytes: Vec<u8> = utf16.iter().flat_map(|c| c.to_le_bytes()).collect();
-                let _ = stdin.write_all(&bytes);
+                stdin
+                    .write_all(&bytes)
+                    .map_err(|e| format!("failed to write attach command: {e}"))?;
             }
-            let _ = stdin.flush();
+            stdin
+                .flush()
+                .map_err(|e| format!("failed to flush attach commands: {e}"))
+        })();
+        if let Err(err) = attach_result {
+            // 不能让已启动的 CLI 进程成为孤儿（Child drop 不会杀进程）。
+            let _ = child.kill();
+            let _ = child.wait();
+            return Err(err);
         }
+        // stdin 保持打开（与旧 Electron 实现一致：TextractorCLI 持续运行，
+        // 不依赖 stdin EOF）。
 
         let post_process = Arc::new(Mutex::new(PostProcessOption {
             remove_duplication: false,
@@ -115,20 +132,10 @@ impl Textractor {
             };
             byte_buf.extend_from_slice(&chunk[..n]);
 
-            // Decode complete UTF-16 code units.
-            let complete = byte_buf.len() / 2 * 2;
-            if complete == 0 {
-                continue;
-            }
-            let u16s: Vec<u16> = byte_buf[..complete]
-                .chunks_exact(2)
-                .map(|c| u16::from_le_bytes([c[0], c[1]]))
-                .collect();
-            byte_buf.drain(..complete);
-
-            if let Ok(decoded) = String::from_utf16(&u16s) {
-                buffer.push_str(&decoded);
-            }
+            // Decode complete UTF-16 code units. 用 lossy：孤立代理项（截断
+            // 的宽字符流）只损失那一个码位，旧实现 from_utf16 失败会把整块
+            // （最多 4096 字节，可能含多行完整文本）全部丢掉。
+            buffer.push_str(&decode_utf16le_complete(&mut byte_buf));
 
             // Process complete lines.
             while let Some(pos) = buffer.find('\n') {
@@ -217,5 +224,61 @@ impl Textractor {
         if let Some(reader) = self.reader_thread.take() {
             let _ = reader.join();
         }
+    }
+}
+
+/// Decode the complete UTF-16LE code units at the front of `byte_buf`,
+/// draining them; a trailing odd byte stays for the next chunk.
+fn decode_utf16le_complete(byte_buf: &mut Vec<u8>) -> String {
+    let complete = byte_buf.len() / 2 * 2;
+    if complete == 0 {
+        return String::new();
+    }
+    let u16s: Vec<u16> = byte_buf[..complete]
+        .chunks_exact(2)
+        .map(|c| u16::from_le_bytes([c[0], c[1]]))
+        .collect();
+    byte_buf.drain(..complete);
+    String::from_utf16_lossy(&u16s)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn utf16_decode_keeps_valid_text_behind_lone_surrogate() {
+        // 回归：旧实现 from_utf16 遇到孤立代理项会把整个 chunk 丢掉
+        // （连同其中的完整行）；lossy 只替换坏码位。
+        let mut buf: Vec<u8> = Vec::new();
+        for u in "ab".encode_utf16() {
+            buf.extend_from_slice(&u.to_le_bytes());
+        }
+        buf.extend_from_slice(&0xD800u16.to_le_bytes()); // 孤立高代理
+        for u in "cd".encode_utf16() {
+            buf.extend_from_slice(&u.to_le_bytes());
+        }
+        let decoded = decode_utf16le_complete(&mut buf);
+        assert!(decoded.starts_with("ab"), "decoded: {decoded:?}");
+        assert!(decoded.ends_with("cd"), "decoded: {decoded:?}");
+        assert!(decoded.contains('\u{FFFD}'), "bad unit becomes U+FFFD");
+        assert!(buf.is_empty(), "complete units must be drained");
+    }
+
+    #[test]
+    fn utf16_decode_leaves_trailing_odd_byte() {
+        let mut buf = vec![0x41u8, 0x00, 0x42, 0x00, 0x43]; // "AB" + 奇数字节
+        let decoded = decode_utf16le_complete(&mut buf);
+        assert_eq!(decoded, "AB");
+        assert_eq!(buf, vec![0x43], "odd trailing byte must stay buffered");
+    }
+
+    #[test]
+    fn utf16_decode_empty_and_single_byte() {
+        let mut empty: Vec<u8> = Vec::new();
+        assert_eq!(decode_utf16le_complete(&mut empty), "");
+        let mut one = vec![0x61u8];
+        assert_eq!(decode_utf16le_complete(&mut one), "");
+        assert_eq!(one, vec![0x61]);
     }
 }

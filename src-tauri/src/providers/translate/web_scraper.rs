@@ -147,11 +147,20 @@ pub struct WebScraper {
     pub site: ScraperSite,
     pub options: WebScraperOptions,
     app: AppHandle,
+    /// 同一站点的隐藏窗口是共享资源：并行翻译会互相覆盖输入框、结果事件
+    /// 也可能错配到另一条请求（run_translation 对多个 key 是并发分发的）。
+    /// 整个 translate 期间持锁串行化（与 OpenAI/Anthropic 的 call_lock 同理）。
+    call_lock: std::sync::Arc<tokio::sync::Mutex<()>>,
 }
 
 impl WebScraper {
     pub fn new(site: ScraperSite, options: WebScraperOptions, app: AppHandle) -> Self {
-        Self { site, options, app }
+        Self {
+            site,
+            options,
+            app,
+            call_lock: std::sync::Arc::new(tokio::sync::Mutex::new(())),
+        }
     }
 
     fn window_label(&self) -> String {
@@ -212,6 +221,10 @@ impl TranslateProvider for WebScraper {
     }
 
     async fn translate(&self, text: String) -> Result<String, String> {
+        // 串行化整个流程（含 ensure_window）：两个并发 translate 各自 eval
+        // 插入文本脚本会互相覆盖页面输入框，结果事件按 event_id 匹配也
+        // 可能张冠李戴。
+        let _guard = self.call_lock.lock().await;
         let window = self.ensure_window().await?;
         let event_id = uuid::Uuid::new_v4().to_string();
 
