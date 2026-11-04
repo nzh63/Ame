@@ -18,7 +18,7 @@ path = "tests/unit.rs"
 tauri-build = { version = "2", features = [] }
 cmake = "0.1"
 ureq = "2"
-zip = "2"
+zip = "9"
 
 [dependencies]
 ame-macros = { path = "macros" }
